@@ -11,20 +11,20 @@ import java.util.HashMap;
 
 public abstract class Command
 {
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	static final HashMap<String, Command> commands = new HashMap<>();
 
-	public Command()
+	protected Command()
 	{
 	}
 
 	public abstract boolean execute(Message message, TextChannel channel, String... args);
 
 	@NotNull
-	public abstract String getKeyword();
+	protected abstract String getKeyword();
 
 	@Nullable
-	public abstract String getHelpText();
+	protected abstract String getHelpText();
 
 	public boolean multipleArguments()
 	{

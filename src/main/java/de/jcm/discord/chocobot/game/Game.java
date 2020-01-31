@@ -17,17 +17,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public abstract class Game extends ListenerAdapter
+abstract class Game extends ListenerAdapter
 {
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-	protected final Member sponsor;
-	protected List<Member> players;
-	protected GameState state;
-	protected final TextChannel gameChannel;
-	protected Message confirmMessage;
-	protected Message announceMessage;
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	final Member sponsor;
+	List<Member> players;
+	GameState state;
+	final TextChannel gameChannel;
+	private Message confirmMessage;
+	private Message announceMessage;
 
-	public Game(Member sponsor, TextChannel gameChannel)
+	Game(Member sponsor, TextChannel gameChannel)
 	{
 		this.state = GameState.CONFIRM;
 		this.sponsor = sponsor;
@@ -47,7 +47,7 @@ public abstract class Game extends ListenerAdapter
 		}
 	}
 
-	protected void confirm()
+	private void confirm()
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setColor(ChocoBot.COLOR_GAME);
@@ -70,7 +70,7 @@ public abstract class Game extends ListenerAdapter
 		});
 	}
 
-	protected void cancel()
+	private void cancel()
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setColor(ChocoBot.COLOR_GAME);
@@ -80,7 +80,7 @@ public abstract class Game extends ListenerAdapter
 		this.gameChannel.sendMessage(builder.build()).queueAfter(10L, TimeUnit.SECONDS);
 	}
 
-	protected void announce()
+	private void announce()
 	{
 		this.players = new ArrayList<>();
 		this.players.add(this.sponsor);
@@ -102,7 +102,7 @@ public abstract class Game extends ListenerAdapter
 		});
 	}
 
-	protected void end()
+	void end()
 	{
 		this.cleanup();
 		this.logger.info("Finished game {}({}).", this.getName(), this.hashCode());
@@ -118,7 +118,7 @@ public abstract class Game extends ListenerAdapter
 
 	public abstract String getName();
 
-	public abstract int getSponsorCost();
+	protected abstract int getSponsorCost();
 
 	public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event)
 	{

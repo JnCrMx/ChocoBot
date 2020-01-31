@@ -141,7 +141,7 @@ public class CommandShip extends Command
 		}
 	}
 
-	public static String solveMentions(String string, Guild guild)
+	private static String solveMentions(String string, Guild guild)
 	{
 		Pattern pattern = Pattern.compile("<@(|!)([0-9]*)>");
 		Matcher matcher = pattern.matcher(string);

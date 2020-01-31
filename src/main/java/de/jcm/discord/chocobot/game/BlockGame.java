@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BlockGame extends Command
 {
-	public static final int COST = 10;
+	private static final int COST = 10;
 
 	private final Random random = new Random();
 
@@ -53,8 +53,8 @@ public class BlockGame extends Command
 				});
 				channel.getJDA().addEventListener(new ListenerAdapter()
 				{
-					public GameState state;
-					public Message gameMessage;
+					GameState state;
+					Message gameMessage;
 
 					{
 						this.state = GameState.CONFIRM;

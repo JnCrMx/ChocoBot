@@ -15,9 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 public class QuizGame extends Game
 {
-	public static List<QuizGame.QuizQuestion> quizQuestions;
-	public static final String[] EMOJIS_ANSWER = new String[]{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"};
-	public static final int WINNER_REWARD = 50;
+	private static List<QuizGame.QuizQuestion> quizQuestions;
+	private static final String[] EMOJIS_ANSWER = new String[]{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"};
+	private static final int WINNER_REWARD = 50;
 	private Message quizMessage;
 	private int rightAnswer;
 	private Map<Member, Integer> answers;
@@ -153,12 +153,12 @@ public class QuizGame extends Game
 		}
 	}
 
-	public static class QuizQuestion
+	static class QuizQuestion
 	{
-		public final String question;
-		public final String[] answers;
+		final String question;
+		final String[] answers;
 
-		public QuizQuestion(String question, String[] answers)
+		QuizQuestion(String question, String[] answers)
 		{
 			this.question = question;
 			this.answers = answers;

@@ -14,7 +14,7 @@ public class DatabaseUtils
 	private static PreparedStatement getCoins;
 	private static PreparedStatement changeCoins;
 
-	public DatabaseUtils()
+	private DatabaseUtils()
 	{
 	}
 

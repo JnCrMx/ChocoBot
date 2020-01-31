@@ -60,7 +60,7 @@ public class ChocoBot extends ListenerAdapter
 
 	public static Connection database;
 	public static ScheduledExecutorService executorService;
-	public static Future<?> remindFuture;
+	private static Future<?> remindFuture;
 	public static JDA jda;
 	public static final Client client = ClientBuilder.newClient();
 	public static String redditToken;

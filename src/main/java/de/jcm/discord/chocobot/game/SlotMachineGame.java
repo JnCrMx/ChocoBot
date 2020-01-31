@@ -20,22 +20,22 @@ import java.util.concurrent.TimeUnit;
 
 public class SlotMachineGame extends Command
 {
-	public static final int COST = 10;
-	public static final int SPECIAL_MULTIPLIER = 2;
-	public static final int PRIZE_THREE = 1000;
-	public static final int PRIZE_TWO_NEXT = 100;
-	public static final int PRIZE_TWO = 50;
-	public static final int PRIZE_THREE_CATEGORY = 25;
-	public static final int PRIZE_TWO_NEXT_CATEGORY = 15;
-	public static final int PRIZE_TWO_CATEGORY = 10;
-	public static final String[] EMOJIS_FRUITS = new String[]{"\ud83c\udf4e", "\ud83c\udf4b", "\ud83c\udf49", "\ud83c\udf53", "\ud83c\udf48", "\ud83c\udf52", "\ud83c\udf4d"};
-	public static final String[] EMOJIS_HEARTS = new String[]{"❤️", "\ud83e\udde1", "\ud83d\udc9b", "\ud83d\udc9a", "\ud83d\udc99", "\ud83d\udc9c", "\ud83d\udda4"};
-	public static final String[] EMOJIS_MONEY = new String[]{"\ud83d\udcb8", "\ud83d\udcb5", "\ud83d\udcb4", "\ud83d\udcb6", "\ud83d\udcb7", "\ud83d\udcb0", "\ud83d\udcb3"};
-	public static final String[] EMOJIS_OTHER = new String[]{"\ud83c\udfb2", "\ud83c\udfc6", "\ud83c\udfab", "\ud83c\udfae"};
-	public static final String[][] EMOJIS_NORMAL;
-	public static final String[] EMOJIS_SPECIAL;
-	public static final int SPECIAL;
-	public static final String[] EMOJIS_WHEEL;
+	private static final int COST = 10;
+	private static final int SPECIAL_MULTIPLIER = 2;
+	private static final int PRIZE_THREE = 1000;
+	private static final int PRIZE_TWO_NEXT = 100;
+	private static final int PRIZE_TWO = 50;
+	private static final int PRIZE_THREE_CATEGORY = 25;
+	private static final int PRIZE_TWO_NEXT_CATEGORY = 15;
+	private static final int PRIZE_TWO_CATEGORY = 10;
+	private static final String[] EMOJIS_FRUITS = new String[]{"\ud83c\udf4e", "\ud83c\udf4b", "\ud83c\udf49", "\ud83c\udf53", "\ud83c\udf48", "\ud83c\udf52", "\ud83c\udf4d"};
+	private static final String[] EMOJIS_HEARTS = new String[]{"❤️", "\ud83e\udde1", "\ud83d\udc9b", "\ud83d\udc9a", "\ud83d\udc99", "\ud83d\udc9c", "\ud83d\udda4"};
+	private static final String[] EMOJIS_MONEY = new String[]{"\ud83d\udcb8", "\ud83d\udcb5", "\ud83d\udcb4", "\ud83d\udcb6", "\ud83d\udcb7", "\ud83d\udcb0", "\ud83d\udcb3"};
+	private static final String[] EMOJIS_OTHER = new String[]{"\ud83c\udfb2", "\ud83c\udfc6", "\ud83c\udfab", "\ud83c\udfae"};
+	private static final String[][] EMOJIS_NORMAL;
+	private static final String[] EMOJIS_SPECIAL;
+	private static final int SPECIAL;
+	private static final String[] EMOJIS_WHEEL;
 	private final Random random = new Random();
 
 	private final String FORMAT_PLAYING =
@@ -106,7 +106,7 @@ public class SlotMachineGame extends Command
 		message.editMessage(buildMessage(player, wheels)).submit();
 	}
 
-	public int getCategory(String emoji)
+	private int getCategory(String emoji)
 	{
 		if (ArrayUtils.contains(EMOJIS_SPECIAL, emoji))
 		{
@@ -193,9 +193,9 @@ public class SlotMachineGame extends Command
 				channel.getJDA().addEventListener(new ListenerAdapter()
 				{
 					private int[] wheels;
-					public GameState state;
-					public Message gameMessage;
-					public ScheduledFuture<?> future;
+					GameState state;
+					Message gameMessage;
+					ScheduledFuture<?> future;
 
 					{
 						this.state = GameState.CONFIRM;

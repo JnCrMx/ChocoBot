@@ -15,7 +15,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
-public class RemindRunnable implements Runnable
+class RemindRunnable implements Runnable
 {
 	private final JDA jda;
 	private PreparedStatement listStatement;
