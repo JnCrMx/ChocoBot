@@ -63,7 +63,7 @@ public class CommandDaily extends Command
 				if (dateTime.getLong(ChronoField.EPOCH_DAY) + 1L < LocalDateTime.now().getLong(ChronoField.EPOCH_DAY))
 				{
 					dailyStreak = 0;
-					builder.setFooter("Du hast deinen Streak verloren! \ud83d\ude2d");
+					builder.setFooter("Du hast deine Streak verloren! \ud83d\ude2d");
 				}
 
 				int coinsToAdd = (dailyStreak + 1) * 10;
@@ -84,10 +84,10 @@ public class CommandDaily extends Command
 				builder.setColor(ChocoBot.COLOR_COINS);
 				builder.setDescription("Du hast einen täglichen Bonus von " + coinsToAdd + " Coins erhalten!");
 				builder.addField("Deine Coins", Integer.toString(coins), false);
-				builder.addField("Dein Streak", Integer.toString(dailyStreak), false);
+				builder.addField("Deine Streak", Integer.toString(dailyStreak), false);
 				if (dailyStreak == 0)
 				{
-					builder.setFooter("Dein Streak wurde zuruückgesetzt, da er das Maximum von 7 Tagen überschritten hat.");
+					builder.setFooter("Deine Streak wurde zurückgesetzt, da sie das Maximum von 7 Tagen überschritten hat.");
 				}
 
 				channel.sendMessage(builder.build()).queue();
