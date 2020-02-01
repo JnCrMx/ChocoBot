@@ -37,7 +37,7 @@ public class MirrorListener extends ListenerAdapter
 
 		Pattern pattern = Pattern.compile("(|(\\d*)x )Spiegel");
 		Matcher matcher = pattern.matcher(message);
-		if(matcher.find())
+		if(matcher.matches())
 		{
 			BigInteger count = BigInteger.ONE;
 			if(matcher.group(2)!=null)
