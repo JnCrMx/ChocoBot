@@ -1,6 +1,6 @@
 # ChocoBot
 
-ChocoBot is a simple Discord Bot written for only one server in first place, but then made public thanks to @MGThePro.
+ChocoBot is a simple Discord Bot written for only one server in first place, but then made public thanks to @MGThePro .
 
 ## Configuration
 
