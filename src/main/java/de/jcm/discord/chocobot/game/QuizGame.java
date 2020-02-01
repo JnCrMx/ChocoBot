@@ -10,8 +10,8 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 public class QuizGame extends Game
 {
@@ -21,6 +21,7 @@ public class QuizGame extends Game
 	private Message quizMessage;
 	private int rightAnswer;
 	private Map<Member, Integer> answers;
+	private Map<Member, Long> answerTimes;
 
 	public QuizGame(Member sponsor, TextChannel gameChannel)
 	{
@@ -90,6 +91,7 @@ public class QuizGame extends Game
 		}
 
 		this.answers = new HashMap<>();
+		this.answerTimes = new HashMap<>();
 		this.gameChannel.sendMessage(builder.build()).queue((m) ->
 		{
 			this.quizMessage = m;
@@ -108,19 +110,39 @@ public class QuizGame extends Game
 				builder1.setTitle("Gewinner");
 				builder1.setDescription("Die folgenden Teilnehmer haben richtig geantwortet:");
 
-				for (Entry<Member, Integer> answer : this.answers.entrySet())
+				Member[] rightAnswers = answers.entrySet().stream().filter(e->e.getValue()==rightAnswer)
+						.sorted(Comparator.comparingLong(e -> answerTimes.get(e.getKey())))
+						.flatMap(e->Stream.of(e.getKey())).toArray(Member[]::new);
+
+				for(int i=0; i<rightAnswers.length; i++)
 				{
-					if (answer.getValue() == this.rightAnswer)
+					Member member = rightAnswers[i];
+
+					int reward = WINNER_REWARD;
+					reward += (players.size()-i-1)*10;
+
+					if(member.getIdLong() == sponsor.getIdLong())
 					{
-						int reward = WINNER_REWARD + (answer.getKey().getIdLong() == this.sponsor.getIdLong() ? 100 : 0);
-						builder1.addField(answer.getKey().getEffectiveName(), "+" + reward + " Coins", false);
-						DatabaseUtils.changeCoins(answer.getKey().getIdLong(), reward);
+						reward += getSponsorCost();
+						builder1.addField(member.getEffectiveName(), "+" + (reward-getSponsorCost()) + " Coins",
+								false);
 					}
+					else
+					{
+						builder1.addField(member.getEffectiveName(), "+" + reward + " Coins", false);
+					}
+					DatabaseUtils.changeCoins(member.getIdLong(), reward);
 				}
 
 				if (builder1.getFields().isEmpty())
 				{
 					builder1.setDescription("Niemand hat richtig geantwortet \ud83d\ude2d");
+				}
+
+				if(Stream.of(rightAnswers).noneMatch(e->e.getIdLong()==sponsor.getIdLong()))
+				{
+					builder1.addField(sponsor.getEffectiveName(), "-" + getSponsorCost() + " Coins",
+							false);
 				}
 
 				builder1.setFooter(question.question + " " + question.answers[0]);
@@ -148,8 +170,8 @@ public class QuizGame extends Game
 			if (this.state == GameState.RUNNING && event.getMessageIdLong() == this.quizMessage.getIdLong() && this.players.contains(event.getMember()) && event.getReactionEmote().isEmoji() && List.of(EMOJIS_ANSWER).contains(event.getReactionEmote().getEmoji()))
 			{
 				this.answers.put(event.getMember(), Arrays.binarySearch(EMOJIS_ANSWER, event.getReactionEmote().getEmoji()));
+				this.answerTimes.put(event.getMember(), System.currentTimeMillis());
 			}
-
 		}
 	}
 
