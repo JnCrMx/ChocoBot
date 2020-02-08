@@ -33,7 +33,7 @@ public class CommandWarn extends Command
 		assert warnerMember != null;
 
 		if (warnerMember.getRoles().stream().noneMatch((r) ->
-				ChocoBot.warningRoles.contains(r.getId())))
+				ChocoBot.operatorRoles.contains(r.getId())))
 		{
 			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Leute verwarnen!")).queue();
 			return false;

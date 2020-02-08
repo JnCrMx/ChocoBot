@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 public class ChocoBot extends ListenerAdapter
 {
 	public static String prefix = "?";
+	public static String commandChannel;
 
 	public static final Color COLOR_COOKIE = new Color(253, 189, 59);
 	public static final Color COLOR_LOVE = new Color(255, 79, 237);
@@ -50,7 +51,7 @@ public class ChocoBot extends ListenerAdapter
 	public static final Color COLOR_GAME = new Color(0, 255, 229);
 
 	public static String warningChannel;
-	public static List<String> warningRoles;
+	public static List<String> operatorRoles;
 
 	public static String remindChannel;
 
@@ -97,9 +98,10 @@ public class ChocoBot extends ListenerAdapter
 		String discordToken = (String) discordLogin.get("token");
 
 		Map<String, Object> serverConfig = (Map<String, Object>) obj.get("server");
+		commandChannel = (String) serverConfig.get("commandChannel");
 		warningChannel = (String) serverConfig.get("warningChannel");
-		warningRoles = (List<String>) serverConfig.get("warningRoles");
 		remindChannel = (String) serverConfig.get("remindChannel");
+		operatorRoles = (List<String>) serverConfig.get("operatorRoles");
 
 		Logger logger = LoggerFactory.getLogger(ChocoBot.class);
 		bugreportDirectory.mkdirs();

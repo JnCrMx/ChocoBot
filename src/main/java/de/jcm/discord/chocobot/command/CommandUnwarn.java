@@ -41,7 +41,7 @@ public class CommandUnwarn extends Command
 		Member member = message.getMember();
 		assert member != null;
 
-		if(member.getRoles().stream().noneMatch(r -> ChocoBot.warningRoles.contains(r.getId())))
+		if(member.getRoles().stream().noneMatch(r -> ChocoBot.operatorRoles.contains(r.getId())))
 		{
 			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Verwarnungen löschen!")).queue();
 			return false;

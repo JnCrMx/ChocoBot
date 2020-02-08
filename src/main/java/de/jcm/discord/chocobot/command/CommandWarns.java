@@ -33,7 +33,7 @@ public class CommandWarns extends Command
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
 		boolean isMod = Objects.requireNonNull(message.getMember()).getRoles().stream()
-				.anyMatch(r -> ChocoBot.warningRoles.contains(r.getId()));
+				.anyMatch(r -> ChocoBot.operatorRoles.contains(r.getId()));
 
 		long targetId;
 		if(args.length==0)

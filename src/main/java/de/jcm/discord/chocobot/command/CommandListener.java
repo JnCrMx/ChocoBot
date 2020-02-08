@@ -1,6 +1,8 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
@@ -36,57 +38,79 @@ public class CommandListener extends ListenerAdapter
 				Command command = Command.getCommand(keyword);
 				if (command != null)
 				{
-					if((System.currentTimeMillis()-
-							lastCommands.getOrDefault(event.getAuthor().getIdLong(), 0L))
-							<5000)
+					Member member = event.getMember();
+					assert member != null;
+					if(event.getTextChannel().getId().equals(ChocoBot.commandChannel) ||
+							member.getRoles().stream().anyMatch(r -> ChocoBot.operatorRoles.contains(r.getId())))
 					{
-						this.logger.info("Command \"{}\" from user {} ({}) was ignored due to delay not met.",
-								message, event.getAuthor().getAsTag(), event.getAuthor().getId());
-						event.getChannel().sendMessage(
-								ChocoBot.errorMessage(event.getMember().getEffectiveName()+
-								", bitte warte etwas, bevor du weitere Befehle sendest!"))
-								.queue(m->m.delete().queueAfter(10, TimeUnit.SECONDS));
+						if ((System.currentTimeMillis() -
+								lastCommands.getOrDefault(event.getAuthor().getIdLong(), 0L))
+								< 5000)
+						{
+							this.logger.info("Command \"{}\" from user {} ({}) was ignored due to delay not met.",
+									message, event.getAuthor().getAsTag(), event.getAuthor().getId());
+							event.getChannel().sendMessage(
+									ChocoBot.errorMessage(event.getMember().getEffectiveName() +
+											", bitte warte etwas, bevor du weitere Befehle sendest!"))
+									.queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
+							event.getMessage().delete().queueAfter(10, TimeUnit.SECONDS);
+						}
+						else
+						{
+							String[] args;
+							String argstring;
+							if (command.multipleArguments())
+							{
+								if (message.contains(" "))
+								{
+									argstring = message.substring(message.indexOf(32) + 1);
+									args = argstring.split(" ");
+								}
+								else
+								{
+									args = new String[0];
+								}
+							}
+							else
+							{
+								if (message.contains(" "))
+								{
+									argstring = message.substring(message.indexOf(' ') + 1);
+									args = new String[]{argstring};
+								}
+								else
+								{
+									args = new String[0];
+								}
+							}
+
+							lastCommands.put(event.getAuthor().getIdLong(), System.currentTimeMillis());
+
+							boolean result = command.execute(event.getMessage(), event.getTextChannel(), args);
+							if (result)
+							{
+								this.logger.info("Command \"{}\" from user {} ({}) succeeded.", message, event.getAuthor().getAsTag(), event.getAuthor().getId());
+							}
+							else
+							{
+								this.logger.info("Command \"{}\" from user {} ({}) failed.", message, event.getAuthor().getAsTag(), event.getAuthor().getId());
+							}
+						}
 					}
 					else
 					{
-						String[] args;
-						String argstring;
-						if (command.multipleArguments())
-						{
-							if (message.contains(" "))
-							{
-								argstring = message.substring(message.indexOf(32) + 1);
-								args = argstring.split(" ");
-							}
-							else
-							{
-								args = new String[0];
-							}
-						}
-						else
-						{
-							if (message.contains(" "))
-							{
-								argstring = message.substring(message.indexOf(' ') + 1);
-								args = new String[]{argstring};
-							}
-							else
-							{
-								args = new String[0];
-							}
-						}
+						this.logger.info(
+								"Command \"{}\" from user {} ({}) was ignored because it was sent to wrong channel.",
+								message, event.getAuthor().getAsTag(), event.getAuthor().getId());
 
-						lastCommands.put(event.getAuthor().getIdLong(), System.currentTimeMillis());
+						TextChannel commandChannel = ChocoBot.jda.getTextChannelById(ChocoBot.commandChannel);
+						assert commandChannel != null;
 
-						boolean result = command.execute(event.getMessage(), event.getTextChannel(), args);
-						if (result)
-						{
-							this.logger.info("Command \"{}\" from user {} ({}) succeeded.", message, event.getAuthor().getAsTag(), event.getAuthor().getId());
-						}
-						else
-						{
-							this.logger.info("Command \"{}\" from user {} ({}) failed.", message, event.getAuthor().getAsTag(), event.getAuthor().getId());
-						}
+						event.getChannel().sendMessage(event.getAuthor().getAsMention()+
+								", schreibe deine Befehle bitte in "+
+								commandChannel.getAsMention()+"!")
+								.queue(s->s.delete().queueAfter(10, TimeUnit.SECONDS));
+						event.getMessage().delete().queueAfter(10, TimeUnit.SECONDS);
 					}
 				}
 			}

@@ -14,8 +14,10 @@ reddit:
 discord:
   token: 'Discord access token'
 server:
+  commandChannel: 'ID of channel commands may be used in'
   warningChannel: 'ID of channel to post warnings in'
-  warningRoles:
-    - 'IDs of roles that are allowed to warn'
   remindChannel: 'ID of channel to post reminds in'
+  operatorRoles:
+    - 'IDs of roles that are allowed to'
+    - 'warn, unwarn, use commands everywhere, etc.'
 ```
