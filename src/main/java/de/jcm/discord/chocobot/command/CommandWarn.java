@@ -59,7 +59,7 @@ public class CommandWarn extends Command
 				builder.addField("Verwarnter", warned.getAsTag(), false);
 				builder.addField("Verwarner", warner.getAsTag(), false);
 				builder.addField("Grund", reason, false);
-				GuildChannel warnChannel = channel.getGuild().getGuildChannelById(ChocoBot.warningChannel);
+				GuildChannel warnChannel = ChocoBot.jda.getGuildChannelById(ChocoBot.warningChannel);
 
 				assert warnChannel != null;
 
