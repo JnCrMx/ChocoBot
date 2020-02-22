@@ -67,7 +67,7 @@ public class ChocoBot extends ListenerAdapter
 	public static final Client client = ClientBuilder.newClient();
 	public static String redditToken;
 
-	public static final File bugreportDirectory = new File("bugreports");
+	public static GitHubApp githubApp;
 
 	private static void tryCreateTable(Statement statement, String sql)
 	{
@@ -104,7 +104,6 @@ public class ChocoBot extends ListenerAdapter
 		operatorRoles = (List<String>) serverConfig.get("operatorRoles");
 
 		Logger logger = LoggerFactory.getLogger(ChocoBot.class);
-		bugreportDirectory.mkdirs();
 
 		logger.info("Starting ChocoBot...");
 		Runtime.getRuntime().addShutdownHook(new Thread(() ->
@@ -198,6 +197,16 @@ public class ChocoBot extends ListenerAdapter
 		logger.info("Started remind thread.");
 		initReddit();
 		logger.info("Initialized Reddit API.");
+
+		Map<String, Object> githubLogin = (Map<String, Object>) obj.get("github");
+		githubApp = new GitHubApp(
+				new File((String) githubLogin.get("privateKey")),
+				(Integer) githubLogin.get("appId"),
+				(Integer) githubLogin.get("installationId"),
+				(String) githubLogin.get("user"),
+				(String) githubLogin.get("repository"));
+		logger.info("Initialized GitHub App.");
+
 		logger.info("Started ChocoBot.");
 	}
 

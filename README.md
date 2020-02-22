@@ -13,6 +13,12 @@ reddit:
   appSecret: 'Reddit app secret'
 discord:
   token: 'Discord access token'
+github:
+  privateKey: 'Path to private key file'
+  appId: GitHub App ID
+  installationId: ID of App installation
+  user: 'Username part of repository URL'
+  repository: 'Repository part of repository URL'
 server:
   commandChannel: 'ID of channel commands may be used in'
   warningChannel: 'ID of channel to post warnings in'

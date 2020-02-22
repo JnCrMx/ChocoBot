@@ -7,66 +7,46 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 public class CommandBugReport extends Command
 {
 	@Override
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
+		boolean showTag = false;
+		String arg = args[0];
+
+		if(arg.endsWith("+tag"))
+		{
+			showTag = true;
+			arg = arg.replace("+tag", "").trim();
+		}
+
+		String title = arg;
+		String body = null;
+		if(arg.contains("\n"))
+		{
+			title = arg.substring(0, arg.indexOf('\n'));
+			body = arg.substring(arg.indexOf('\n')+1);
+		}
+
 		try
 		{
-			Instant time = Instant.now();
-
-			File file = new File(ChocoBot.bugreportDirectory, time.toEpochMilli() + ".txt");
-			PrintStream p = new PrintStream(file);
-
-			p.println("User-ID: "+message.getAuthor().getId());
-			p.println("User-Tag: "+message.getAuthor().getAsTag());
-
-			p.println("Guild-ID: "+channel.getGuild().getId());
-			p.println("Guild-Name: "+channel.getGuild().getName());
-
-			p.println("Channel-ID: "+channel.getId());
-			p.println("Channel-Name: "+channel.getName());
-
-			p.println("Timestamp: " + time.toEpochMilli());
-			p.println("Time: "+ LocalDateTime.ofInstant(time, ZoneId.systemDefault()));
-
-			if(args.length==0)
-			{
-				p.println("===NO MESSAGE===");
-			}
-			else
-			{
-				p.println("===MESSAGE START===");
-				p.println(args[0]);
-				p.println("===MESSAGE END===");
-			}
-
-			p.flush();
-			p.close();
+			ChocoBot.githubApp.createIssue(title, body, showTag ? message.getAuthor() : null);
 
 			EmbedBuilder eb = new EmbedBuilder();
 			eb.setTitle("Fehlermeldung");
 			eb.setColor(ChocoBot.COLOR_COOKIE);
-			eb.setDescription("Deine Fehlermeldung wurde gespeichert!");
+			eb.setDescription("Deine Fehlermeldung wurde erfolgreich gesendet!");
 
 			channel.sendMessage(eb.build()).queue();
 
 			return true;
 		}
-		catch (FileNotFoundException e)
+		catch(RuntimeException e)
 		{
-			e.printStackTrace();
-
-			channel.sendMessage(ChocoBot.errorMessage("Deine Fehlermeldung konnte nicht gespeichert werden!"))
-				.queue();
+			channel.sendMessage(
+						ChocoBot.errorMessage("Es trat ein Fehler beim Senden der Fehlermeldung auf!"))
+			       .queue();
 
 			return false;
 		}
