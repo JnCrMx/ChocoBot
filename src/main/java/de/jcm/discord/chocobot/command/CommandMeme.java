@@ -11,7 +11,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
-public class CommandMeme extends Command
+public class CommandMeme extends PaidCommand
 {
 	private final WebTarget baseTarget;
 	private final Random random = new Random();
@@ -21,7 +21,7 @@ public class CommandMeme extends Command
 		this.baseTarget = ChocoBot.client.target("https://oauth.reddit.com");
 	}
 
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean executePaid(Message message, TextChannel channel, String... args)
 	{
 		if (args.length != 1)
 		{
@@ -114,8 +114,14 @@ public class CommandMeme extends Command
 	}
 
 	@Nullable
-	public String getHelpText()
+	public String getPaidHelpText()
 	{
 		return "Zeige ein zufälliges Meme aus einem Subreddit an.";
+	}
+
+	@Override
+	protected int getCost()
+	{
+		return 10;
 	}
 }

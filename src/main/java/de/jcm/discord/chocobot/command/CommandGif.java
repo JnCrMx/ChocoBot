@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Random;
 
-public class CommandGif extends Command
+public class CommandGif extends PaidCommand
 {
 	private final WebTarget searchTarget;
 	private final Random random = new Random();
@@ -23,7 +23,7 @@ public class CommandGif extends Command
 		this.searchTarget = ChocoBot.client.target("https://api.tenor.com/v1/search");
 	}
 
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean executePaid(Message message, TextChannel channel, String... args)
 	{
 		String q = String.join(" ", args);
 		Response response = this.searchTarget.queryParam("q", q).request(new String[]{"application/json"}).get();
@@ -50,8 +50,14 @@ public class CommandGif extends Command
 	}
 
 	@Nullable
-	public String getHelpText()
+	public String getPaidHelpText()
 	{
 		return "Zeige ein GIF von Tenor an.";
+	}
+
+	@Override
+	protected int getCost()
+	{
+		return 10;
 	}
 }
