@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+
 public class CommandBugReport extends Command
 {
 	@Override
@@ -31,10 +33,13 @@ public class CommandBugReport extends Command
 
 		try
 		{
-			ChocoBot.githubApp.createIssue(title, body, showTag ? message.getAuthor() : null);
+			HashMap<?, ?> response =
+					ChocoBot.githubApp.createIssue(title, body, showTag ? message.getAuthor() : null);
+
+			String htmlURL = (String) response.get("html_url");
 
 			EmbedBuilder eb = new EmbedBuilder();
-			eb.setTitle("Fehlermeldung");
+			eb.setTitle("Fehlermeldung", htmlURL);
 			eb.setColor(ChocoBot.COLOR_COOKIE);
 			eb.setDescription("Deine Fehlermeldung wurde erfolgreich gesendet!");
 

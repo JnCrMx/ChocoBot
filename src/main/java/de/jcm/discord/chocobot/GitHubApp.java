@@ -118,7 +118,7 @@ public class GitHubApp
 		installationTokenExpiration = LocalDateTime.parse(ex, DateTimeFormatter.ISO_DATE_TIME);
 	}
 
-	public void createIssue(String title, @Nullable String body, @Nullable User reporter)
+	public HashMap<?, ?> createIssue(String title, @Nullable String body, @Nullable User reporter)
 	{
 		HashMap<String, Object> entity = new HashMap<>();
 		entity.put("title", title);
@@ -142,5 +142,6 @@ public class GitHubApp
 		{
 			throw new RuntimeException("request failed: "+response);
 		}
+		return response.readEntity(HashMap.class);
 	}
 }
