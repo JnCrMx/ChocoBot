@@ -1,9 +1,7 @@
 package de.jcm.discord.chocobot;
 
 import de.jcm.discord.chocobot.command.*;
-import de.jcm.discord.chocobot.command.secret.CommandChii;
-import de.jcm.discord.chocobot.command.secret.CommandOmaeWaMouShindeiru;
-import de.jcm.discord.chocobot.command.secret.MirrorListener;
+import de.jcm.discord.chocobot.command.secret.*;
 import de.jcm.discord.chocobot.game.*;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -175,6 +173,8 @@ public class ChocoBot extends ListenerAdapter
 
 		Command.registerCommand(new CommandOmaeWaMouShindeiru());
 		Command.registerCommand(new CommandChii());
+		Command.registerCommand(new CommandArch());
+		Command.registerCommand(new CommandLinux());
 		logger.info("Registered commands.");
 
 		jda = (new JDABuilder(discordToken))
