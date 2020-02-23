@@ -7,6 +7,7 @@ ChocoBot is a simple Discord Bot written for only one server in first place, but
 ```yaml
 prefix: 'Prefix the Bot should use for commands'
 reddit:
+  enabled: whether memes from Reddit are enabled (defaults to true)
   username: 'Reddit username'
   password: 'Reddit password'
   appId: 'Reddit app id'
@@ -14,6 +15,7 @@ reddit:
 discord:
   token: 'Discord access token'
 github:
+  enabled: whether GitHub issues are enabled (defaults to true)
   privateKey: 'Path to private key file'
   appId: GitHub App ID
   installationId: ID of App installation

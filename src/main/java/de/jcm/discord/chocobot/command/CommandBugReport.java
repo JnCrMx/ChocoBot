@@ -7,6 +7,9 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.HashMap;
 
 public class CommandBugReport extends Command
@@ -33,21 +36,50 @@ public class CommandBugReport extends Command
 
 		try
 		{
-			HashMap<?, ?> response =
-					ChocoBot.githubApp.createIssue(title, body, showTag ? message.getAuthor() : null);
+			if(ChocoBot.githubBugReportEnabled)
+			{
+				HashMap<?, ?> response =
+						ChocoBot.githubApp.createIssue(title, body, showTag ? message.getAuthor() : null);
 
-			String htmlURL = (String) response.get("html_url");
+				String htmlURL = (String) response.get("html_url");
 
-			EmbedBuilder eb = new EmbedBuilder();
-			eb.setTitle("Fehlermeldung", htmlURL);
-			eb.setColor(ChocoBot.COLOR_COOKIE);
-			eb.setDescription("Deine Fehlermeldung wurde erfolgreich gesendet!");
+				EmbedBuilder eb = new EmbedBuilder();
+				eb.setTitle("Fehlermeldung", htmlURL);
+				eb.setColor(ChocoBot.COLOR_COOKIE);
+				eb.setDescription("Deine Fehlermeldung wurde erfolgreich gesendet!");
 
-			channel.sendMessage(eb.build()).queue();
+				channel.sendMessage(eb.build()).queue();
 
-			return true;
+				return true;
+			}
+			else
+			{
+				long time = System.currentTimeMillis();
+
+				File bugreport = new File(ChocoBot.bugReportDirectory, time +".txt");
+				PrintStream print = new PrintStream(bugreport);
+
+				print.println("Time: "+time);
+				if(showTag)
+					print.println("User: "+message.getAuthor().getAsTag());
+				print.println();
+				print.println(title);
+				print.println();
+				print.println(body);
+
+				print.close();
+
+				EmbedBuilder eb = new EmbedBuilder();
+				eb.setTitle("Fehlermeldung");
+				eb.setColor(ChocoBot.COLOR_COOKIE);
+				eb.setDescription("Deine Fehlermeldung wurde erfolgreich gespeichert!");
+
+				channel.sendMessage(eb.build()).queue();
+
+				return true;
+			}
 		}
-		catch(RuntimeException e)
+		catch(RuntimeException | FileNotFoundException e)
 		{
 			channel.sendMessage(
 						ChocoBot.errorMessage("Es trat ein Fehler beim Senden der Fehlermeldung auf!"))

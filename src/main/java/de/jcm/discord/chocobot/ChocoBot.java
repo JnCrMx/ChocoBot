@@ -66,6 +66,8 @@ public class ChocoBot extends ListenerAdapter
 	public static String redditToken;
 
 	public static GitHubApp githubApp;
+	public static boolean githubBugReportEnabled;
+	public static File bugReportDirectory;
 
 	private static void tryCreateTable(Statement statement, String sql)
 	{
@@ -87,10 +89,15 @@ public class ChocoBot extends ListenerAdapter
 		prefix = (String) obj.get("prefix");
 
 		Map<String, Object> redditLogin = (Map<String, Object>) obj.get("reddit");
-		redditUsername = (String) redditLogin.get("username");
-		redditPassword = (String) redditLogin.get("password");
-		redditAppId = (String) redditLogin.get("appId");
-		redditAppSecret = (String) redditLogin.get("appSecret");
+		boolean redditEnabled = (boolean)
+				redditLogin.getOrDefault("enabled", true);
+		if(redditEnabled)
+		{
+			redditUsername = (String) redditLogin.get("username");
+			redditPassword = (String) redditLogin.get("password");
+			redditAppId = (String) redditLogin.get("appId");
+			redditAppSecret = (String) redditLogin.get("appSecret");
+		}
 
 		Map<String, Object> discordLogin = (Map<String, Object>) obj.get("discord");
 		String discordToken = (String) discordLogin.get("token");
@@ -159,7 +166,8 @@ public class ChocoBot extends ListenerAdapter
 		Command.registerCommand(new CommandSay());
 		Command.registerCommand(new CommandRandom());
 		Command.registerCommand(new CommandRemind());
-		Command.registerCommand(new CommandMeme());
+		if(redditEnabled)
+			Command.registerCommand(new CommandMeme());
 		Command.registerCommand(new CommandGif());
 		Command.registerCommand(new CommandWarn());
 		Command.registerCommand(new CommandWarns());
@@ -195,17 +203,31 @@ public class ChocoBot extends ListenerAdapter
 		logger.info("Started JDA.");
 		remindFuture = executorService.scheduleWithFixedDelay(new RemindRunnable(jda), 0L, 10L, TimeUnit.SECONDS);
 		logger.info("Started remind thread.");
-		initReddit();
-		logger.info("Initialized Reddit API.");
+
+		if(redditEnabled)
+		{
+			initReddit();
+			logger.info("Initialized Reddit API.");
+		}
 
 		Map<String, Object> githubLogin = (Map<String, Object>) obj.get("github");
-		githubApp = new GitHubApp(
-				new File((String) githubLogin.get("privateKey")),
-				(Integer) githubLogin.get("appId"),
-				(Integer) githubLogin.get("installationId"),
-				(String) githubLogin.get("user"),
-				(String) githubLogin.get("repository"));
-		logger.info("Initialized GitHub App.");
+		githubBugReportEnabled = (boolean)
+				githubLogin.getOrDefault("enabled", true);
+		if(githubBugReportEnabled)
+		{
+			githubApp = new GitHubApp(
+					new File((String) githubLogin.get("privateKey")),
+					(Integer) githubLogin.get("appId"),
+					(Integer) githubLogin.get("installationId"),
+					(String) githubLogin.get("user"),
+					(String) githubLogin.get("repository"));
+			logger.info("Initialized GitHub App.");
+		}
+		else
+		{
+			bugReportDirectory = new File("bugreports");
+			bugReportDirectory.mkdirs();
+		}
 
 		logger.info("Started ChocoBot.");
 	}
