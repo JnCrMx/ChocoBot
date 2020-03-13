@@ -86,17 +86,7 @@ public class CommandShip extends Command
 				}
 				else
 				{
-					byte[] hash1 = sha256.digest(w1.toLowerCase().getBytes());
-					byte[] hash2 = sha256.digest(w2.toLowerCase().getBytes());
-					byte[] digest = new byte[hash1.length];
-
-					for (int i = 0; i < digest.length; ++i)
-					{
-						digest[i] = (byte) (hash1[i] ^ hash2[i]);
-					}
-
-					double first = Byte.toUnsignedInt(digest[0]);
-					int percent = (int) (first * 100.0D / 255.0D);
+					int percent = calculateShip(w1, w2);
 					EmbedBuilder builder = new EmbedBuilder();
 					builder.setColor(ChocoBot.COLOR_LOVE);
 					builder.setTitle(w1 + " x " + w2);
@@ -139,6 +129,22 @@ public class CommandShip extends Command
 				return false;
 			}
 		}
+	}
+
+	public static int calculateShip(String word1, String word2)
+	{
+		byte[] hash1 = sha256.digest(word1.toLowerCase().getBytes());
+		byte[] hash2 = sha256.digest(word2.toLowerCase().getBytes());
+
+		byte finalByte = 0;
+		for (int i = 0; i < hash1.length; ++i)
+		{
+			finalByte ^= hash1[i];
+			finalByte ^= hash2[i];
+		}
+
+		double first = Byte.toUnsignedInt(finalByte);
+		return (int) (first * 100.0D / 255.0D);
 	}
 
 	private static String solveMentions(String string, Guild guild)
