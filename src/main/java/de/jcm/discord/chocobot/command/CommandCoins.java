@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
+import java.util.Objects;
 
 public class CommandCoins extends Command
 {
@@ -35,6 +36,24 @@ public class CommandCoins extends Command
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
 		long uid = message.getAuthor().getIdLong();
+		boolean foreign = false;
+
+		if(!message.getMentionedUsers().isEmpty())
+		{
+			uid = message.getMentionedUsers().get(0).getIdLong();
+			if(uid != message.getAuthor().getIdLong())
+			{
+				if(Objects.requireNonNull(message.getMember()).getRoles().stream()
+				          .noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
+				{
+					channel.sendMessage(ChocoBot.errorMessage(
+							"Du darfst dir nicht die Coins anderer Nutzer anzeigen lassen!"))
+					       .queue();
+					return false;
+				}
+				foreign = true;
+			}
+		}
 
 		try
 		{
@@ -58,10 +77,22 @@ public class CommandCoins extends Command
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setTitle(":moneybag: Coins :moneybag:");
 			builder.setColor(ChocoBot.COLOR_COINS);
-			builder.addField("Deine Coins", Integer.toString(coins), false);
-			if (dateTime.getLong(ChronoField.EPOCH_DAY) < LocalDateTime.now().getLong(ChronoField.EPOCH_DAY))
+			if(foreign)
 			{
-				builder.setFooter("\ud83d\udc8e Du kannst übrigens deinen täglichen Bonus einfordern! \ud83d\udc8e");
+				builder.addField(
+						Objects.requireNonNull(ChocoBot.jda.getUserById(uid))
+				                        .getAsTag()+"s Coins",
+						Integer.toString(coins),
+						false);
+			}
+			else
+			{
+				builder.addField("Deine Coins", Integer.toString(coins), false);
+				if(dateTime.getLong(ChronoField.EPOCH_DAY) <
+						LocalDateTime.now().getLong(ChronoField.EPOCH_DAY))
+				{
+					builder.setFooter("\ud83d\udc8e Du kannst übrigens deinen täglichen Bonus einfordern! \ud83d\udc8e");
+				}
 			}
 
 			channel.sendMessage(builder.build()).queue();
