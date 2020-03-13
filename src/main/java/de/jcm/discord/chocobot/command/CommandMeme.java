@@ -124,4 +124,11 @@ public class CommandMeme extends PaidCommand
 	{
 		return 10;
 	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return  "%c <Subreddit> : %h\n" +
+				"%c r/<Subreddit> : %h";
+	}
 }

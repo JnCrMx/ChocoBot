@@ -146,6 +146,5 @@ abstract class Game extends ListenerAdapter
 		{
 			this.players.remove(event.getMember());
 		}
-
 	}
 }

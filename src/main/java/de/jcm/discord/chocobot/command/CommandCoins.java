@@ -115,4 +115,11 @@ public class CommandCoins extends Command
 	{
 		return "Zeige an, wie viele Coins du hast.";
 	}
+
+	@Override
+	protected String getUsage()
+	{
+		return  "%c : %h\n" +
+				"%c <Nutzer> (nur Operatoren) : Zeige die Coins eines anderen Nutzers an.";
+	}
 }

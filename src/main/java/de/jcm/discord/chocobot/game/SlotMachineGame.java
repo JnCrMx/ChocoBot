@@ -280,6 +280,12 @@ public class SlotMachineGame extends Command
 		return "Spiele an einer Slot-Maschine.";
 	}
 
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return "%c : %h";
+	}
+
 	static
 	{
 		EMOJIS_NORMAL = new String[][]{EMOJIS_FRUITS, EMOJIS_HEARTS, EMOJIS_MONEY, EMOJIS_OTHER};

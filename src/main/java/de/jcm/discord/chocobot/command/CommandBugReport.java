@@ -106,4 +106,14 @@ public class CommandBugReport extends Command
 	{
 		return false;
 	}
+
+	@Override
+	protected String getUsage()
+	{
+		return  "%c <Titel> : Sende eine Fehlermeldung (nur aus Titel bestehend).\n" +
+				"%c <Titel>(Zeilenumbruch)<Text> : Sende eine Fehlermeldung mit Kommentar.\n" +
+				"\n" +
+				"Optionen:\n" +
+				"+tag (am Ende) : füge den Discord-Tag des Absenders in die Fehlermeldung ein.";
+	}
 }

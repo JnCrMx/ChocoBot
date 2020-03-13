@@ -3,6 +3,7 @@ package de.jcm.discord.chocobot.command;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CommandSay extends Command
 {
@@ -43,5 +44,12 @@ public class CommandSay extends Command
 	public boolean multipleArguments()
 	{
 		return false;
+	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return  "%c <Nachricht> : Sage etwas in diesem Kanal.\n" +
+				"%c <Kanal> <Nachricht> : Sage etwas in einem anderen Kanal.";
 	}
 }

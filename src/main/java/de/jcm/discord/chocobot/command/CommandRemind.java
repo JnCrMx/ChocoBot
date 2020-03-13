@@ -183,4 +183,13 @@ public class CommandRemind extends Command
 	{
 		return "Erinnere mich.";
 	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return  "%c <Zeit> [<Erinnerungs-Nachricht>] : Erinnere mich zum angegebenen Zeitpunkt.\n" +
+				"%c <Dauer> [<Erinnerungs-Nachricht>] : Erinner mich nach angegebener Dauer.\n" +
+				"%c <Zeit> <Nutzer> [<Erinnerungs-Nachricht>] : Erinnere jemanden zum angegebenen Zeitpunkt.\n" +
+				"%c <Dauer> <Nutzer> [<Erinnerungs-Nachricht>] : Erinner jemanden nach angegebener Dauer.";
+	}
 }

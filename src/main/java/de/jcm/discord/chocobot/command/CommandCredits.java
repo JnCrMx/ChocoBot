@@ -35,4 +35,10 @@ public class CommandCredits extends Command
 	{
 		return "Zeige die Credits an.";
 	}
+
+	@Override
+	protected String getUsage()
+	{
+		return "%c : %h";
+	}
 }

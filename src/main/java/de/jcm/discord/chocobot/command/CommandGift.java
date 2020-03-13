@@ -104,4 +104,10 @@ public class CommandGift extends Command
 	{
 		return "Schenke einem Nutzer Coins.";
 	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return "%c <Nutzer> <Anzahl> : %h";
+	}
 }

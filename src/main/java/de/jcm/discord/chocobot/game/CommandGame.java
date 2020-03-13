@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CommandGame extends Command
 {
@@ -51,5 +52,11 @@ public class CommandGame extends Command
 	public String getHelpText()
 	{
 		return "Starte das Spiel " + this.name + ".";
+	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return "%c : %h";
 	}
 }

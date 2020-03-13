@@ -47,4 +47,10 @@ public class CommandLinux extends Command
     {
         return null;
     }
+
+    @Override
+    protected @Nullable String getUsage()
+    {
+        return null;
+    }
 }

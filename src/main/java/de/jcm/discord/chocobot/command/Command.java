@@ -1,5 +1,7 @@
 package de.jcm.discord.chocobot.command;
 
+import de.jcm.discord.chocobot.ChocoBot;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +45,34 @@ public abstract class Command
 			commands.put(keyword, command);
 		}
 	}
+
+	public void showUsage(TextChannel channel)
+	{
+		if(getUsage()==null)
+		{
+			return;
+		}
+
+		EmbedBuilder eb = new EmbedBuilder();
+		eb.setTitle(ChocoBot.prefix+getKeyword());
+
+		String usage = getUsage();
+		usage = usage.replace("%p", ChocoBot.prefix);
+		usage = usage.replace("%c", ChocoBot.prefix+getKeyword());
+		usage = usage.replace("%C", getKeyword());
+		if(getHelpText()!=null)
+		{
+			usage = usage.replace("%h", getHelpText());
+		}
+
+		eb.setDescription(usage);
+
+		eb.setColor(ChocoBot.COLOR_COOKIE);
+		channel.sendMessage(eb.build()).queue();
+	}
+
+	@Nullable
+	protected abstract String getUsage();
 
 	@Nullable
 	public static Command getCommand(String keyword)

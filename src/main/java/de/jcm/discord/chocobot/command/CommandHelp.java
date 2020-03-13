@@ -16,21 +16,52 @@ public class CommandHelp extends Command
 
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setTitle("Befehle");
-		builder.setColor(ChocoBot.COLOR_COOKIE);
-		Collection<Command> commands = Command.commands.values();
-		commands.stream().sorted((e1, e2) ->
-				e1.getKeyword().compareToIgnoreCase(e2.getKeyword())).forEach((command) ->
+		if(args.length==0)
 		{
-			if (command.getHelpText() != null)
+			EmbedBuilder builder = new EmbedBuilder();
+			builder.setTitle("Befehle");
+			builder.setColor(ChocoBot.COLOR_COOKIE);
+			Collection<Command> commands = Command.commands.values();
+			commands.stream().sorted((e1, e2) ->
+					                         e1.getKeyword()
+					                           .compareToIgnoreCase(e2.getKeyword()))
+			        .forEach((command) ->
+			                 {
+				                 if(command
+						                 .getHelpText() != null)
+				                 {
+					                 builder.addField("?" + command
+							                 .getKeyword(), command
+							                                  .getHelpText(), false);
+				                 }
+
+			                 });
+			channel.sendMessage(builder.build()).queue();
+			return true;
+		}
+		else if(args.length == 1)
+		{
+			String keyword = args[0];
+			if(keyword.startsWith(ChocoBot.prefix))
 			{
-				builder.addField("?" + command.getKeyword(), command.getHelpText(), false);
+				keyword = keyword.substring(ChocoBot.prefix.length());
 			}
 
-		});
-		channel.sendMessage(builder.build()).queue();
-		return true;
+			Command command = Command.getCommand(keyword);
+			if(command == null || command.getHelpText()==null || command.getUsage()==null)
+			{
+				ChocoBot.errorMessage("Ich konnte diesen Befehl nicht finden!");
+				return false;
+			}
+			command.showUsage(channel);
+
+			return true;
+		}
+		else
+		{
+			showUsage(channel);
+			return false;
+		}
 	}
 
 	@NotNull
@@ -42,5 +73,12 @@ public class CommandHelp extends Command
 	public String getHelpText()
 	{
 		return "Zeige Hilfe an.";
+	}
+
+	@Override
+	protected String getUsage()
+	{
+		return  "%c : Zeige Liste aller Befehle\n" +
+				"%c <Befehl> : Informiere über Verwendung eines Befehls";
 	}
 }

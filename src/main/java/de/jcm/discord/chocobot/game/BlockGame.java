@@ -192,4 +192,10 @@ public class BlockGame extends Command
 	{
 		return "Öffne einen ?-Block.";
 	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return "%c : %h";
+	}
 }

@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -62,5 +63,11 @@ public class CommandKeks extends Command
 	public String getHelpText()
 	{
 		return "Zeige einen Keks an.";
+	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return null;
 	}
 }

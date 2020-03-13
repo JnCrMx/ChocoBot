@@ -4,6 +4,7 @@ import de.jcm.discord.chocobot.ChocoBot;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -177,5 +178,12 @@ public class CommandShip extends Command
 			var1.printStackTrace();
 		}
 
+	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return  "%c <Wort> [x] <Wort> : Ermittle die Shipping-Quote zwischen zwei Wörtern.\n" +
+				"%c <Nutzer> [x] <Nutzer> : Ermittle die Shipping-Quote zwischen zwei Nutzern.";
 	}
 }

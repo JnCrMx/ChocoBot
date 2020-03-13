@@ -115,4 +115,15 @@ public class CommandRandom extends Command
 	{
 		return "Nutze verschiedene Zufallsfunktionen.";
 	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return  "%c <Nutzer> [<Nutzer> ...] : Finde einen zufälligen Nutzer aus den angegebenen Nutzern.\n" +
+				"%c <Rolle> [<Rolle> ...] : Finde einen zufälligen Nutzer aus den angegebenen Rollen.\n" +
+				"%c @everyone : Finde einen zufälligen Nutzer von diesem Server.\n" +
+				"%c @here : Finden einen zufälligen Nutzer von diesem Server, der online ist.\n" +
+				"%c <Start> <Ende> : Zeige eine Zufallszahl zwischen <Start> und <Ende> an.\n" +
+				"%c <Wort> <Wort> [<Wort> ...] : Wähle zufällig ein Wort aus.";
+	}
 }

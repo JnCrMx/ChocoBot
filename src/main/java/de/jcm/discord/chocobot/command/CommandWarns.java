@@ -109,4 +109,11 @@ public class CommandWarns extends Command
 	{
 		return "Zeige deine Warns oder die eines anderen Nutzers an.";
 	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return  "%c : Zeige deine Verwarnungen an.\n" +
+				"%c <Nutzer> (nur Operatoren) : Zeige die Verwarnungen eines anderen Nutzers an.";
+	}
 }

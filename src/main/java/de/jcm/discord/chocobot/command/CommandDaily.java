@@ -114,6 +114,12 @@ public class CommandDaily extends Command
 
 	public String getHelpText()
 	{
-		return "Erhalte deinen tägliche Coin-Bonus.";
+		return "Erhalte deinen täglichen Coin-Bonus.";
+	}
+
+	@Override
+	protected String getUsage()
+	{
+		return "%c : %h";
 	}
 }

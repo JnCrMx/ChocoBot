@@ -4,6 +4,7 @@ import de.jcm.discord.chocobot.ChocoBot;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -113,5 +114,11 @@ public class CommandWarn extends Command
 	public String getHelpText()
 	{
 		return "Verwarne einen Nutzer.";
+	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return "%c <Nutzer> <Grund> (nur Operatoren) : %h";
 	}
 }

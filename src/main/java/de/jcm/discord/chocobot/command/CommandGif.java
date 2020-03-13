@@ -60,4 +60,10 @@ public class CommandGif extends PaidCommand
 	{
 		return 10;
 	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return "%c <Suchbegriff> : %h";
+	}
 }

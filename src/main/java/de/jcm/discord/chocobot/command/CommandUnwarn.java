@@ -110,4 +110,10 @@ public class CommandUnwarn extends Command
 	{
 		return "Nimm eine Verwarnung zurück.";
 	}
+
+	@Override
+	protected @Nullable String getUsage()
+	{
+		return  "%c <Verwarnungs-ID> (nur Operatoren) : %h";
+	}
 }
