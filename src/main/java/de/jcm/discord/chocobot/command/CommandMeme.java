@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -54,20 +55,27 @@ public class CommandMeme extends PaidCommand
 					HashMap<?,?> data = (HashMap<?,?>) ((HashMap<?,?>) entry).get("data");
 
 					boolean over18 = (Boolean) data.get("over_18");
-					String url = (String) data.get("url");
-					if (this.matchUrl(url))
+					String imgURL = (String) data.get("url");
+					String redditURL = "https://www.reddit.com" + data.get("permalink");
+					if (this.matchUrl(imgURL))
 					{
 						if (!over18 || channel.isNSFW())
 						{
-							channel.sendMessage(url).queue();
+							EmbedBuilder eb = new EmbedBuilder();
+							eb.setTitle((String) data.get("title"), redditURL);
+							eb.setAuthor("u/" + data.get("author"));
+							eb.setFooter((String) data.get("subreddit_name_prefixed"));
+							eb.setImage(imgURL);
+
+							channel.sendMessage(eb.build()).queue();
 							return true;
 						}
 
-						this.logger.debug(String.format("Rejected url \"%s\" because it is marked as over 18 and channel \"%s\" (%s) is not a NSFW channel.", url, channel.getName(), channel.getId()));
+						this.logger.debug(String.format("Rejected url \"%s\" because it is marked as over 18 and channel \"%s\" (%s) is not a NSFW channel.", imgURL, channel.getName(), channel.getId()));
 					}
 					else
 					{
-						this.logger.debug("Rejected url \"" + url + "\" because it does not seem to be a meme. Is that correct?");
+						this.logger.debug("Rejected url \"" + imgURL + "\" because it does not seem to be a meme. Is that correct?");
 					}
 				}
 				channel.sendMessage(ChocoBot.errorMessage("Ich konnte keine Memes finden!")).queue();
