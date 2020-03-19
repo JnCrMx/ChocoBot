@@ -44,9 +44,9 @@ public class CommandBugReport extends Command
 				String htmlURL = (String) response.get("html_url");
 
 				EmbedBuilder eb = new EmbedBuilder();
-				eb.setTitle("Fehlermeldung", htmlURL);
+				eb.setTitle("Issue");
 				eb.setColor(ChocoBot.COLOR_COOKIE);
-				eb.setDescription("Deine Fehlermeldung wurde erfolgreich gesendet!");
+				eb.setDescription("Dein Issue wurde erfolgreich gesendet:\n"+htmlURL);
 
 				channel.sendMessage(eb.build()).queue();
 
