@@ -21,7 +21,7 @@ public class CommandGift extends Command
 	{
 		if (args.length < 2)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du mir schon sagen wem du wie viele Coins schenken möchtest!")).queue();
+			channel.sendMessage(ChocoBot.errorMessage("Du musst mir schon sagen wem du wie viele Coins schenken möchtest!")).queue();
 			return false;
 		}
 		else
