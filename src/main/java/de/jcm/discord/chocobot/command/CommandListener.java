@@ -4,6 +4,7 @@ import de.jcm.discord.chocobot.ChocoBot;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ public class CommandListener extends ListenerAdapter
 	{
 	}
 
-	public void onMessageReceived(@Nonnull MessageReceivedEvent event)
+	public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event)
 	{
 		if (!event.getAuthor().isBot())
 		{
@@ -40,7 +41,7 @@ public class CommandListener extends ListenerAdapter
 				{
 					Member member = event.getMember();
 					assert member != null;
-					if(event.getTextChannel().getId().equals(ChocoBot.commandChannel) ||
+					if(event.getChannel().getId().equals(ChocoBot.commandChannel) ||
 							member.getRoles().stream().anyMatch(r -> ChocoBot.operatorRoles.contains(r.getId())))
 					{
 						if ((System.currentTimeMillis() -
@@ -86,7 +87,7 @@ public class CommandListener extends ListenerAdapter
 
 							lastCommands.put(event.getAuthor().getIdLong(), System.currentTimeMillis());
 
-							boolean result = command.execute(event.getMessage(), event.getTextChannel(), args);
+							boolean result = command.execute(event.getMessage(), event.getChannel(), args);
 							if (result)
 							{
 								this.logger.info("Command \"{}\" from user {} ({}) succeeded.", message, event.getAuthor().getAsTag(), event.getAuthor().getId());

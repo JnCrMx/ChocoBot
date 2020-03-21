@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Target;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -21,9 +22,11 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GitHubApp
 {
@@ -143,5 +146,46 @@ public class GitHubApp
 			throw new RuntimeException("request failed: "+response);
 		}
 		return response.readEntity(HashMap.class);
+	}
+
+	public List<?> getIssueEvents(int issueId)
+	{
+		WebTarget target = ChocoBot.client.target("https://api.github.com/repos/")
+				.path(user)
+				.path(repository)
+				.path("/issues")
+				.path(Integer.toString(issueId))
+				.path("/events");
+		return target.request()
+		             .header("Authorization", "token "+getToken())
+		             .get(List.class);
+	}
+
+	public Map<?, ?> getIssueEvent(Map<?, ?> event)
+	{
+		WebTarget target = ChocoBot.client.target((String) event.get("url"));
+		return target.request()
+		             .header("Authorization", "token "+getToken())
+		             .get(Map.class);
+	}
+
+	public List<?> getIssueComments(int issueId)
+	{
+		WebTarget target = ChocoBot.client.target("https://api.github.com/repos/")
+		                                  .path(user)
+		                                  .path(repository)
+		                                  .path("/issues")
+		                                  .path(Integer.toString(issueId))
+		                                  .path("/comments");
+		return target.request()
+		             .header("Authorization", "token "+getToken())
+		             .get(List.class);
+	}
+
+	public <T> T get(String url, Class<T> clazz)
+	{
+		return ChocoBot.client.target(url).request()
+		             .header("Authorization", "token "+getToken())
+		             .get(clazz);
 	}
 }

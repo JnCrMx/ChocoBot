@@ -66,6 +66,7 @@ public class ChocoBot extends ListenerAdapter
 	public static String redditToken;
 
 	public static GitHubApp githubApp;
+	private static Future<?> issueEventFuture;
 	public static boolean githubBugReportEnabled;
 	public static File bugReportDirectory;
 
@@ -150,6 +151,7 @@ public class ChocoBot extends ListenerAdapter
 		tryCreateTable(initStatement, "CREATE TABLE \"coins\" (\"uid\" INTEGER, \"coins\" INTEGER, \"last_daily\" INTEGER, \"daily_streak\" INTEGER, PRIMARY KEY(\"uid\"));");
 		tryCreateTable(initStatement, "CREATE TABLE \"warnings\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"uid\" INTEGER,\"reason\" TEXT,\"time\" INTEGER,\"message\" INTEGER, \"warner\" INTEGER);");
 		tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
+		tryCreateTable(initStatement, "CREATE TABLE \"bugreports\" (\"id\" INTEGER PRIMARY KEY, \"reporter\" INTEGER, \"last_event_time\" INTEGER);");
 
 		DatabaseUtils.prepare();
 		QuizGame.prepare();
@@ -189,6 +191,7 @@ public class ChocoBot extends ListenerAdapter
 				.addEventListeners(new ChocoBot())
 				.addEventListeners(new CommandListener())
 				.addEventListeners(new MirrorListener())
+				.addEventListeners(new IssueEventUnsubscribeListener())
 				.setActivity(Activity.listening("dem Prefix '"+prefix+"'")).build();
 
 		try
@@ -222,6 +225,8 @@ public class ChocoBot extends ListenerAdapter
 					(String) githubLogin.get("user"),
 					(String) githubLogin.get("repository"));
 			logger.info("Initialized GitHub App.");
+			issueEventFuture = executorService.scheduleWithFixedDelay(
+					new IssueEventRunnable(), 0L, 10L, TimeUnit.MINUTES);
 		}
 		else
 		{

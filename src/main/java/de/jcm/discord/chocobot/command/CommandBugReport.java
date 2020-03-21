@@ -10,10 +10,26 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.HashMap;
 
 public class CommandBugReport extends Command
 {
+	private PreparedStatement insertBugReport;
+
+	public CommandBugReport()
+	{
+		try
+		{
+			insertBugReport = ChocoBot.database.prepareStatement("INSERT INTO bugreports (id, reporter, last_event_time) VALUES (?, ?, ?)");
+		}
+		catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
 	@Override
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
@@ -41,7 +57,20 @@ public class CommandBugReport extends Command
 				HashMap<?, ?> response =
 						ChocoBot.githubApp.createIssue(title, body, showTag ? message.getAuthor() : null);
 
+				int id = (Integer) response.get("id");
 				String htmlURL = (String) response.get("html_url");
+
+				try
+				{
+					insertBugReport.setInt(1, id);
+					insertBugReport.setLong(2, message.getAuthor().getIdLong());
+					insertBugReport.setLong(3, (System.currentTimeMillis()/1000)+10);
+					insertBugReport.execute();
+				}
+				catch(SQLException e)
+				{
+					e.printStackTrace();
+				}
 
 				EmbedBuilder eb = new EmbedBuilder();
 				eb.setTitle("Issue");
