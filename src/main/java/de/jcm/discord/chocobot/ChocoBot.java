@@ -185,6 +185,7 @@ public class ChocoBot extends ListenerAdapter
 		Command.registerCommand(new CommandChii());
 		Command.registerCommand(new CommandArch());
 		Command.registerCommand(new CommandLinux());
+		Command.registerCommand(new CommandWarm());
 		logger.info("Registered commands.");
 
 		jda = (new JDABuilder(discordToken))
