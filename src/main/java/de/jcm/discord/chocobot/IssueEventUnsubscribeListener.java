@@ -31,6 +31,9 @@ public class IssueEventUnsubscribeListener extends ListenerAdapter
 	@Override
 	public void onPrivateMessageReactionAdd(@Nonnull PrivateMessageReactionAddEvent event)
 	{
+		if(!ChocoBot.githubBugReportEnabled)
+			return;
+
 		MessageReaction.ReactionEmote emote = event.getReactionEmote();
 		if(emote.isEmoji() && emote.getEmoji().equals("\u274c"))
 		{

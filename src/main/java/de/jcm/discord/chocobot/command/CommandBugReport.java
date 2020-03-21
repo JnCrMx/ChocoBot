@@ -70,6 +70,7 @@ public class CommandBugReport extends Command
 				catch(SQLException e)
 				{
 					e.printStackTrace();
+					return false;
 				}
 
 				EmbedBuilder eb = new EmbedBuilder();
@@ -78,8 +79,6 @@ public class CommandBugReport extends Command
 				eb.setDescription("Dein Issue wurde erfolgreich gesendet:\n"+htmlURL);
 
 				channel.sendMessage(eb.build()).queue();
-
-				return true;
 			}
 			else
 			{
@@ -104,9 +103,8 @@ public class CommandBugReport extends Command
 				eb.setDescription("Deine Fehlermeldung wurde erfolgreich gespeichert!");
 
 				channel.sendMessage(eb.build()).queue();
-
-				return true;
 			}
+			return true;
 		}
 		catch(RuntimeException | FileNotFoundException e)
 		{
