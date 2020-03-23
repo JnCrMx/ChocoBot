@@ -190,6 +190,16 @@ public class CommandRemind extends Command
 		return  "%c <Zeit> [<Erinnerungs-Nachricht>] : Erinnere mich zum angegebenen Zeitpunkt.\n" +
 				"%c <Dauer> [<Erinnerungs-Nachricht>] : Erinner mich nach angegebener Dauer.\n" +
 				"%c <Zeit> <Nutzer> [<Erinnerungs-Nachricht>] : Erinnere jemanden zum angegebenen Zeitpunkt.\n" +
-				"%c <Dauer> <Nutzer> [<Erinnerungs-Nachricht>] : Erinner jemanden nach angegebener Dauer.";
+				"%c <Dauer> <Nutzer> [<Erinnerungs-Nachricht>] : Erinner jemanden nach angegebener Dauer.\n" +
+				"\n" +
+				"Beispiele für Zeit:\n" +
+				"``25.03.2020/17:42``\n" +
+				"``26.03/15:23``\n" +
+				"``18:32``\n" +
+				"\n" +
+				"Beispiele für Dauer:\n" +
+				"``29min``\n" +
+				"``1h15min``\n" +
+				"``1d5h12min``";
 	}
 }
