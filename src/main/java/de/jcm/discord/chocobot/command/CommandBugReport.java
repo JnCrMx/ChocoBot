@@ -57,7 +57,7 @@ public class CommandBugReport extends Command
 				HashMap<?, ?> response =
 						ChocoBot.githubApp.createIssue(title, body, showTag ? message.getAuthor() : null);
 
-				int id = (Integer) response.get("id");
+				int id = (Integer) response.get("number");
 				String htmlURL = (String) response.get("html_url");
 
 				try
