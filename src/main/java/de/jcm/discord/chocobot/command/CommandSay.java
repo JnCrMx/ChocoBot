@@ -1,9 +1,13 @@
 package de.jcm.discord.chocobot.command;
 
+import de.jcm.discord.chocobot.ChocoBot;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 public class CommandSay extends Command
 {
@@ -22,6 +26,16 @@ public class CommandSay extends Command
 			{
 				msg = msg.replaceFirst(mentionedChannel.getAsMention(), "").trim();
 				textChannel = mentionedChannel;
+			}
+		}
+
+		if(Pattern.compile("@\\S*").matcher(msg).find())
+		{
+			if (Objects.requireNonNull(message.getMember())
+			           .getRoles().stream().noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
+			{
+				channel.sendMessage(ChocoBot.errorMessage("Ich erwähne niemanden für dich!")).queue();
+				return false;
 			}
 		}
 
