@@ -1,7 +1,13 @@
 package de.jcm.discord.chocobot;
 
 import de.jcm.discord.chocobot.command.*;
+import de.jcm.discord.chocobot.command.coin.CommandCoins;
+import de.jcm.discord.chocobot.command.coin.CommandDaily;
+import de.jcm.discord.chocobot.command.coin.CommandGift;
 import de.jcm.discord.chocobot.command.secret.*;
+import de.jcm.discord.chocobot.command.warn.CommandUnwarn;
+import de.jcm.discord.chocobot.command.warn.CommandWarn;
+import de.jcm.discord.chocobot.command.warn.CommandWarns;
 import de.jcm.discord.chocobot.game.*;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
