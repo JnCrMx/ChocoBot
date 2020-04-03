@@ -5,6 +5,7 @@ import de.jcm.discord.chocobot.command.coin.CommandCoins;
 import de.jcm.discord.chocobot.command.coin.CommandDaily;
 import de.jcm.discord.chocobot.command.coin.CommandGift;
 import de.jcm.discord.chocobot.command.secret.*;
+import de.jcm.discord.chocobot.command.subscription.SubscriptionListener;
 import de.jcm.discord.chocobot.command.warn.CommandUnwarn;
 import de.jcm.discord.chocobot.command.warn.CommandWarn;
 import de.jcm.discord.chocobot.command.warn.CommandWarns;
@@ -158,6 +159,7 @@ public class ChocoBot extends ListenerAdapter
 		tryCreateTable(initStatement, "CREATE TABLE \"warnings\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"uid\" INTEGER,\"reason\" TEXT,\"time\" INTEGER,\"message\" INTEGER, \"warner\" INTEGER);");
 		tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
 		tryCreateTable(initStatement, "CREATE TABLE \"bugreports\" (\"id\" INTEGER PRIMARY KEY, \"reporter\" INTEGER, \"last_event_time\" INTEGER);");
+		tryCreateTable(initStatement, "CREATE TABLE \"subscriptions\" (\"id\" INTEGER PRIMARY KEY, \"subscriber\" INTEGER, \"keyword\" TEXT);");
 
 		DatabaseUtils.prepare();
 		QuizGame.prepare();
@@ -199,6 +201,7 @@ public class ChocoBot extends ListenerAdapter
 				.addEventListeners(new CommandListener())
 				.addEventListeners(new MirrorListener())
 				.addEventListeners(new IssueEventUnsubscribeListener())
+				.addEventListeners(new SubscriptionListener())
 				.setActivity(Activity.listening("dem Prefix '"+prefix+"'")).build();
 
 		try
