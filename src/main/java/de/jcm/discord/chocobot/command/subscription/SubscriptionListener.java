@@ -16,6 +16,7 @@ import javax.annotation.Nonnull;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class SubscriptionListener extends ListenerAdapter
 {
@@ -25,7 +26,10 @@ public class SubscriptionListener extends ListenerAdapter
 	private PreparedStatement checkSubscription;
 	private PreparedStatement deleteSubscription;
 	private PreparedStatement byUser;
-	private PreparedStatement all;
+	private PreparedStatement byKeyword;
+	private PreparedStatement listKeywords;
+
+	private String[] keywordCache;
 
 	public SubscriptionListener()
 	{
@@ -35,12 +39,14 @@ public class SubscriptionListener extends ListenerAdapter
 			this.checkSubscription = ChocoBot.database.prepareStatement("SELECT * FROM subscriptions WHERE subscriber=? AND keyword=?");
 			this.deleteSubscription = ChocoBot.database.prepareStatement("DELETE FROM subscriptions WHERE subscriber=? AND keyword=?");
 			this.byUser = ChocoBot.database.prepareStatement("SELECT * FROM subscriptions WHERE subscriber=?");
-			this.all = ChocoBot.database.prepareStatement("SELECT * FROM subscriptions");
+			this.byKeyword = ChocoBot.database.prepareStatement("SELECT subscriber FROM subscriptions WHERE keyword=?");
+			this.listKeywords = ChocoBot.database.prepareStatement("SELECT DISTINCT keyword FROM subscriptions");
 		}
 		catch(SQLException e)
 		{
 			e.printStackTrace();
 		}
+		updateCache();
 	}
 
 	@Override
@@ -124,6 +130,8 @@ public class SubscriptionListener extends ListenerAdapter
 				eb.setFooter("Nutze "+ChocoBot.prefix+"unsubscribe um es wieder zu deabonnieren.");
 				eb.setColor(ChocoBot.COLOR_COOKIE);
 				channel.sendMessage(eb.build()).queue();
+
+				updateCache();
 			}
 			else
 			{
@@ -194,6 +202,8 @@ public class SubscriptionListener extends ListenerAdapter
 				eb.setDescription(String.format("Das Schlüsselwort \"%s\" wurde erfolgreich deabonniert.", keyword));
 				eb.setColor(ChocoBot.COLOR_COOKIE);
 				channel.sendMessage(eb.build()).queue();
+
+				updateCache();
 			}
 			else
 			{
@@ -212,34 +222,57 @@ public class SubscriptionListener extends ListenerAdapter
 	{
 		String message = event.getMessage().getContentRaw().toLowerCase();
 
-		try
+		for(String keyword : keywordCache)
 		{
-			ResultSet result = all.executeQuery();
-			while(result.next())
+			if(message.contains(keyword))
 			{
-				String keyword = result.getString("keyword");
-				if(message.contains(keyword))
+				try
 				{
-					Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
-					if(member != null)
+					byKeyword.setString(1, keyword);
+					ResultSet result = byKeyword.executeQuery();
+					while(result.next())
 					{
-						if(member.hasPermission(event.getChannel(), Permission.MESSAGE_READ))
+						Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
+						if(member != null)
 						{
-							member.getUser().openPrivateChannel()
-							      .queue(p->
-							             {
-							             	p.sendMessage(
-							             			String.format(
-							             					"Das von dir abonnierte Schlüsselwort \"%s\" wurde erwänht:\nhttps://discordapp.com/channels/%d/%d/%d",
-											                keyword,
-											                event.getChannel().getGuild().getIdLong(),
-											                event.getChannel().getIdLong(),
-											                event.getMessage().getIdLong())).queue();
-							             });
+							if(member.hasPermission(event.getChannel(), Permission.MESSAGE_READ))
+							{
+								member.getUser().openPrivateChannel()
+								      .queue(p->
+								             {
+									             p.sendMessage(
+											             String.format(
+													             "Das von dir abonnierte Schlüsselwort \"%s\" wurde erwänht:\nhttps://discordapp.com/channels/%d/%d/%d",
+													             keyword,
+													             event.getChannel().getGuild().getIdLong(),
+													             event.getChannel().getIdLong(),
+													             event.getMessage().getIdLong())).queue();
+								             });
+							}
 						}
 					}
 				}
+				catch(SQLException e)
+				{
+					e.printStackTrace();
+				}
 			}
+		}
+	}
+
+	private void updateCache()
+	{
+		try
+		{
+			ArrayList<String> keywords = new ArrayList<>();
+
+			ResultSet result = listKeywords.executeQuery();
+			while(result.next())
+			{
+				keywords.add(result.getString("keyword"));
+			}
+
+			keywordCache = keywords.toArray(String[]::new);
 		}
 		catch(SQLException e)
 		{
