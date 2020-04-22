@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,21 +20,6 @@ import java.util.Objects;
 
 public class CommandCoins extends Command
 {
-	private PreparedStatement getCoins;
-
-	public CommandCoins()
-	{
-		try
-		{
-			this.getCoins = ChocoBot.database.prepareStatement("SELECT coins, last_daily FROM coins WHERE uid=?");
-		}
-		catch (SQLException var2)
-		{
-			var2.printStackTrace();
-		}
-
-	}
-
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
 		long uid = message.getAuthor().getIdLong();
@@ -58,20 +44,27 @@ public class CommandCoins extends Command
 
 		try
 		{
-			this.getCoins.setLong(1, uid);
-			ResultSet resultSet = this.getCoins.executeQuery();
 			int coins;
 			Instant lastDaily;
-			if (resultSet.next())
+			try(Connection connection = ChocoBot.getDatabase();
+				PreparedStatement getCoins = connection.prepareStatement("SELECT coins, last_daily FROM coins WHERE uid=?"))
 			{
-				coins = resultSet.getInt("coins");
-				lastDaily = Instant.ofEpochMilli(resultSet.getLong("last_daily"));
-			}
-			else
-			{
-				DatabaseUtils.createEmptyUser(uid);
-				coins = 0;
-				lastDaily = Instant.ofEpochMilli(0L);
+				getCoins.setLong(1, uid);
+
+				try(ResultSet resultSet = getCoins.executeQuery())
+				{
+					if(resultSet.next())
+					{
+						coins = resultSet.getInt("coins");
+						lastDaily = Instant.ofEpochMilli(resultSet.getLong("last_daily"));
+					}
+					else
+					{
+						DatabaseUtils.createEmptyUser(uid);
+						coins = 0;
+						lastDaily = Instant.ofEpochMilli(0L);
+					}
+				}
 			}
 
 			LocalDateTime dateTime = LocalDateTime.ofInstant(lastDaily, ZoneId.systemDefault());
@@ -82,7 +75,7 @@ public class CommandCoins extends Command
 			{
 				builder.addField(
 						Objects.requireNonNull(ChocoBot.jda.getUserById(uid))
-				                        .getAsTag()+"s Coins",
+						       .getAsTag() + "s Coins",
 						Integer.toString(coins),
 						false);
 			}
@@ -99,7 +92,7 @@ public class CommandCoins extends Command
 			channel.sendMessage(builder.build()).queue();
 			return true;
 		}
-		catch (SQLException var11)
+		catch(SQLException var11)
 		{
 			var11.printStackTrace();
 			return false;
@@ -120,7 +113,7 @@ public class CommandCoins extends Command
 	@Override
 	protected String getUsage()
 	{
-		return  "%c : %h\n" +
+		return "%c : %h\n" +
 				"%c <Nutzer> (nur Operatoren) : Zeige die Coins eines anderen Nutzers an.";
 	}
 }

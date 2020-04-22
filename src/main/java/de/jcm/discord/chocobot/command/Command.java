@@ -13,6 +13,7 @@ import java.util.HashMap;
 
 public abstract class Command
 {
+	private static final Logger logger_ = LoggerFactory.getLogger(Command.class);
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	static final HashMap<String, Command> commands = new HashMap<>();
 
@@ -43,6 +44,7 @@ public abstract class Command
 		else
 		{
 			commands.put(keyword, command);
+			logger_.info("Registered command "+keyword+": "+command);
 		}
 	}
 

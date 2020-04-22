@@ -3,6 +3,7 @@ package de.jcm.discord.chocobot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,9 +11,6 @@ import java.sql.SQLException;
 public class DatabaseUtils
 {
 	private static Logger logger;
-	private static PreparedStatement insertUser;
-	private static PreparedStatement getCoins;
-	private static PreparedStatement changeCoins;
 
 	private DatabaseUtils()
 	{
@@ -21,26 +19,18 @@ public class DatabaseUtils
 	public static void prepare()
 	{
 		logger = LoggerFactory.getLogger(DatabaseUtils.class);
-
-		try
-		{
-			insertUser = ChocoBot.database.prepareStatement("INSERT INTO coins(uid, coins, last_daily, daily_streak)VALUES (?, 0, 0, 0)");
-			getCoins = ChocoBot.database.prepareStatement("SELECT coins FROM coins WHERE uid=?");
-			changeCoins = ChocoBot.database.prepareStatement("UPDATE coins SET coins=coins+? WHERE uid=?");
-		}
-		catch (SQLException var1)
-		{
-			var1.printStackTrace();
-		}
-
 	}
 
 	public static void createEmptyUser(long uid)
 	{
 		try
 		{
-			insertUser.setLong(1, uid);
-			insertUser.execute();
+			try(Connection connection = ChocoBot.getDatabase();
+			    PreparedStatement insertUser = connection.prepareStatement("INSERT INTO coins(uid, coins, last_daily, daily_streak)VALUES (?, 0, 0, 0)"))
+			{
+				insertUser.setLong(1, uid);
+				insertUser.execute();
+			}
 			logger.debug("Created new user entry for " + uid + ".");
 		}
 		catch (SQLException var3)
@@ -54,16 +44,22 @@ public class DatabaseUtils
 	{
 		try
 		{
-			getCoins.setLong(1, uid);
-			ResultSet resultSet = getCoins.executeQuery();
-			if (resultSet.next())
+			try(Connection connection = ChocoBot.getDatabase();
+			    PreparedStatement getCoins = connection.prepareStatement("SELECT coins FROM coins WHERE uid=?"))
 			{
-				return resultSet.getInt("coins");
-			}
-			else
-			{
-				createEmptyUser(uid);
-				return 0;
+				getCoins.setLong(1, uid);
+				try(ResultSet resultSet = getCoins.executeQuery())
+				{
+					if(resultSet.next())
+					{
+						return resultSet.getInt("coins");
+					}
+					else
+					{
+						createEmptyUser(uid);
+						return 0;
+					}
+				}
 			}
 		}
 		catch (SQLException var3)
@@ -75,8 +71,10 @@ public class DatabaseUtils
 
 	public static void changeCoins(long uid, int amount)
 	{
-		try
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement changeCoins = connection.prepareStatement("UPDATE coins SET coins=coins+? WHERE uid=?"))
 		{
+
 			changeCoins.setInt(1, amount);
 			changeCoins.setLong(2, uid);
 			changeCoins.execute();

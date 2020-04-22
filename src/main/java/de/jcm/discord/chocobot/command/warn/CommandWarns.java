@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,21 +16,6 @@ import java.util.Objects;
 
 public class CommandWarns extends Command
 {
-	private PreparedStatement listWarnings;
-
-	public CommandWarns()
-	{
-		try
-		{
-			this.listWarnings = ChocoBot.database.prepareStatement(
-					"SELECT id, reason, time, warner FROM warnings WHERE uid = ?");
-		}
-		catch (SQLException var2)
-		{
-			var2.printStackTrace();
-		}
-	}
-
 	@Override
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
@@ -58,39 +44,42 @@ public class CommandWarns extends Command
 			return false;
 		}
 
-		try
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement listWarnings = connection.prepareStatement("SELECT id, reason, time, warner FROM warnings WHERE uid = ?"))
 		{
 			listWarnings.setLong(1, targetId);
-			ResultSet resultSet = listWarnings.executeQuery();
-
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.setColor(ChocoBot.COLOR_WARN);
-			builder.setTitle("Verwarnungen von "+
-					Objects.requireNonNull(ChocoBot.jda.getUserById(targetId)).getAsTag());
-
-			int count = 0;
-			for(;resultSet.next();count++)
+			try(ResultSet resultSet = listWarnings.executeQuery())
 			{
-				int id = resultSet.getInt("id");
-				String reason = resultSet.getString("reason");
-				if(isMod)
-				{
-					long warnerId = resultSet.getLong("warner");
-					String warnerTag = Objects.requireNonNull(ChocoBot.jda.getUserById(warnerId)).getAsTag();
 
-					builder.addField("["+id+"] von "+warnerTag, reason, false);
-				}
-				else
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.setColor(ChocoBot.COLOR_WARN);
+				builder.setTitle("Verwarnungen von " +
+						                 Objects.requireNonNull(ChocoBot.jda.getUserById(targetId)).getAsTag());
+
+				int count = 0;
+				for(; resultSet.next(); count++)
 				{
-					builder.addField("[" + id + "]", reason, false);
+					int id = resultSet.getInt("id");
+					String reason = resultSet.getString("reason");
+					if(isMod)
+					{
+						long warnerId = resultSet.getLong("warner");
+						String warnerTag = Objects.requireNonNull(ChocoBot.jda.getUserById(warnerId)).getAsTag();
+
+						builder.addField("[" + id + "] von " + warnerTag, reason, false);
+					}
+					else
+					{
+						builder.addField("[" + id + "]", reason, false);
+					}
 				}
+
+				builder.setDescription("**" + count + "** Verwarnungen:");
+
+				channel.sendMessage(builder.build()).queue();
+
+				return true;
 			}
-
-			builder.setDescription("**"+count+"** Verwarnungen:");
-
-			channel.sendMessage(builder.build()).queue();
-
-			return true;
 		}
 		catch (SQLException e)
 		{

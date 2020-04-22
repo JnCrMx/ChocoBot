@@ -10,26 +10,13 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 
 public class CommandBugReport extends Command
 {
-	private PreparedStatement insertBugReport;
-
-	public CommandBugReport()
-	{
-		try
-		{
-			insertBugReport = ChocoBot.database.prepareStatement("INSERT INTO bugreports (id, reporter, last_event_time) VALUES (?, ?, ?)");
-		}
-		catch(SQLException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
 	@Override
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
@@ -60,7 +47,8 @@ public class CommandBugReport extends Command
 				int id = (Integer) response.get("number");
 				String htmlURL = (String) response.get("html_url");
 
-				try
+				try(Connection connection = ChocoBot.getDatabase();
+				    PreparedStatement insertBugReport = ChocoBot.getDatabase().prepareStatement("INSERT INTO bugreports (id, reporter, last_event_time) VALUES (?, ?, ?)"))
 				{
 					insertBugReport.setInt(1, id);
 					insertBugReport.setLong(2, message.getAuthor().getIdLong());

@@ -16,12 +16,14 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.security.auth.login.LoginException;
+import javax.sql.DataSource;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -31,6 +33,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -66,7 +69,8 @@ public class ChocoBot extends ListenerAdapter
 	private static String redditAppId;
 	private static String redditAppSecret;
 
-	public static Connection database;
+	private static BasicDataSource dataSource = new BasicDataSource();
+
 	public static ScheduledExecutorService executorService;
 	private static Future<?> remindFuture;
 	public static JDA jda;
@@ -86,6 +90,22 @@ public class ChocoBot extends ListenerAdapter
 		}
 		catch (SQLException ignored)
 		{
+		}
+	}
+
+	private static Connection connection;
+
+	public static Connection getDatabase() throws SQLException
+	{
+		if(dataSource.getUrl().startsWith("jdbc:sqlite:"))
+		{
+			if(connection == null)
+				connection = dataSource.getConnection();
+			return connection;
+		}
+		else
+		{
+			return dataSource.getConnection();
 		}
 	}
 
@@ -133,7 +153,7 @@ public class ChocoBot extends ListenerAdapter
 
 				try
 				{
-					database.close();
+					dataSource.close();
 					logger.info("Closed database.");
 				}
 				catch (SQLException var2)
@@ -159,15 +179,18 @@ public class ChocoBot extends ListenerAdapter
 		if("sqlite".equals(dbType))
 		{
 			String dbPath = (String) dbConfig.getOrDefault("path", "chocobot.sqlite");
-			database = DriverManager.getConnection("jdbc:sqlite:"+dbPath);
+			dataSource.setUrl("jdbc:sqlite:"+dbPath);
 			logger.info("Connected to SQLite database.");
 
-			Statement initStatement = database.createStatement();
-			tryCreateTable(initStatement, "CREATE TABLE \"coins\" (\"uid\" INTEGER, \"coins\" INTEGER, \"last_daily\" INTEGER, \"daily_streak\" INTEGER, PRIMARY KEY(\"uid\"));");
-			tryCreateTable(initStatement, "CREATE TABLE \"warnings\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"uid\" INTEGER,\"reason\" TEXT,\"time\" INTEGER,\"message\" INTEGER, \"warner\" INTEGER);");
-			tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
-			tryCreateTable(initStatement, "CREATE TABLE \"bugreports\" (\"id\" INTEGER PRIMARY KEY, \"reporter\" INTEGER, \"last_event_time\" INTEGER);");
-			tryCreateTable(initStatement, "CREATE TABLE \"subscriptions\" (\"id\" INTEGER PRIMARY KEY, \"subscriber\" INTEGER, \"keyword\" TEXT);");
+			try(Connection connection = getDatabase();
+			    Statement initStatement = connection.createStatement())
+			{
+				tryCreateTable(initStatement, "CREATE TABLE \"coins\" (\"uid\" INTEGER, \"coins\" INTEGER, \"last_daily\" INTEGER, \"daily_streak\" INTEGER, PRIMARY KEY(\"uid\"));");
+				tryCreateTable(initStatement, "CREATE TABLE \"warnings\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"uid\" INTEGER,\"reason\" TEXT,\"time\" INTEGER,\"message\" INTEGER, \"warner\" INTEGER);");
+				tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
+				tryCreateTable(initStatement, "CREATE TABLE \"bugreports\" (\"id\" INTEGER PRIMARY KEY, \"reporter\" INTEGER, \"last_event_time\" INTEGER);");
+				tryCreateTable(initStatement, "CREATE TABLE \"subscriptions\" (\"id\" INTEGER PRIMARY KEY, \"subscriber\" INTEGER, \"keyword\" TEXT);");
+			}
 		}
 		else if("mysql".equals(dbType))
 		{
@@ -177,22 +200,28 @@ public class ChocoBot extends ListenerAdapter
 					+ "(port=" + dbConfig.getOrDefault("port", 3306) + ")"
 					+ "(autoReconnect=true)"
 					+ "/" + dbConfig.getOrDefault("database", "chocobot");
-			database = DriverManager.getConnection(connectionURL,
-			                                       (String) dbConfig.get("user"),
-			                                       (String) dbConfig.get("password"));
+			dataSource.setUrl(connectionURL);
+			dataSource.setUsername((String) dbConfig.get("user"));
+			dataSource.setPassword((String) dbConfig.get("password"));
+			dataSource.setAutoCommitOnReturn(true);
+
 			logger.info("Connected to MySQL database.");
 
-			Statement initStatement = database.createStatement();
-			tryCreateTable(initStatement, "CREATE TABLE `coins` (`uid` BIGINT PRIMARY KEY, `coins` INT, `last_daily` BIGINT, `daily_streak` INT);");
-			tryCreateTable(initStatement, "CREATE TABLE `warnings` (`id` INT PRIMARY KEY AUTO_INCREMENT,`uid` BIGINT,`reason` TEXT,`time` BIGINT, `message` BIGINT, `warner` BIGINT);");
-			tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `done` BOOLEAN);");
-			tryCreateTable(initStatement, "CREATE TABLE `bugreports` (`id` INT PRIMARY KEY, `reporter` BIGINT, `last_event_time` BIGINT);");
-			tryCreateTable(initStatement, "CREATE TABLE `subscriptions` (`id` INT PRIMARY KEY, `subscriber` BIGINT, `keyword` TEXT);");
+			try(Connection connection = getDatabase();
+				Statement initStatement = connection.createStatement())
+			{
+				tryCreateTable(initStatement, "CREATE TABLE `coins` (`uid` BIGINT PRIMARY KEY, `coins` INT, `last_daily` BIGINT, `daily_streak` INT);");
+				tryCreateTable(initStatement, "CREATE TABLE `warnings` (`id` INT PRIMARY KEY AUTO_INCREMENT,`uid` BIGINT,`reason` TEXT,`time` BIGINT, `message` BIGINT, `warner` BIGINT);");
+				tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `done` BOOLEAN);");
+				tryCreateTable(initStatement, "CREATE TABLE `bugreports` (`id` INT PRIMARY KEY, `reporter` BIGINT, `last_event_time` BIGINT);");
+				tryCreateTable(initStatement, "CREATE TABLE `subscriptions` (`id` INT PRIMARY KEY AUTO_INCREMENT, `subscriber` BIGINT, `keyword` TEXT);");
+			}
 		}
 		
 		DatabaseUtils.prepare();
 		QuizGame.prepare();
 
+		logger.info("Registering commands...");
 		Command.registerCommand(new SlotMachineGame());
 		Command.registerCommand(new BlockGame());
 		Command.registerCommand(new CommandGame(GiftGame.class));

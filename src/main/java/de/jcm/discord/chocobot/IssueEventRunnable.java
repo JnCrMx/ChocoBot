@@ -3,6 +3,7 @@ package de.jcm.discord.chocobot;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,29 +17,15 @@ import java.util.Objects;
 
 public class IssueEventRunnable implements Runnable
 {
-	private PreparedStatement listStatement;
-	private PreparedStatement updateTimeStatement;
-
-	public IssueEventRunnable()
-	{
-		try
-		{
-			this.listStatement = ChocoBot.database.prepareStatement("SELECT * FROM bugreports");
-			this.updateTimeStatement = ChocoBot.database
-					.prepareStatement("UPDATE bugreports SET last_event_time=? WHERE id=?");
-		}
-		catch(SQLException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
 	@Override
 	public void run()
 	{
-		try
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement listStatement = connection.prepareStatement("SELECT * FROM bugreports");
+		    ResultSet set = listStatement.executeQuery();
+		    PreparedStatement updateTimeStatement = connection.prepareStatement("UPDATE bugreports SET last_event_time=? WHERE id=?"))
 		{
-			ResultSet set = listStatement.executeQuery();
+
 			while(set.next())
 			{
 				try

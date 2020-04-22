@@ -10,6 +10,7 @@ import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -25,7 +26,6 @@ import java.util.regex.Pattern;
 
 public class CommandRemind extends Command
 {
-	private PreparedStatement insertReminder;
 	private final PeriodFormatter periodformatter;
 	private final DateTimeFormatter dateTimeFormatter;
 	private final DateTimeFormatter timeFormatter;
@@ -33,15 +33,6 @@ public class CommandRemind extends Command
 
 	public CommandRemind()
 	{
-		try
-		{
-			this.insertReminder = ChocoBot.database.prepareStatement("INSERT INTO reminders (uid, message, time, issuer) VALUES(?, ?, ?, ?)");
-		}
-		catch (SQLException var2)
-		{
-			var2.printStackTrace();
-		}
-
 		this.periodformatter = (new PeriodFormatterBuilder()).appendDays().appendSuffix("d").appendHours().appendSuffix("h").appendMinutes().appendSuffix("min").toFormatter();
 		this.dateTimeFormatter = (new DateTimeFormatterBuilder()).appendValue(ChronoField.DAY_OF_MONTH).appendLiteral('.').appendValue(ChronoField.MONTH_OF_YEAR).appendOptional((new DateTimeFormatterBuilder()).appendLiteral('.').appendValue(ChronoField.YEAR).toFormatter()).appendLiteral('/').appendValue(ChronoField.HOUR_OF_DAY).appendLiteral(':').appendValue(ChronoField.MINUTE_OF_HOUR).toFormatter();
 		this.timeFormatter = (new DateTimeFormatterBuilder()).appendValue(ChronoField.HOUR_OF_DAY).appendLiteral(':').appendValue(ChronoField.MINUTE_OF_HOUR).toFormatter();
@@ -143,13 +134,14 @@ public class CommandRemind extends Command
 					reMessage = String.join(" ", reasonArray);
 				}
 
-				try
+				try(Connection connection = ChocoBot.getDatabase();
+				    PreparedStatement insertReminder = ChocoBot.getDatabase().prepareStatement("INSERT INTO reminders (uid, message, time, issuer) VALUES(?, ?, ?, ?)"))
 				{
-					this.insertReminder.setLong(1, user.getIdLong());
-					this.insertReminder.setString(2, reMessage);
-					this.insertReminder.setLong(3, time.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
-					this.insertReminder.setLong(4, message.getAuthor().getIdLong());
-					this.insertReminder.execute();
+					insertReminder.setLong(1, user.getIdLong());
+					insertReminder.setString(2, reMessage);
+					insertReminder.setLong(3, time.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
+					insertReminder.setLong(4, message.getAuthor().getIdLong());
+					insertReminder.execute();
 					String var10001;
 					if (message.getAuthor().getIdLong() == user.getIdLong())
 					{

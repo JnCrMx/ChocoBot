@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,30 +23,10 @@ public class SubscriptionListener extends ListenerAdapter
 {
 	private final Logger logger = LoggerFactory.getLogger(SubscriptionListener.class);
 
-	private PreparedStatement insertSubscription;
-	private PreparedStatement checkSubscription;
-	private PreparedStatement deleteSubscription;
-	private PreparedStatement byUser;
-	private PreparedStatement byKeyword;
-	private PreparedStatement listKeywords;
-
 	private String[] keywordCache;
 
 	public SubscriptionListener()
 	{
-		try
-		{
-			this.insertSubscription = ChocoBot.database.prepareStatement("INSERT INTO subscriptions (subscriber, keyword) VALUES(?, ?)");
-			this.checkSubscription = ChocoBot.database.prepareStatement("SELECT * FROM subscriptions WHERE subscriber=? AND keyword=?");
-			this.deleteSubscription = ChocoBot.database.prepareStatement("DELETE FROM subscriptions WHERE subscriber=? AND keyword=?");
-			this.byUser = ChocoBot.database.prepareStatement("SELECT * FROM subscriptions WHERE subscriber=?");
-			this.byKeyword = ChocoBot.database.prepareStatement("SELECT subscriber FROM subscriptions WHERE keyword=?");
-			this.listKeywords = ChocoBot.database.prepareStatement("SELECT DISTINCT keyword FROM subscriptions");
-		}
-		catch(SQLException e)
-		{
-			e.printStackTrace();
-		}
 		updateCache();
 	}
 
@@ -87,11 +68,15 @@ public class SubscriptionListener extends ListenerAdapter
 
 	private boolean checkSubscription(User user, String keyword)
 	{
-		try
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement checkSubscription = connection.prepareStatement("SELECT * FROM subscriptions WHERE subscriber=? AND keyword=?"))
 		{
 			checkSubscription.setLong(1, user.getIdLong());
 			checkSubscription.setString(2, keyword);
-			return checkSubscription.executeQuery().next();
+			try(ResultSet result = checkSubscription.executeQuery())
+			{
+				return result.next();
+			}
 		}
 		catch(SQLException e)
 		{
@@ -118,9 +103,13 @@ public class SubscriptionListener extends ListenerAdapter
 
 		try
 		{
-			insertSubscription.setLong(1, user.getIdLong());
-			insertSubscription.setString(2, keyword);
-			insertSubscription.execute();
+			try(Connection connection = ChocoBot.getDatabase();
+			    PreparedStatement insertSubscription = connection.prepareStatement("INSERT INTO subscriptions (subscriber, keyword) VALUES(?, ?)"))
+			{
+				insertSubscription.setLong(1, user.getIdLong());
+				insertSubscription.setString(2, keyword);
+				insertSubscription.execute();
+			}
 
 			if(checkSubscription(user, keyword))
 			{
@@ -147,25 +136,27 @@ public class SubscriptionListener extends ListenerAdapter
 
 	private void sublist(User user, MessageChannel channel)
 	{
-		try
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement byUser = connection.prepareStatement("SELECT * FROM subscriptions WHERE subscriber=?"))
 		{
 			byUser.setLong(1, user.getIdLong());
-			ResultSet result = byUser.executeQuery();
-
-			StringBuilder b = new StringBuilder();
-			while(result.next())
+			try(ResultSet result = byUser.executeQuery())
 			{
-				b.append(result.getString("keyword"));
-				b.append('\n');
+				StringBuilder b = new StringBuilder();
+				while(result.next())
+				{
+					b.append(result.getString("keyword"));
+					b.append('\n');
+				}
+
+				EmbedBuilder eb = new EmbedBuilder();
+				eb.setTitle("Abonnements");
+				eb.setDescription(b.toString());
+				eb.setFooter("Nutze " + ChocoBot.prefix + "unsubscribe um Schlüsselwörter zu deabonnieren.");
+				eb.setColor(ChocoBot.COLOR_COOKIE);
+
+				channel.sendMessage(eb.build()).queue();
 			}
-
-			EmbedBuilder eb = new EmbedBuilder();
-			eb.setTitle("Abonnements");
-			eb.setDescription(b.toString());
-			eb.setFooter("Nutze "+ChocoBot.prefix+"unsubscribe um Schlüsselwörter zu deabonnieren.");
-			eb.setColor(ChocoBot.COLOR_COOKIE);
-
-			channel.sendMessage(eb.build()).queue();
 		}
 		catch(SQLException e)
 		{
@@ -189,7 +180,8 @@ public class SubscriptionListener extends ListenerAdapter
 			return;
 		}
 
-		try
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement deleteSubscription = connection.prepareStatement("DELETE FROM subscriptions WHERE subscriber=? AND keyword=?"))
 		{
 			deleteSubscription.setLong(1, user.getIdLong());
 			deleteSubscription.setString(2, keyword);
@@ -225,54 +217,60 @@ public class SubscriptionListener extends ListenerAdapter
 
 		String message = event.getMessage().getContentRaw().toLowerCase();
 
-		for(String keyword : keywordCache)
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement byKeyword = connection.prepareStatement("SELECT subscriber FROM subscriptions WHERE keyword=?");)
 		{
-			if(message.contains(keyword))
+			for(String keyword : keywordCache)
 			{
-				try
+				if(message.contains(keyword))
 				{
 					byKeyword.setString(1, keyword);
-					ResultSet result = byKeyword.executeQuery();
-					while(result.next())
+					try(ResultSet result = byKeyword.executeQuery())
 					{
-						Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
-						if(member != null)
+						while(result.next())
 						{
-							if(member.hasPermission(event.getChannel(), Permission.MESSAGE_READ))
+							Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
+							if(member != null)
 							{
-								member.getUser().openPrivateChannel()
-								      .queue(p->
-								             {
-									             p.sendMessage(
-											             String.format(
-													             "Das von dir abonnierte Schlüsselwort \"%s\" wurde erwänht:\nhttps://discordapp.com/channels/%d/%d/%d",
-													             keyword,
-													             event.getChannel().getGuild().getIdLong(),
-													             event.getChannel().getIdLong(),
-													             event.getMessage().getIdLong())).queue();
-								             });
+								if(member.hasPermission(event.getChannel(), Permission.MESSAGE_READ))
+								{
+									member.getUser().openPrivateChannel()
+									      .queue(p ->
+									             {
+										             p.sendMessage(
+												             String.format(
+														             "Das von dir abonnierte Schlüsselwort \"%s\" wurde erwänht:\nhttps://discordapp.com/channels/%d/%d/%d",
+														             keyword,
+														             event.getChannel().getGuild().getIdLong(),
+														             event.getChannel().getIdLong(),
+														             event.getMessage().getIdLong())).queue();
+									             });
+								}
 							}
 						}
 					}
 				}
-				catch(SQLException e)
-				{
-					e.printStackTrace();
-				}
 			}
+		}
+		catch(SQLException e)
+		{
+			e.printStackTrace();
 		}
 	}
 
 	private void updateCache()
 	{
-		try
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement listKeywords = connection.prepareStatement("SELECT DISTINCT keyword FROM subscriptions");)
 		{
 			ArrayList<String> keywords = new ArrayList<>();
 
-			ResultSet result = listKeywords.executeQuery();
-			while(result.next())
+			try(ResultSet result = listKeywords.executeQuery())
 			{
-				keywords.add(result.getString("keyword"));
+				while(result.next())
+				{
+					keywords.add(result.getString("keyword"));
+				}
 			}
 
 			keywordCache = keywords.toArray(String[]::new);

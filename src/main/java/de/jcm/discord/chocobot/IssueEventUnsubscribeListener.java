@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEv
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import javax.annotation.Nonnull;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.regex.Matcher;
@@ -14,20 +15,6 @@ import java.util.regex.Pattern;
 
 public class IssueEventUnsubscribeListener extends ListenerAdapter
 {
-	private PreparedStatement deleteStatement;
-
-	public IssueEventUnsubscribeListener()
-	{
-		try
-		{
-			deleteStatement = ChocoBot.database.prepareStatement("DELETE FROM bugreports WHERE id=?");
-		}
-		catch(SQLException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
 	@Override
 	public void onPrivateMessageReactionAdd(@Nonnull PrivateMessageReactionAddEvent event)
 	{
@@ -50,7 +37,8 @@ public class IssueEventUnsubscribeListener extends ListenerAdapter
 					            {
 						            int id = Integer.parseInt(matcher.group(1));
 
-						            try
+						            try(Connection connection = ChocoBot.getDatabase();
+						                PreparedStatement deleteStatement = connection.prepareStatement("DELETE FROM bugreports WHERE id=?"))
 						            {
 						            	deleteStatement.setInt(1, id);
 						            	deleteStatement.execute();

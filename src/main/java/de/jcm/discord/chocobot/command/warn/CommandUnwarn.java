@@ -7,28 +7,13 @@ import net.dv8tion.jda.api.entities.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class CommandUnwarn extends Command
 {
-	private PreparedStatement getWarning;
-	private PreparedStatement deleteWarning;
-
-	public CommandUnwarn()
-	{
-		try
-		{
-			this.getWarning = ChocoBot.database.prepareStatement("SELECT message FROM warnings WHERE id = ?");
-			this.deleteWarning = ChocoBot.database.prepareStatement("DELETE FROM warnings WHERE id = ?");
-		}
-		catch (SQLException var2)
-		{
-			var2.printStackTrace();
-		}
-	}
-
 	@Override
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
@@ -61,36 +46,44 @@ public class CommandUnwarn extends Command
 
 		try
 		{
-			getWarning.setInt(1, id);
-			ResultSet resultSet = getWarning.executeQuery();
-			if(resultSet.next())
+			try(Connection connection = ChocoBot.getDatabase();
+			    PreparedStatement getWarning = connection.prepareStatement("SELECT message FROM warnings WHERE id = ?");
+			    PreparedStatement deleteWarning = connection.prepareStatement("DELETE FROM warnings WHERE id = ?"))
 			{
-				long messageId = resultSet.getLong("message");
-
-				deleteWarning.setInt(1, id);
-				deleteWarning.execute();
-
-				GuildChannel warnChannel = ChocoBot.jda.getGuildChannelById(ChocoBot.warningChannel);
-				assert warnChannel != null;
-				if (warnChannel.getType() == ChannelType.TEXT)
+				getWarning.setInt(1, id);
+				try(ResultSet resultSet = getWarning.executeQuery())
 				{
-					TextChannel warnTextChannel = (TextChannel) warnChannel;
-					warnTextChannel.deleteMessageById(messageId).queue();
+					if(resultSet.next())
+					{
+						long messageId = resultSet.getLong("message");
+
+						deleteWarning.setInt(1, id);
+						deleteWarning.execute();
+
+						GuildChannel warnChannel = ChocoBot.jda.getGuildChannelById(ChocoBot.warningChannel);
+						assert warnChannel != null;
+						if(warnChannel.getType() == ChannelType.TEXT)
+						{
+							TextChannel warnTextChannel = (TextChannel) warnChannel;
+							warnTextChannel.deleteMessageById(messageId).queue();
+						}
+
+						EmbedBuilder builder = new EmbedBuilder();
+						builder.setColor(ChocoBot.COLOR_WARN);
+						builder.setTitle("Erfolg");
+						builder.setDescription("Die Verwarnung wurde erfolgreich gelöscht!");
+
+						channel.sendMessage(builder.build()).queue();
+
+						return true;
+					}
+					else
+					{
+						channel.sendMessage(ChocoBot.errorMessage("Die Verwarnung konnte nicht gefunden werden!"))
+						       .queue();
+						return false;
+					}
 				}
-
-				EmbedBuilder builder = new EmbedBuilder();
-				builder.setColor(ChocoBot.COLOR_WARN);
-				builder.setTitle("Erfolg");
-				builder.setDescription("Die Verwarnung wurde erfolgreich gelöscht!");
-
-				channel.sendMessage(builder.build()).queue();
-
-				return true;
-			}
-			else
-			{
-				channel.sendMessage(ChocoBot.errorMessage("Die Verwarnung konnte nicht gefunden werden!")).queue();
-				return false;
 			}
 		}
 		catch (SQLException e)

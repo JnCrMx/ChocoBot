@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,43 +19,32 @@ import java.time.temporal.ChronoField;
 
 public class CommandDaily extends Command
 {
-	private PreparedStatement getCoins;
-	private PreparedStatement updateCoins;
-
-	public CommandDaily()
-	{
-		try
-		{
-			this.getCoins = ChocoBot.database.prepareStatement("SELECT last_daily, daily_streak FROM coins WHERE uid=?");
-			this.updateCoins = ChocoBot.database.prepareStatement("UPDATE coins SET last_daily=?, daily_streak=?, coins=coins+? WHERE uid=?");
-		}
-		catch (SQLException var2)
-		{
-			var2.printStackTrace();
-		}
-
-	}
-
 	public boolean execute(Message message, TextChannel channel, String... args)
 	{
 		long uid = message.getAuthor().getIdLong();
 
 		try
 		{
-			this.getCoins.setLong(1, uid);
-			ResultSet resultSet = this.getCoins.executeQuery();
 			Instant lastDaily;
 			int dailyStreak;
-			if (resultSet.next())
+			try(Connection connection = ChocoBot.getDatabase();
+				PreparedStatement getCoins = connection.prepareStatement("SELECT last_daily, daily_streak FROM coins WHERE uid=?"))
 			{
-				lastDaily = Instant.ofEpochMilli(resultSet.getLong("last_daily"));
-				dailyStreak = resultSet.getInt("daily_streak");
-			}
-			else
-			{
-				DatabaseUtils.createEmptyUser(uid);
-				lastDaily = Instant.ofEpochMilli(0L);
-				dailyStreak = 0;
+				getCoins.setLong(1, uid);
+				try(ResultSet resultSet = getCoins.executeQuery())
+				{
+					if(resultSet.next())
+					{
+						lastDaily = Instant.ofEpochMilli(resultSet.getLong("last_daily"));
+						dailyStreak = resultSet.getInt("daily_streak");
+					}
+					else
+					{
+						DatabaseUtils.createEmptyUser(uid);
+						lastDaily = Instant.ofEpochMilli(0L);
+						dailyStreak = 0;
+					}
+				}
 			}
 
 			LocalDateTime dateTime = LocalDateTime.ofInstant(lastDaily, ZoneId.systemDefault());
@@ -75,11 +65,16 @@ public class CommandDaily extends Command
 					dailyStreak = 0;
 				}
 
-				this.updateCoins.setLong(1, System.currentTimeMillis());
-				this.updateCoins.setInt(2, dailyStreak);
-				this.updateCoins.setInt(3, coinsToAdd);
-				this.updateCoins.setLong(4, uid);
-				this.updateCoins.execute();
+				try(Connection connection = ChocoBot.getDatabase();
+				    PreparedStatement updateCoins = connection.prepareStatement("UPDATE coins SET last_daily=?, daily_streak=?, coins=coins+? WHERE uid=?"))
+				{
+					updateCoins.setLong(1, System.currentTimeMillis());
+					updateCoins.setInt(2, dailyStreak);
+					updateCoins.setInt(3, coinsToAdd);
+					updateCoins.setLong(4, uid);
+					updateCoins.execute();
+				}
+
 				int coins = DatabaseUtils.getCoins(uid);
 				builder.setTitle(":moneybag: Coins :moneybag:");
 				builder.setColor(ChocoBot.COLOR_COINS);
