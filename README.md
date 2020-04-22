@@ -6,6 +6,9 @@ ChocoBot is a simple Discord Bot written for only one server in first place, but
 
 ```yaml
 prefix: 'Prefix the Bot should use for commands'
+database:
+  type: 'sqlite'
+  path: 'chocobot.sqlite'
 reddit:
   enabled: whether memes from Reddit are enabled (defaults to true)
   username: 'Reddit username'

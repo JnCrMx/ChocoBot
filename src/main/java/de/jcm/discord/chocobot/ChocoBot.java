@@ -89,7 +89,7 @@ public class ChocoBot extends ListenerAdapter
 		}
 	}
 
-	public static void main(String[] args) throws LoginException, SQLException, FileNotFoundException
+	public static void main(String[] args) throws LoginException, SQLException, FileNotFoundException, ClassNotFoundException
 	{
 		Yaml yaml = new Yaml();
 		Map<String, Object> obj = yaml.load(new FileInputStream("config.yml"));
@@ -154,15 +154,42 @@ public class ChocoBot extends ListenerAdapter
 
 		executorService = Executors.newSingleThreadScheduledExecutor();
 
-		database = DriverManager.getConnection("jdbc:sqlite:chocobot.sqlite");
-		logger.info("Connected to SQLite database.");
-		Statement initStatement = database.createStatement();
-		tryCreateTable(initStatement, "CREATE TABLE \"coins\" (\"uid\" INTEGER, \"coins\" INTEGER, \"last_daily\" INTEGER, \"daily_streak\" INTEGER, PRIMARY KEY(\"uid\"));");
-		tryCreateTable(initStatement, "CREATE TABLE \"warnings\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"uid\" INTEGER,\"reason\" TEXT,\"time\" INTEGER,\"message\" INTEGER, \"warner\" INTEGER);");
-		tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
-		tryCreateTable(initStatement, "CREATE TABLE \"bugreports\" (\"id\" INTEGER PRIMARY KEY, \"reporter\" INTEGER, \"last_event_time\" INTEGER);");
-		tryCreateTable(initStatement, "CREATE TABLE \"subscriptions\" (\"id\" INTEGER PRIMARY KEY, \"subscriber\" INTEGER, \"keyword\" TEXT);");
+		Map<String, Object> dbConfig = (Map<String, Object>) obj.get("database");
+		String dbType = (String) dbConfig.getOrDefault("type", "sqlite");
+		if("sqlite".equals(dbType))
+		{
+			String dbPath = (String) dbConfig.getOrDefault("path", "chocobot.sqlite");
+			database = DriverManager.getConnection("jdbc:sqlite:"+dbPath);
+			logger.info("Connected to SQLite database.");
 
+			Statement initStatement = database.createStatement();
+			tryCreateTable(initStatement, "CREATE TABLE \"coins\" (\"uid\" INTEGER, \"coins\" INTEGER, \"last_daily\" INTEGER, \"daily_streak\" INTEGER, PRIMARY KEY(\"uid\"));");
+			tryCreateTable(initStatement, "CREATE TABLE \"warnings\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"uid\" INTEGER,\"reason\" TEXT,\"time\" INTEGER,\"message\" INTEGER, \"warner\" INTEGER);");
+			tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
+			tryCreateTable(initStatement, "CREATE TABLE \"bugreports\" (\"id\" INTEGER PRIMARY KEY, \"reporter\" INTEGER, \"last_event_time\" INTEGER);");
+			tryCreateTable(initStatement, "CREATE TABLE \"subscriptions\" (\"id\" INTEGER PRIMARY KEY, \"subscriber\" INTEGER, \"keyword\" TEXT);");
+		}
+		else if("mysql".equals(dbType))
+		{
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			String connectionURL = "jdbc:mysql://address="
+					+ "(host=" + dbConfig.getOrDefault("host", "localhost") + ")"
+					+ "(port=" + dbConfig.getOrDefault("port", 3306) + ")"
+					+ "(autoReconnect=true)"
+					+ "/" + dbConfig.getOrDefault("database", "chocobot");
+			database = DriverManager.getConnection(connectionURL,
+			                                       (String) dbConfig.get("user"),
+			                                       (String) dbConfig.get("password"));
+			logger.info("Connected to MySQL database.");
+
+			Statement initStatement = database.createStatement();
+			tryCreateTable(initStatement, "CREATE TABLE `coins` (`uid` BIGINT PRIMARY KEY, `coins` INT, `last_daily` BIGINT, `daily_streak` INT);");
+			tryCreateTable(initStatement, "CREATE TABLE `warnings` (`id` INT PRIMARY KEY AUTO_INCREMENT,`uid` BIGINT,`reason` TEXT,`time` BIGINT, `message` BIGINT, `warner` BIGINT);");
+			tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `done` BOOLEAN);");
+			tryCreateTable(initStatement, "CREATE TABLE `bugreports` (`id` INT PRIMARY KEY, `reporter` BIGINT, `last_event_time` BIGINT);");
+			tryCreateTable(initStatement, "CREATE TABLE `subscriptions` (`id` INT PRIMARY KEY, `subscriber` BIGINT, `keyword` TEXT);");
+		}
+		
 		DatabaseUtils.prepare();
 		QuizGame.prepare();
 
