@@ -4,6 +4,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -20,6 +22,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,6 +31,8 @@ import java.util.Map;
 
 public class GitHubApp
 {
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	private File privateKey;
 	private int appId;
 	private int installationId;
@@ -36,7 +41,7 @@ public class GitHubApp
 	private LocalDateTime jwtExpiration;
 
 	private String installationToken;
-	private LocalDateTime installationTokenExpiration;
+	private ZonedDateTime installationTokenExpiration;
 
 	private String user;
 	private String repository;
@@ -54,7 +59,7 @@ public class GitHubApp
 	private String getJwt()
 	{
 		if(jwtExpiration == null ||
-				jwtExpiration.isAfter(LocalDateTime.now()))
+				jwtExpiration.isBefore(LocalDateTime.now()))
 		{
 			try
 			{
@@ -85,6 +90,8 @@ public class GitHubApp
 		   .withIssuedAt(new Date(time))
 		   .withExpiresAt(new Date(time+10*60*1000))
 		   .sign(algorithm);
+
+		logger.info("Created new JWT with expiration at "+JWT.decode(jwt).getExpiresAt().toInstant());
 	}
 
 	private byte[] loadKey() throws IOException
@@ -97,7 +104,7 @@ public class GitHubApp
 	public String getToken()
 	{
 		if(installationTokenExpiration == null ||
-				installationTokenExpiration.isAfter(LocalDateTime.now()))
+				installationTokenExpiration.isBefore(ZonedDateTime.now()))
 			createInstallationToken();
 
 		return installationToken;
@@ -116,7 +123,9 @@ public class GitHubApp
 		installationToken = (String) response.get("token");
 		String ex = (String) response.get("expires_at");
 
-		installationTokenExpiration = LocalDateTime.parse(ex, DateTimeFormatter.ISO_DATE_TIME);
+		installationTokenExpiration = ZonedDateTime.parse(ex, DateTimeFormatter.ISO_DATE_TIME);
+
+		logger.info("Created new installation token with expiration at "+installationTokenExpiration);
 	}
 
 	public HashMap<?, ?> createIssue(String title, @Nullable String body, @Nullable User reporter)
@@ -154,9 +163,19 @@ public class GitHubApp
 				.path("/issues")
 				.path(Integer.toString(issueId))
 				.path("/events");
-		return target.request()
+		Response response = target.request()
 		             .header("Authorization", "token "+getToken())
-		             .get(List.class);
+		             .get();
+		if(response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL)
+			return response.readEntity(List.class);
+		else
+		{
+			System.out.println(response.readEntity(String.class));
+			throw new RuntimeException("Got status " +
+					                           response.getStatusInfo().getStatusCode() +
+					                           " " +
+					                           response.getStatusInfo().getReasonPhrase());
+		}
 	}
 
 	public Map<?, ?> getIssueEvent(Map<?, ?> event)

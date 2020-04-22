@@ -108,6 +108,8 @@ public class CommandBugReport extends Command
 		}
 		catch(RuntimeException | FileNotFoundException e)
 		{
+			e.printStackTrace();
+
 			channel.sendMessage(
 						ChocoBot.errorMessage("Es trat ein Fehler beim Senden der Fehlermeldung auf!"))
 			       .queue();
