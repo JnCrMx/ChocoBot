@@ -59,6 +59,7 @@ public class ChocoBot extends ListenerAdapter
 	public static List<String> operatorRoles;
 
 	public static String remindChannel;
+	public static List<String> mutedChannels;
 
 	private static String redditUsername;
 	private static String redditPassword;
@@ -115,6 +116,7 @@ public class ChocoBot extends ListenerAdapter
 		warningChannel = (String) serverConfig.get("warningChannel");
 		remindChannel = (String) serverConfig.get("remindChannel");
 		operatorRoles = (List<String>) serverConfig.get("operatorRoles");
+		mutedChannels = (List<String>) serverConfig.get("mutedChannels");
 
 		Logger logger = LoggerFactory.getLogger(ChocoBot.class);
 

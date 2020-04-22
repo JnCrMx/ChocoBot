@@ -25,6 +25,8 @@ server:
   commandChannel: 'ID of channel commands may be used in'
   warningChannel: 'ID of channel to post warnings in'
   remindChannel: 'ID of channel to post reminds in'
+  mutedChannels:
+    - 'IDs of channels that are muted for the subscription system'
   operatorRoles:
     - 'IDs of roles that are allowed to'
     - 'warn, unwarn, use commands everywhere, etc.'

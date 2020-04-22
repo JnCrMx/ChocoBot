@@ -220,6 +220,9 @@ public class SubscriptionListener extends ListenerAdapter
 	@Override
 	public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event)
 	{
+		if(ChocoBot.mutedChannels.contains(event.getChannel().getId()))
+			return;
+
 		String message = event.getMessage().getContentRaw().toLowerCase();
 
 		for(String keyword : keywordCache)
