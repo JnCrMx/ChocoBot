@@ -18,6 +18,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SubscriptionListener extends ListenerAdapter
 {
@@ -41,13 +43,18 @@ public class SubscriptionListener extends ListenerAdapter
 				this.logger.info("Private Command \"{}\" from user {} ({}) received.",
 				                 message, event.getAuthor().getAsTag(), event.getAuthor().getId());
 
-				message = message.substring(ChocoBot.prefix.length()).trim().toLowerCase();
+				message = message.substring(ChocoBot.prefix.length()).trim();
 				String keyword = message;
 				String argument = "";
 				if(message.contains(" "))
 				{
 					keyword = message.substring(0, message.indexOf(' '));
 					argument = message.substring(message.indexOf(' ')+1);
+				}
+
+				if(!(argument.startsWith("/") && (argument.endsWith("/g") || argument.endsWith("/gi"))))
+				{
+					argument = argument.toLowerCase();
 				}
 
 				switch(keyword)
@@ -99,6 +106,22 @@ public class SubscriptionListener extends ListenerAdapter
 			channel.sendMessage(ChocoBot.errorMessage("Du hast dieses Schlüsselwort bereits abonniert."))
 			       .queue();
 			return;
+		}
+
+		if(keyword.startsWith("/") && (keyword.endsWith("/g") || keyword.endsWith("/gi")))
+		{
+			try
+			{
+				boolean i = keyword.endsWith("/gi");
+				Pattern.compile(keyword.substring(1, keyword.length() - (i?3:2)), i?Pattern.CASE_INSENSITIVE:0);
+			}
+			catch(Throwable t)
+			{
+				channel.sendMessage(ChocoBot.errorMessage("Deine RegEx scheint nicht zu funktionieren: "
+						                                          +t.getLocalizedMessage()))
+				       .queue();
+				return;
+			}
 		}
 
 		try
@@ -214,38 +237,56 @@ public class SubscriptionListener extends ListenerAdapter
 	{
 		if(ChocoBot.mutedChannels.contains(event.getChannel().getId()))
 			return;
+		if(event.getAuthor().isBot())
+			return;
 
-		String message = event.getMessage().getContentRaw().toLowerCase();
+		String message = event.getMessage().getContentRaw();
 
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement byKeyword = connection.prepareStatement("SELECT subscriber FROM subscriptions WHERE keyword=?");)
 		{
 			for(String keyword : keywordCache)
 			{
-				if(message.contains(keyword))
+				if(keyword.startsWith("/") && (keyword.endsWith("/g") || keyword.endsWith("/gi")))
 				{
-					byKeyword.setString(1, keyword);
-					try(ResultSet result = byKeyword.executeQuery())
+					try
 					{
-						while(result.next())
+						boolean i = keyword.endsWith("/gi");
+						Pattern pattern = Pattern.compile(keyword.substring(1, keyword.length() - (i?3:2)),
+						                                  i?Pattern.CASE_INSENSITIVE:0);
+						Matcher matcher = pattern.matcher(message);
+						if(matcher.find())
 						{
-							Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
-							if(member != null)
+							byKeyword.setString(1, keyword);
+							try(ResultSet result = byKeyword.executeQuery())
 							{
-								if(member.hasPermission(event.getChannel(), Permission.MESSAGE_READ))
+								while(result.next())
 								{
-									member.getUser().openPrivateChannel()
-									      .queue(p ->
-									             {
-										             p.sendMessage(
-												             String.format(
-														             "Das von dir abonnierte Schlüsselwort \"%s\" wurde erwänht:\nhttps://discordapp.com/channels/%d/%d/%d",
-														             keyword,
-														             event.getChannel().getGuild().getIdLong(),
-														             event.getChannel().getIdLong(),
-														             event.getMessage().getIdLong())).queue();
-									             });
+									Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
+									checkAndNotify(event, keyword, member);
 								}
+							}
+						}
+					}
+					catch(Throwable ignore)
+					{
+
+					}
+				}
+				else
+				{
+					// remove all links from the message, because we want to ignore them
+					message = message.replaceAll("(http(s|)*://|www\\.)\\S*", "");
+					message = message.toLowerCase();
+					if(message.contains(keyword.toLowerCase()))
+					{
+						byKeyword.setString(1, keyword);
+						try(ResultSet result = byKeyword.executeQuery())
+						{
+							while(result.next())
+							{
+								Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
+								checkAndNotify(event, keyword, member);
 							}
 						}
 					}
@@ -255,6 +296,24 @@ public class SubscriptionListener extends ListenerAdapter
 		catch(SQLException e)
 		{
 			e.printStackTrace();
+		}
+	}
+
+	private void checkAndNotify(GuildMessageReceivedEvent event, String keyword, Member member)
+	{
+		if(member != null)
+		{
+			if(member.hasPermission(event.getChannel(), Permission.MESSAGE_READ))
+			{
+				member.getUser().openPrivateChannel()
+				      .queue(p -> p.sendMessage(
+				      		String.format(
+				      				"Das von dir abonnierte Schlüsselwort \"%s\" wurde erwähnt:\nhttps://discordapp.com/channels/%d/%d/%d",
+							        keyword,
+							        event.getChannel().getGuild().getIdLong(),
+							        event.getChannel().getIdLong(),
+							        event.getMessage().getIdLong())).queue());
+			}
 		}
 	}
 
