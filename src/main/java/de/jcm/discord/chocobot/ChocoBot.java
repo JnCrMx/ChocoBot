@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.security.auth.login.LoginException;
-import javax.sql.DataSource;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -33,9 +32,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
@@ -93,20 +90,9 @@ public class ChocoBot extends ListenerAdapter
 		}
 	}
 
-	private static Connection connection;
-
 	public static Connection getDatabase() throws SQLException
 	{
-		if(dataSource.getUrl().startsWith("jdbc:sqlite:"))
-		{
-			if(connection == null)
-				connection = dataSource.getConnection();
-			return connection;
-		}
-		else
-		{
-			return dataSource.getConnection();
-		}
+		return dataSource.getConnection();
 	}
 
 	public static void main(String[] args) throws LoginException, SQLException, FileNotFoundException, ClassNotFoundException
@@ -180,6 +166,8 @@ public class ChocoBot extends ListenerAdapter
 		{
 			String dbPath = (String) dbConfig.getOrDefault("path", "chocobot.sqlite");
 			dataSource.setUrl("jdbc:sqlite:"+dbPath);
+			dataSource.setAutoCommitOnReturn(true);
+			dataSource.setMaxTotal(1);
 			logger.info("Connected to SQLite database.");
 
 			try(Connection connection = getDatabase();
