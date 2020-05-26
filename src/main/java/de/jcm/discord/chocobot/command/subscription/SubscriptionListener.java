@@ -263,7 +263,7 @@ public class SubscriptionListener extends ListenerAdapter
 								while(result.next())
 								{
 									Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
-									checkAndNotify(event, keyword, member);
+									checkAndNotify(event, matcher.group(), member);
 								}
 							}
 						}
@@ -276,9 +276,10 @@ public class SubscriptionListener extends ListenerAdapter
 				else
 				{
 					// remove all links from the message, because we want to ignore them
-					message = message.replaceAll("(http(s|)*://|www\\.)\\S*", "");
-					message = message.toLowerCase();
-					if(message.contains(keyword.toLowerCase()))
+					String messagePlain = message
+							.replaceAll("(http(s|)*://|www\\.)\\S*", "")
+							.toLowerCase();
+					if(messagePlain.contains(keyword.toLowerCase()))
 					{
 						byKeyword.setString(1, keyword);
 						try(ResultSet result = byKeyword.executeQuery())
