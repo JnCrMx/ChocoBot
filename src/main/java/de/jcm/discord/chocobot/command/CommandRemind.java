@@ -135,7 +135,7 @@ public class CommandRemind extends Command
 				}
 
 				try(Connection connection = ChocoBot.getDatabase();
-				    PreparedStatement insertReminder = ChocoBot.getDatabase().prepareStatement("INSERT INTO reminders (uid, message, time, issuer) VALUES(?, ?, ?, ?)"))
+				    PreparedStatement insertReminder = connection.prepareStatement("INSERT INTO reminders (uid, message, time, issuer) VALUES(?, ?, ?, ?)"))
 				{
 					insertReminder.setLong(1, user.getIdLong());
 					insertReminder.setString(2, reMessage);
