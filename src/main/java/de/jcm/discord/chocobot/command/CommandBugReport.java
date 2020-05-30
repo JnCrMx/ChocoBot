@@ -48,7 +48,7 @@ public class CommandBugReport extends Command
 				String htmlURL = (String) response.get("html_url");
 
 				try(Connection connection = ChocoBot.getDatabase();
-				    PreparedStatement insertBugReport = ChocoBot.getDatabase().prepareStatement("INSERT INTO bugreports (id, reporter, last_event_time) VALUES (?, ?, ?)"))
+				    PreparedStatement insertBugReport = connection.prepareStatement("INSERT INTO bugreports (id, reporter, last_event_time) VALUES (?, ?, ?)"))
 				{
 					insertBugReport.setInt(1, id);
 					insertBugReport.setLong(2, message.getAuthor().getIdLong());
