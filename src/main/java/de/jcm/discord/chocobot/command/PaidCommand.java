@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.Nullable;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public abstract class PaidCommand extends Command
 {
     @Override
@@ -19,11 +21,10 @@ public abstract class PaidCommand extends Command
         }
         else
         {
-            channel.sendMessage(
+            sendTempMessage(channel,
                     ChocoBot.errorMessage(
                             "Du hast nicht genug Coins, um diesen Befehl auszuführen!\n"+
-                                    "Die Kosten betragen "+getCost()+" Coins."))
-                   .queue();
+                                    "Die Kosten betragen "+getCost()+" Coins."));
             return false;
         }
     }

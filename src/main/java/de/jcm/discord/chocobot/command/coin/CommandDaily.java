@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandDaily extends Command
 {
 	public boolean execute(Message message, TextChannel channel, String... args)
@@ -86,12 +88,12 @@ public class CommandDaily extends Command
 					builder.setFooter("Deine Streak wurde zurückgesetzt, da sie das Maximum von 7 Tagen überschritten hat.");
 				}
 
-				channel.sendMessage(builder.build()).queue();
+				sendTempMessage(channel, builder.build());
 				return true;
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Du hast deinen täglichen Bonus heute bereits eingefordert!")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage("Du hast deinen täglichen Bonus heute bereits eingefordert!"));
 				return false;
 			}
 		}
@@ -117,5 +119,11 @@ public class CommandDaily extends Command
 	protected String getUsage()
 	{
 		return "%c : %h";
+	}
+
+	@Override
+	public boolean usableEverywhere()
+	{
+		return true;
 	}
 }

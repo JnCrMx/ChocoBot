@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Random;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandGif extends PaidCommand
 {
 	private final WebTarget searchTarget;
@@ -31,7 +33,7 @@ public class CommandGif extends PaidCommand
 		ArrayList<?> results = (ArrayList<?>) map.get("results");
 		if (results.size() == 0)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Ich konnte leider kein passendes GIF finden.")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Ich konnte leider kein passendes GIF finden."));
 			return false;
 		}
 		else

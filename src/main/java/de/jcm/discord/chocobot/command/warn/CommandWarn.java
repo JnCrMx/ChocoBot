@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.regex.Pattern;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandWarn extends Command
 {
 	public boolean execute(Message message, TextChannel channel, String... args)
@@ -23,12 +25,12 @@ public class CommandWarn extends Command
 		if (warnerMember.getRoles().stream().noneMatch((r) ->
 				ChocoBot.operatorRoles.contains(r.getId())))
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Leute verwarnen!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Du darfst keine Leute verwarnen!"));
 			return false;
 		}
 		else if (args.length < 2)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst einen Verwarnten und einen Grund angeben!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Du musst einen Verwarnten und einen Grund angeben!"));
 			return false;
 		}
 		else
@@ -70,7 +72,7 @@ public class CommandWarn extends Command
 							}
 							if (warnTextChannel.getIdLong() != channel.getIdLong())
 							{
-								channel.sendMessage(builder.build()).queue();
+								sendTempMessage(channel, builder.build());
 							}
 
 							if (warned.getIdLong() == ChocoBot.jda.getSelfUser().getIdLong())
@@ -90,7 +92,7 @@ public class CommandWarn extends Command
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Du musst einen Verwarnten angeben!")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage("Du musst einen Verwarnten angeben!"));
 				return false;
 			}
 		}
@@ -111,5 +113,11 @@ public class CommandWarn extends Command
 	protected @Nullable String getUsage()
 	{
 		return "%c <Nutzer> <Grund> (nur Operatoren) : %h";
+	}
+
+	@Override
+	public boolean usableEverywhere()
+	{
+		return true;
 	}
 }

@@ -8,6 +8,8 @@ import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandWarm extends Command
 {
 	@Override
@@ -15,7 +17,7 @@ public class CommandWarm extends Command
 	{
 		if (args.length < 1 || message.getMentionedUsers().isEmpty())
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst mir schon sagen, wen du erwärmen willst!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Du musst mir schon sagen, wen du erwärmen willst!"));
 			return false;
 		}
 

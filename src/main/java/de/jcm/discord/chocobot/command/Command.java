@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public abstract class Command
 {
 	private static final Logger logger_ = LoggerFactory.getLogger(Command.class);
@@ -75,7 +77,7 @@ public abstract class Command
 		eb.setDescription(usage);
 
 		eb.setColor(ChocoBot.COLOR_COOKIE);
-		channel.sendMessage(eb.build()).queue();
+		sendTempMessage(channel, eb.build());
 	}
 
 	@Nullable

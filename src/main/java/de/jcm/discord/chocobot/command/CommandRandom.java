@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.regex.Pattern;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandRandom extends Command
 {
 	private final Random random = new Random();
@@ -27,7 +29,7 @@ public class CommandRandom extends Command
 		{
 			List<User> users = message.getMentionedUsers();
 			User user = users.get(this.random.nextInt(users.size()));
-			channel.sendMessage("Es ist: " + user.getAsMention()).queue();
+			sendTempMessage(channel, "Es ist: " + user.getAsMention());
 			return true;
 		}
 		else
@@ -43,7 +45,7 @@ public class CommandRandom extends Command
 				}
 
 				user = users.get(this.random.nextInt(users.size()));
-				channel.sendMessage("Es ist: " + user.getAsMention()).queue();
+				sendTempMessage(channel, "Es ist: " + user.getAsMention());
 				return true;
 			}
 			else if (args[0].equals("@everyone") || args[0].equals("@here"))
@@ -56,7 +58,7 @@ public class CommandRandom extends Command
 				}
 
 				user = users.get(this.random.nextInt(users.size()));
-				channel.sendMessage("Es ist: " + user.getAsMention()).queue();
+				sendTempMessage(channel, "Es ist: " + user.getAsMention());
 				return true;
 			}
 			else
@@ -82,7 +84,7 @@ public class CommandRandom extends Command
 						}
 						while(integer.compareTo(end)>0);
 
-						channel.sendMessage("Es ist die "+integer.toString()+"!").queue();
+						sendTempMessage(channel, "Es ist die "+integer.toString()+"!");
 						return true;
 					}
 					catch (NumberFormatException ignored)
@@ -100,17 +102,17 @@ public class CommandRandom extends Command
 						if (Objects.requireNonNull(message.getMember())
 						           .getRoles().stream().noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
 						{
-							channel.sendMessage(ChocoBot.errorMessage("Nein, ich werde das nicht tun!")).queue();
+							sendTempMessage(channel, ChocoBot.errorMessage("Nein, ich werde das nicht tun!"));
 							return false;
 						}
 					}
 
-					channel.sendMessage("Es ist: " + word).queue();
+					sendTempMessage(channel, "Es ist: " + word);
 					return true;
 				}
 				else
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Diese Art des Zufalls ist momentan nicht unterstützt!")).queue();
+					sendTempMessage(channel, ChocoBot.errorMessage("Diese Art des Zufalls ist momentan nicht unterstützt!"));
 					return false;
 				}
 			}
@@ -138,5 +140,11 @@ public class CommandRandom extends Command
 				"%c @here : Finde einen zufälligen Nutzer von diesem Server, der online ist.\n" +
 				"%c <Start> <Ende> : Zeige eine Zufallszahl zwischen <Start> und <Ende> an.\n" +
 				"%c <Wort> <Wort> [<Wort> ...] : Wähle zufällig ein Wort aus.";
+	}
+
+	@Override
+	public boolean usableEverywhere()
+	{
+		return true;
 	}
 }

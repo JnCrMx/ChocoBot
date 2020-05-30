@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandSay extends Command
 {
 	public CommandSay()
@@ -34,7 +36,7 @@ public class CommandSay extends Command
 			if (Objects.requireNonNull(message.getMember())
 			           .getRoles().stream().noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich erwähne niemanden für dich!")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage("Ich erwähne niemanden für dich!"));
 				return false;
 			}
 		}
@@ -65,5 +67,11 @@ public class CommandSay extends Command
 	{
 		return  "%c <Nachricht> : Sage etwas in diesem Kanal.\n" +
 				"%c <Kanal> <Nachricht> : Sage etwas in einem anderen Kanal.";
+	}
+
+	@Override
+	public boolean usableEverywhere()
+	{
+		return true;
 	}
 }

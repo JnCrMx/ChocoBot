@@ -91,10 +91,14 @@ public class CommandListener extends ListenerAdapter
 							if (result)
 							{
 								this.logger.info("Command \"{}\" from user {} ({}) succeeded.", message, event.getAuthor().getAsTag(), event.getAuthor().getId());
+
+								event.getMessage().delete().queue();
 							}
 							else
 							{
 								this.logger.info("Command \"{}\" from user {} ({}) failed.", message, event.getAuthor().getAsTag(), event.getAuthor().getId());
+
+								event.getMessage().delete().queueAfter(ChocoBot.deleteDelay, TimeUnit.SECONDS);
 							}
 						}
 					}

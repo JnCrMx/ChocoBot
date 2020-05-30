@@ -12,6 +12,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Pattern;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandGift extends Command
 {
 	public CommandGift()
@@ -22,7 +24,7 @@ public class CommandGift extends Command
 	{
 		if (args.length < 2)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst mir schon sagen wem du wie viele Coins schenken möchtest!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Du musst mir schon sagen wem du wie viele Coins schenken möchtest!"));
 			return false;
 		}
 		else
@@ -35,12 +37,12 @@ public class CommandGift extends Command
 					int amount = Integer.parseInt(args[1]);
 					if (amount < 0)
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Das wäre Diebstahl!")).queue();
+						sendTempMessage(channel, ChocoBot.errorMessage("Das wäre Diebstahl!"));
 						return false;
 					}
 					else if (amount == 0)
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Du bist aber geizig!")).queue();
+						sendTempMessage(channel, ChocoBot.errorMessage("Du bist aber geizig!"));
 						return false;
 					}
 					else
@@ -54,7 +56,7 @@ public class CommandGift extends Command
 						long dst = dstMember.getIdLong();
 						if (DatabaseUtils.getCoins(src) < amount)
 						{
-							channel.sendMessage(ChocoBot.errorMessage("Du kannst nicht mehr verschenken als du selbst hast!")).queue();
+							sendTempMessage(channel, ChocoBot.errorMessage("Du kannst nicht mehr verschenken als du selbst hast!"));
 							return false;
 						}
 						else
@@ -82,13 +84,13 @@ public class CommandGift extends Command
 				}
 				catch (NumberFormatException var13)
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Ich kann leider nicht verstehen, wie viele Coins du verschenken willst.")).queue();
+					sendTempMessage(channel, ChocoBot.errorMessage("Ich kann leider nicht verstehen, wie viele Coins du verschenken willst."));
 					return false;
 				}
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich kann leider nicht verstehen, wem du Coins schenken willst.")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage("Ich kann leider nicht verstehen, wem du Coins schenken willst."));
 				return false;
 			}
 		}

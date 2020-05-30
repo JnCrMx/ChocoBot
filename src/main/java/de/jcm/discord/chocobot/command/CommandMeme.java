@@ -12,6 +12,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandMeme extends PaidCommand
 {
 	private final WebTarget baseTarget;
@@ -26,7 +28,7 @@ public class CommandMeme extends PaidCommand
 	{
 		if (args.length != 1)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst mir schon sagen, wo ich das Meme hernehmen soll!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Du musst mir schon sagen, wo ich das Meme hernehmen soll!"));
 			return false;
 		}
 		else
@@ -41,7 +43,7 @@ public class CommandMeme extends PaidCommand
 			Response response = target.request(MediaType.APPLICATION_JSON).header("Authorization", "Bearer " + ChocoBot.redditToken).get();
 			if (response.getStatus() != 200)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich kann auf diesen Subreddit nicht zugreifen!")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage("Ich kann auf diesen Subreddit nicht zugreifen!"));
 				return false;
 			}
 			else
@@ -78,7 +80,7 @@ public class CommandMeme extends PaidCommand
 						this.logger.debug("Rejected url \"" + imgURL + "\" because it does not seem to be a meme. Is that correct?");
 					}
 				}
-				channel.sendMessage(ChocoBot.errorMessage("Ich konnte keine Memes finden!")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage("Ich konnte keine Memes finden!"));
 				return false;
 			}
 		}

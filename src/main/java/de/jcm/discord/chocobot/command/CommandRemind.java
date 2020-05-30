@@ -24,6 +24,8 @@ import java.time.temporal.ChronoField;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandRemind extends Command
 {
 	private final PeriodFormatter periodformatter;
@@ -43,7 +45,7 @@ public class CommandRemind extends Command
 	{
 		if (args.length < 1)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst mindestens einen Zeitpunkt für die Erinnerung angeben!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Du musst mindestens einen Zeitpunkt für die Erinnerung angeben!"));
 			return false;
 		}
 		else
@@ -62,7 +64,7 @@ public class CommandRemind extends Command
 			{
 				if (args.length < 2)
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Du musst mir schon sagen, wann die Erinnerung stattfinden sollt!")).queue();
+					sendTempMessage(channel, ChocoBot.errorMessage("Du musst mir schon sagen, wann die Erinnerung stattfinden sollt!"));
 					return false;
 				}
 
@@ -116,12 +118,12 @@ public class CommandRemind extends Command
 
 			if (time == null)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich kann deine Zeitangabe leider nicht verstehen!")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage("Ich kann deine Zeitangabe leider nicht verstehen!"));
 				return false;
 			}
 			else if (time.isBefore(LocalDateTime.now()))
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Dafür bräuchtest du eine Zeitmaschine!")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage("Dafür bräuchtest du eine Zeitmaschine!"));
 				return false;
 			}
 			else
@@ -139,7 +141,7 @@ public class CommandRemind extends Command
 					if (Objects.requireNonNull(message.getMember())
 					           .getRoles().stream().noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Vergiss es!")).queue();
+						sendTempMessage(channel, ChocoBot.errorMessage("Vergiss es!"));
 						return false;
 					}
 				}
@@ -156,12 +158,12 @@ public class CommandRemind extends Command
 					if (message.getAuthor().getIdLong() == user.getIdLong())
 					{
 						var10001 = message.getAuthor().getAsMention();
-						channel.sendMessage(var10001 + ", du wirst " + this.outputFormatter.format(time) + " erinnert!").queue();
+						sendTempMessage(channel, var10001 + ", du wirst " + this.outputFormatter.format(time) + " erinnert!");
 					}
 					else
 					{
 						var10001 = message.getAuthor().getAsMention();
-						channel.sendMessage(var10001 + ", " + Objects.requireNonNull(channel.getGuild().getMember(user)).getEffectiveName() + " wird " + this.outputFormatter.format(time) + " erinnert!").queue();
+						sendTempMessage(channel, var10001 + ", " + Objects.requireNonNull(channel.getGuild().getMember(user)).getEffectiveName() + " wird " + this.outputFormatter.format(time) + " erinnert!");
 					}
 				}
 				catch (SQLException var12)
@@ -203,5 +205,11 @@ public class CommandRemind extends Command
 				"``29min``\n" +
 				"``1h15min``\n" +
 				"``1d5h12min``";
+	}
+
+	@Override
+	public boolean usableEverywhere()
+	{
+		return true;
 	}
 }

@@ -14,6 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandWarns extends Command
 {
 	@Override
@@ -32,15 +34,15 @@ public class CommandWarns extends Command
 			targetId = message.getMentionedUsers().get(0).getIdLong();
 			if(targetId!=message.getAuthor().getIdLong() && !isMod)
 			{
-				channel.sendMessage(ChocoBot.errorMessage(
-						"Du darfst nur deine eigenen Verwarnungen sehen!")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage(
+						"Du darfst nur deine eigenen Verwarnungen sehen!"));
 				return false;
 			}
 		}
 		else
 		{
-			channel.sendMessage(ChocoBot.errorMessage(
-					"Ich verstehe nicht, von wem du die Verwarnungen sehen willst.")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage(
+					"Ich verstehe nicht, von wem du die Verwarnungen sehen willst."));
 			return false;
 		}
 
@@ -76,7 +78,7 @@ public class CommandWarns extends Command
 
 				builder.setDescription("**" + count + "** Verwarnungen:");
 
-				channel.sendMessage(builder.build()).queue();
+				sendTempMessage(channel, builder.build());
 
 				return true;
 			}
@@ -105,5 +107,11 @@ public class CommandWarns extends Command
 	{
 		return  "%c : Zeige deine Verwarnungen an.\n" +
 				"%c <Nutzer> (nur Operatoren) : Zeige die Verwarnungen eines anderen Nutzers an.";
+	}
+
+	@Override
+	public boolean usableEverywhere()
+	{
+		return true;
 	}
 }

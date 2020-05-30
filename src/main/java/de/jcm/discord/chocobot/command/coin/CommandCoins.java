@@ -18,6 +18,8 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.Objects;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandCoins extends Command
 {
 	public boolean execute(Message message, TextChannel channel, String... args)
@@ -33,9 +35,8 @@ public class CommandCoins extends Command
 				if(Objects.requireNonNull(message.getMember()).getRoles().stream()
 				          .noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
 				{
-					channel.sendMessage(ChocoBot.errorMessage(
-							"Du darfst dir nicht die Coins anderer Nutzer anzeigen lassen!"))
-					       .queue();
+					sendTempMessage(channel, ChocoBot.errorMessage(
+							"Du darfst dir nicht die Coins anderer Nutzer anzeigen lassen!"));
 					return false;
 				}
 				foreign = true;
@@ -89,7 +90,7 @@ public class CommandCoins extends Command
 				}
 			}
 
-			channel.sendMessage(builder.build()).queue();
+			sendTempMessage(channel, builder.build());
 			return true;
 		}
 		catch(SQLException var11)
@@ -115,5 +116,11 @@ public class CommandCoins extends Command
 	{
 		return "%c : %h\n" +
 				"%c <Nutzer> (nur Operatoren) : Zeige die Coins eines anderen Nutzers an.";
+	}
+
+	@Override
+	public boolean usableEverywhere()
+	{
+		return true;
 	}
 }

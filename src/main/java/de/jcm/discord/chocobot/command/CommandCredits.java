@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandCredits extends Command
 {
 	public CommandCredits()
@@ -21,7 +23,7 @@ public class CommandCredits extends Command
 		builder.setColor(ChocoBot.COLOR_COOKIE);
 		builder.addField("für", Objects.requireNonNull(channel.getJDA().getUserById(443141932714033192L)).getAsTag(), false);
 		builder.addField("zu", "Weihnachten 2019", false);
-		channel.sendMessage(builder.build()).queue();
+		sendTempMessage(channel, builder.build());
 		return true;
 	}
 
@@ -40,5 +42,11 @@ public class CommandCredits extends Command
 	protected String getUsage()
 	{
 		return "%c : %h";
+	}
+
+	@Override
+	public boolean usableEverywhere()
+	{
+		return true;
 	}
 }

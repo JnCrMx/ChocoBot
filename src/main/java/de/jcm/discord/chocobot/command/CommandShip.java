@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandShip extends Command
 {
 	private static final String EMOJI_NULL = ":broken_heart:";
@@ -29,13 +31,13 @@ public class CommandShip extends Command
 	{
 		if (!message.getMentionedRoles().isEmpty())
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Rollen shippen!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Du darfst keine Rollen shippen!"));
 			return false;
 		}
 		else if (message.getContentRaw().contains("@everyone") ||
 				message.getContentRaw().contains("@here"))
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Das wäre eine Orgie!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Das wäre eine Orgie!"));
 			return false;
 		}
 		else
@@ -82,7 +84,7 @@ public class CommandShip extends Command
 			{
 				if (w1.equals(w2))
 				{
-					channel.sendMessage(ChocoBot.errorMessage("\"" + w1 + "\" scheint ganz schön selbstverliebt zu sein...")).queue();
+					sendTempMessage(channel, ChocoBot.errorMessage("\"" + w1 + "\" scheint ganz schön selbstverliebt zu sein..."));
 					return false;
 				}
 				else
@@ -126,7 +128,7 @@ public class CommandShip extends Command
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Du musst zwei Begriffe zum shippen nennen!")).queue();
+				sendTempMessage(channel, ChocoBot.errorMessage("Du musst zwei Begriffe zum shippen nennen!"));
 				return false;
 			}
 		}

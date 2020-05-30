@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static de.jcm.discord.chocobot.ChocoBot.sendTempMessage;
+
 public class CommandUnwarn extends Command
 {
 	@Override
@@ -19,8 +21,8 @@ public class CommandUnwarn extends Command
 	{
 		if(args.length!=1)
 		{
-			channel.sendMessage(ChocoBot.errorMessage(
-					"Du musst mir die ID der zu löschenden Warnung sagen!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage(
+					"Du musst mir die ID der zu löschenden Warnung sagen!"));
 			return false;
 		}
 
@@ -29,7 +31,7 @@ public class CommandUnwarn extends Command
 
 		if(member.getRoles().stream().noneMatch(r -> ChocoBot.operatorRoles.contains(r.getId())))
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Verwarnungen löschen!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Du darfst keine Verwarnungen löschen!"));
 			return false;
 		}
 
@@ -40,7 +42,7 @@ public class CommandUnwarn extends Command
 		}
 		catch (NumberFormatException ignored)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Ich kann die ID nicht verstehen!")).queue();
+			sendTempMessage(channel, ChocoBot.errorMessage("Ich kann die ID nicht verstehen!"));
 			return false;
 		}
 
@@ -73,14 +75,13 @@ public class CommandUnwarn extends Command
 						builder.setTitle("Erfolg");
 						builder.setDescription("Die Verwarnung wurde erfolgreich gelöscht!");
 
-						channel.sendMessage(builder.build()).queue();
+						sendTempMessage(channel, builder.build());
 
 						return true;
 					}
 					else
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Die Verwarnung konnte nicht gefunden werden!"))
-						       .queue();
+						sendTempMessage(channel, ChocoBot.errorMessage("Die Verwarnung konnte nicht gefunden werden!"));
 						return false;
 					}
 				}
@@ -109,5 +110,11 @@ public class CommandUnwarn extends Command
 	protected @Nullable String getUsage()
 	{
 		return  "%c <Verwarnungs-ID> (nur Operatoren) : %h";
+	}
+
+	@Override
+	public boolean usableEverywhere()
+	{
+		return true;
 	}
 }
