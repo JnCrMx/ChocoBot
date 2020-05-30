@@ -9,7 +9,9 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 public class CommandRandom extends Command
 {
@@ -44,7 +46,7 @@ public class CommandRandom extends Command
 				channel.sendMessage("Es ist: " + user.getAsMention()).queue();
 				return true;
 			}
-			else if (message.mentionsEveryone())
+			else if (args[0].equals("@everyone") || args[0].equals("@here"))
 			{
 				users = new ArrayList<>(channel.getGuild().getMembers());
 				if (args[0].equals("@here"))
@@ -92,6 +94,17 @@ public class CommandRandom extends Command
 				if (args.length >= 2)
 				{
 					String word = args[this.random.nextInt(args.length)];
+
+					if(word.equals("@everyone") || word.equals("@here"))
+					{
+						if (Objects.requireNonNull(message.getMember())
+						           .getRoles().stream().noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
+						{
+							channel.sendMessage(ChocoBot.errorMessage("Nein, ich werde das nicht tun!")).queue();
+							return false;
+						}
+					}
+
 					channel.sendMessage("Es ist: " + word).queue();
 					return true;
 				}

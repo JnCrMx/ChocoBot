@@ -134,6 +134,16 @@ public class CommandRemind extends Command
 					reMessage = String.join(" ", reasonArray);
 				}
 
+				if(reMessage != null && (reMessage.contains("@everyone") || reMessage.contains("@here")))
+				{
+					if (Objects.requireNonNull(message.getMember())
+					           .getRoles().stream().noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
+					{
+						channel.sendMessage(ChocoBot.errorMessage("Vergiss es!")).queue();
+						return false;
+					}
+				}
+
 				try(Connection connection = ChocoBot.getDatabase();
 				    PreparedStatement insertReminder = connection.prepareStatement("INSERT INTO reminders (uid, message, time, issuer) VALUES(?, ?, ?, ?)"))
 				{
