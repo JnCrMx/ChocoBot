@@ -34,6 +34,11 @@ public abstract class Command
 		return true;
 	}
 
+	public boolean usableEverywhere()
+	{
+		return false;
+	}
+
 	public static void registerCommand(Command command)
 	{
 		String keyword = command.getKeyword().toLowerCase();

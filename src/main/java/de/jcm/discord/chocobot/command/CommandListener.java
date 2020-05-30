@@ -41,6 +41,7 @@ public class CommandListener extends ListenerAdapter
 					Member member = event.getMember();
 					assert member != null;
 					if(event.getChannel().getId().equals(ChocoBot.commandChannel) ||
+							command.usableEverywhere() ||
 							member.getRoles().stream().anyMatch(r -> ChocoBot.operatorRoles.contains(r.getId())))
 					{
 						if ((System.currentTimeMillis() -

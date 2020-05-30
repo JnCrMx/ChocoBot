@@ -53,4 +53,10 @@ public class CommandLinux extends Command
     {
         return null;
     }
+
+    @Override
+    public boolean usableEverywhere()
+    {
+        return true;
+    }
 }
