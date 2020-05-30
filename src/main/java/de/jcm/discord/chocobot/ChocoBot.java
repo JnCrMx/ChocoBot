@@ -48,6 +48,8 @@ public class ChocoBot extends ListenerAdapter
 	public static String prefix = "?";
 	public static String commandChannel;
 
+	public static int deleteDelay;
+
 	public static final Color COLOR_COOKIE = new Color(253, 189, 59);
 	public static final Color COLOR_LOVE = new Color(255, 79, 237);
 	public static final Color COLOR_ERROR = new Color(255, 0, 0);
@@ -102,6 +104,8 @@ public class ChocoBot extends ListenerAdapter
 
 		//Load config
 		prefix = (String) obj.get("prefix");
+
+		deleteDelay = (int) obj.getOrDefault("deleteDelay", 30);
 
 		Map<String, Object> redditLogin = (Map<String, Object>) obj.get("reddit");
 		boolean redditEnabled = (boolean)
@@ -317,5 +321,17 @@ public class ChocoBot extends ListenerAdapter
 		eb.setColor(COLOR_ERROR);
 		eb.setDescription(message);
 		return eb.build();
+	}
+
+	public static void sendTempMessage(TextChannel channel, MessageEmbed messageEmbed)
+	{
+		channel.sendMessage(messageEmbed)
+		       .queue(message -> message.delete().queueAfter(deleteDelay, TimeUnit.SECONDS));
+	}
+
+	public static void sendTempMessage(TextChannel channel, CharSequence msg)
+	{
+		channel.sendMessage(msg)
+		       .queue(message -> message.delete().queueAfter(deleteDelay, TimeUnit.SECONDS));
 	}
 }
