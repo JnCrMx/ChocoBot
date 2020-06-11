@@ -1,5 +1,6 @@
 package de.jcm.discord.chocobot;
 
+import de.jcm.discord.chocobot.api.ApiServer;
 import de.jcm.discord.chocobot.command.*;
 import de.jcm.discord.chocobot.command.coin.CommandCoins;
 import de.jcm.discord.chocobot.command.coin.CommandDaily;
@@ -79,6 +80,10 @@ public class ChocoBot extends ListenerAdapter
 	public static boolean githubBugReportEnabled;
 	public static File bugReportDirectory;
 
+	public static String boardUrl;
+	private static ApiServer apiServer;
+	public static String pollChannel;
+
 	private static void tryCreateTable(Statement statement, String sql)
 	{
 		try
@@ -103,6 +108,9 @@ public class ChocoBot extends ListenerAdapter
 		//Load config
 		prefix = (String) obj.get("prefix");
 
+		boardUrl = (String) obj.get("boardUrl");
+		int apiPort = (int) obj.get("apiPort");
+
 		Map<String, Object> redditLogin = (Map<String, Object>) obj.get("reddit");
 		boolean redditEnabled = (boolean)
 				redditLogin.getOrDefault("enabled", true);
@@ -121,6 +129,7 @@ public class ChocoBot extends ListenerAdapter
 		commandChannel = (String) serverConfig.get("commandChannel");
 		warningChannel = (String) serverConfig.get("warningChannel");
 		remindChannel = (String) serverConfig.get("remindChannel");
+		pollChannel = (String) serverConfig.get("pollChannel");
 		operatorRoles = (List<String>) serverConfig.get("operatorRoles");
 		mutedChannels = (List<String>) serverConfig.get("mutedChannels");
 
@@ -136,6 +145,8 @@ public class ChocoBot extends ListenerAdapter
 				logger.info("Stopped remind thread.");
 				jda.shutdown();
 				logger.info("Stopped JDA.");
+				apiServer.shutdown();
+				logger.info("Stopped API.");
 
 				try
 				{
@@ -178,6 +189,9 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
 				tryCreateTable(initStatement, "CREATE TABLE \"bugreports\" (\"id\" INTEGER PRIMARY KEY, \"reporter\" INTEGER, \"last_event_time\" INTEGER);");
 				tryCreateTable(initStatement, "CREATE TABLE \"subscriptions\" (\"id\" INTEGER PRIMARY KEY, \"subscriber\" INTEGER, \"keyword\" TEXT);");
+				tryCreateTable(initStatement, "CREATE TABLE \"tokens\" (\"token\" VARCHAR(256) PRIMARY KEY, \"user\" INTEGER, \"operator\" INTEGER DEFAULT 0);");
+				tryCreateTable(initStatement, "CREATE TABLE \"polls\" (\"message\" INTEGER PRIMARY KEY, \"question\" TEXT);");
+				tryCreateTable(initStatement, "CREATE TABLE \"poll_answers\" (\"answer\" VARCHAR(256), \"poll\" INTEGER, \"votes\" INTEGER, PRIMARY KEY(\"answer\", \"poll\"));");
 			}
 		}
 		else if("mysql".equals(dbType))
@@ -193,6 +207,11 @@ public class ChocoBot extends ListenerAdapter
 			dataSource.setPassword((String) dbConfig.get("password"));
 			dataSource.setAutoCommitOnReturn(true);
 
+			dataSource.setAbandonedUsageTracking(true);
+			dataSource.setLogAbandoned(true);
+			dataSource.setRemoveAbandonedOnBorrow(true);
+			dataSource.setRemoveAbandonedTimeout(60);
+
 			logger.info("Connected to MySQL database.");
 
 			try(Connection connection = getDatabase();
@@ -203,6 +222,9 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `done` BOOLEAN);");
 				tryCreateTable(initStatement, "CREATE TABLE `bugreports` (`id` INT PRIMARY KEY, `reporter` BIGINT, `last_event_time` BIGINT);");
 				tryCreateTable(initStatement, "CREATE TABLE `subscriptions` (`id` INT PRIMARY KEY AUTO_INCREMENT, `subscriber` BIGINT, `keyword` TEXT);");
+				tryCreateTable(initStatement, "CREATE TABLE `tokens` (`token` VARCHAR(256) PRIMARY KEY, `user` BIGINT, `operator` BOOLEAN);");
+				tryCreateTable(initStatement, "CREATE TABLE `polls` (`message` BIGINT PRIMARY KEY, `question` TEXT);");
+				tryCreateTable(initStatement, "CREATE TABLE `poll_answers` (`answer` VARCHAR(256), `poll` BIGINT, `votes` INT, PRIMARY KEY(`answer`, `poll`));");
 			}
 		}
 		
@@ -251,6 +273,7 @@ public class ChocoBot extends ListenerAdapter
 				.addEventListeners(new MirrorListener())
 				.addEventListeners(new IssueEventUnsubscribeListener())
 				.addEventListeners(new SubscriptionListener())
+				.addEventListeners(new ChocoBoardListener())
 				.setActivity(Activity.listening("dem Prefix '"+prefix+"'")).build();
 
 		try
@@ -292,6 +315,11 @@ public class ChocoBot extends ListenerAdapter
 			bugReportDirectory = new File("bugreports");
 			bugReportDirectory.mkdirs();
 		}
+
+		executorService.scheduleAtFixedRate(new PollRunnable(), 0L, 1L, TimeUnit.HOURS);
+
+		apiServer = new ApiServer(apiPort);
+		logger.info("Started API.");
 
 		logger.info("Started ChocoBot.");
 	}
