@@ -4,26 +4,31 @@ import de.jcm.discord.chocobot.ChocoBot;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-@Path("/guild")
+@Path("/{guild}/guild")
 public class GuildEndpoint
 {
 	@GET
 	@Path("/info")
 	@Produces(MediaType.APPLICATION_JSON)
-	public GuildInfo info()
+	public GuildInfo info(@BeanParam GuildParam guildParam,
+	                      @Context ContainerRequestContext request)
 	{
+		if(!guildParam.checkAccess((ApiUser) request.getProperty("user")))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
 		GuildInfo info = new GuildInfo();
 
 		GuildChannel commandChannel = ChocoBot.jda.getGuildChannelById(ChocoBot.commandChannel);
 		info.commandChannelId = commandChannel.getId();
 		info.commandChannelName = commandChannel.getName();
 
-		Guild guild = commandChannel.getGuild();
+		Guild guild = guildParam.toGuild();
 		info.guildId = guild.getId();
 		info.guildName = guild.getName();
 		info.iconUrl = guild.getIconUrl();

@@ -5,26 +5,26 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-@Path("/user")
+@Path("/{guild}/user")
 public class UserEndpoint
 {
-	@Context Configuration configuration;
-
 	@GET
 	@Path("/self")
 	@Produces(MediaType.APPLICATION_JSON)
-	public UserData self(@Context ContainerRequestContext request)
+	public UserData self(@BeanParam GuildParam guildParam,
+	                     @Context ContainerRequestContext request)
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
-		Guild guild = (Guild) configuration.getProperty("guild");
+		if(!guildParam.checkAccess(user))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		Guild guild = guildParam.toGuild();
 
 		Member member = guild.getMemberById(user.getUserId());
 

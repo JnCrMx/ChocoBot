@@ -1,14 +1,15 @@
 package de.jcm.discord.chocobot.api;
 
+import de.jcm.discord.chocobot.ChocoBot;
+import net.dv8tion.jda.api.entities.User;
+
 public class ApiUser
 {
 	private long userId;
-	private boolean operator;
 
-	public ApiUser(long userId, boolean operator)
+	public ApiUser(long userId)
 	{
 		this.userId = userId;
-		this.operator = operator;
 	}
 
 	public long getUserId()
@@ -21,13 +22,8 @@ public class ApiUser
 		this.userId = userId;
 	}
 
-	public boolean isOperator()
+	public User toUser()
 	{
-		return operator;
-	}
-
-	public void setOperator(boolean operator)
-	{
-		this.operator = operator;
+		return ChocoBot.jda.getUserById(userId);
 	}
 }
