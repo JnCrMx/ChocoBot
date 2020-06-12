@@ -1,7 +1,10 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +24,7 @@ public abstract class Command
 	{
 	}
 
-	public abstract boolean execute(Message message, TextChannel channel, String... args);
+	public abstract boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args);
 
 	@NotNull
 	protected abstract String getKeyword();
@@ -60,12 +63,14 @@ public abstract class Command
 			return;
 		}
 
+		String prefix = DatabaseUtils.getSettings(channel.getGuild()).getPrefix();
+
 		EmbedBuilder eb = new EmbedBuilder();
-		eb.setTitle(ChocoBot.prefix+getKeyword());
+		eb.setTitle(prefix+getKeyword());
 
 		String usage = getUsage();
-		usage = usage.replace("%p", ChocoBot.prefix);
-		usage = usage.replace("%c", ChocoBot.prefix+getKeyword());
+		usage = usage.replace("%p", prefix);
+		usage = usage.replace("%c", prefix+getKeyword());
 		usage = usage.replace("%C", getKeyword());
 		if(getHelpText()!=null)
 		{

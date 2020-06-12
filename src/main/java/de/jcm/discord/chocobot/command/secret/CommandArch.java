@@ -1,6 +1,8 @@
 package de.jcm.discord.chocobot.command.secret;
 
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +14,7 @@ public class CommandArch extends Command
     {
     }
 
-    public boolean execute(Message message, TextChannel channel, String... args)
+    public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
     {
         channel.sendMessage("I use arch btw").queue();
         return true;

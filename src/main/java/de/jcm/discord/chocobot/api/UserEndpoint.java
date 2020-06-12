@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.api;
 
 import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -25,6 +26,7 @@ public class UserEndpoint
 			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 
 		Guild guild = guildParam.toGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
 		Member member = guild.getMemberById(user.getUserId());
 
@@ -33,11 +35,19 @@ public class UserEndpoint
 		userData.tag = member.getUser().getAsTag();
 		userData.nickname = member.getEffectiveName();
 		userData.avatarUrl = member.getUser().getAvatarUrl();
-		userData.coins = DatabaseUtils.getCoins(user.getUserId());
+		userData.coins = DatabaseUtils.getCoins(user.getUserId(), guild.getIdLong());
 		userData.onlineStatus = member.getOnlineStatus();
 		userData.timeJoined = member.getTimeJoined().toEpochSecond();
 		userData.role = member.getRoles().get(0).getName();
 		userData.roleColor = member.getRoles().get(0).getColorRaw();
+		if(settings == null)
+		{
+			userData.operator = member.isOwner();
+		}
+		else
+		{
+			userData.operator = settings.isOperator(member);
+		}
 
 		return userData;
 	}
@@ -53,5 +63,6 @@ public class UserEndpoint
 		public long timeJoined;
 		public String role;
 		public int roleColor;
+		public boolean operator;
 	}
 }

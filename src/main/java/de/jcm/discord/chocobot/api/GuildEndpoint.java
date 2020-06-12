@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.api;
 
-import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 
@@ -22,11 +23,15 @@ public class GuildEndpoint
 		if(!guildParam.checkAccess((ApiUser) request.getProperty("user")))
 			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
 
+		GuildSettings settings = DatabaseUtils.getSettings(guildParam.getGuildId());
 		GuildInfo info = new GuildInfo();
 
-		GuildChannel commandChannel = ChocoBot.jda.getGuildChannelById(ChocoBot.commandChannel);
-		info.commandChannelId = commandChannel.getId();
-		info.commandChannelName = commandChannel.getName();
+		if(settings != null)
+		{
+			GuildChannel commandChannel = settings.getCommandChannel();
+			info.commandChannelId = commandChannel.getId();
+			info.commandChannelName = commandChannel.getName();
+		}
 
 		Guild guild = guildParam.toGuild();
 		info.guildId = guild.getId();

@@ -131,7 +131,7 @@ public class QuizGame extends Game
 					{
 						builder1.addField(member.getEffectiveName(), "+" + reward + " Coins", false);
 					}
-					DatabaseUtils.changeCoins(member.getIdLong(), reward);
+					DatabaseUtils.changeCoins(member.getIdLong(), guild.getIdLong(), reward);
 				}
 
 				if (builder1.getFields().isEmpty())

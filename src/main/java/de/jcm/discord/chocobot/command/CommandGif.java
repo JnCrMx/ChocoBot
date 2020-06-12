@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,7 @@ public class CommandGif extends PaidCommand
 		this.searchTarget = ChocoBot.client.target("https://api.tenor.com/v1/search");
 	}
 
-	public boolean executePaid(Message message, TextChannel channel, String... args)
+	public boolean executePaid(Message message, TextChannel channel, Guild guild, String... args)
 	{
 		String q = String.join(" ", args);
 		Response response = this.searchTarget.queryParam("q", q).request(new String[]{"application/json"}).get();

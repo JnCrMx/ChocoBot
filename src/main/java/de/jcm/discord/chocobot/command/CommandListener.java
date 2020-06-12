@@ -1,8 +1,10 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
@@ -27,9 +29,13 @@ public class CommandListener extends ListenerAdapter
 		if (!event.getAuthor().isBot())
 		{
 			String message = event.getMessage().getContentRaw();
-			if (message.startsWith(ChocoBot.prefix))
+
+			Guild guild = event.getGuild();
+			GuildSettings guildSettings = DatabaseUtils.getSettings(guild);
+
+			if(message.startsWith(guildSettings.getPrefix()))
 			{
-				String keyword = message.substring(ChocoBot.prefix.length()).trim();
+				String keyword = message.substring(guildSettings.getPrefix().length()).trim();
 				if (keyword.contains(" "))
 				{
 					keyword = keyword.split(" ")[0];
@@ -40,9 +46,10 @@ public class CommandListener extends ListenerAdapter
 				{
 					Member member = event.getMember();
 					assert member != null;
-					if(event.getChannel().getId().equals(ChocoBot.commandChannel) ||
+
+					if(event.getChannel().getId().equals(guildSettings.getCommandChannel().getId()) ||
 							command.usableEverywhere() ||
-							member.getRoles().stream().anyMatch(r -> ChocoBot.operatorRoles.contains(r.getId())))
+							guildSettings.isOperator(member))
 					{
 						if ((System.currentTimeMillis() -
 								lastCommands.getOrDefault(event.getAuthor().getIdLong(), 0L))
@@ -87,7 +94,7 @@ public class CommandListener extends ListenerAdapter
 
 							lastCommands.put(event.getAuthor().getIdLong(), System.currentTimeMillis());
 
-							boolean result = command.execute(event.getMessage(), event.getChannel(), args);
+							boolean result = command.execute(event.getMessage(), event.getChannel(), guild, guildSettings, args);
 							if (result)
 							{
 								this.logger.info("Command \"{}\" from user {} ({}) succeeded.", message, event.getAuthor().getAsTag(), event.getAuthor().getId());
@@ -104,12 +111,9 @@ public class CommandListener extends ListenerAdapter
 								"Command \"{}\" from user {} ({}) was ignored because it was sent to wrong channel.",
 								message, event.getAuthor().getAsTag(), event.getAuthor().getId());
 
-						TextChannel commandChannel = ChocoBot.jda.getTextChannelById(ChocoBot.commandChannel);
-						assert commandChannel != null;
-
 						event.getChannel().sendMessage(event.getAuthor().getAsMention()+
 								", schreibe deine Befehle bitte in "+
-								commandChannel.getAsMention()+"!")
+								guildSettings.getCommandChannel().getAsMention()+"!")
 								.queue(s->s.delete().queueAfter(10, TimeUnit.SECONDS));
 						event.getMessage().delete().queueAfter(10, TimeUnit.SECONDS);
 					}

@@ -2,6 +2,8 @@ package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.Nullable;
@@ -9,13 +11,13 @@ import org.jetbrains.annotations.Nullable;
 public abstract class PaidCommand extends Command
 {
     @Override
-    public final boolean execute(Message message, TextChannel channel, String... args)
+    public final boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
     {
-        if(DatabaseUtils.getCoins(message.getAuthor().getIdLong())>=getCost())
+        if(DatabaseUtils.getCoins(message.getAuthor().getIdLong(), guild.getIdLong())>=getCost())
         {
-            DatabaseUtils.changeCoins(message.getAuthor().getIdLong(), -getCost());
+            DatabaseUtils.changeCoins(message.getAuthor().getIdLong(), guild.getIdLong(), -getCost());
 
-            return executePaid(message, channel, args);
+            return executePaid(message, channel, guild, args);
         }
         else
         {
@@ -28,7 +30,7 @@ public abstract class PaidCommand extends Command
         }
     }
 
-    protected abstract boolean executePaid(Message message, TextChannel channel, String... args);
+    protected abstract boolean executePaid(Message message, TextChannel channel, Guild guild, String... args);
     protected abstract int getCost();
     @Nullable
     protected abstract String getPaidHelpText();

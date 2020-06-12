@@ -2,12 +2,11 @@ package de.jcm.discord.chocobot.api;
 
 import de.jcm.discord.chocobot.ChocoBot;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,18 +14,22 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Path("/polls")
+@Path("/{guild}/polls")
 public class PollEndpoint
 {
 	@GET
 	@Path("/all")
 	@Produces(MediaType.APPLICATION_JSON)
-	public ArrayList<Poll> all(@Context ContainerRequestContext request)
+	public ArrayList<Poll> all(@BeanParam GuildParam guildParam, @Context ContainerRequestContext request)
 	{
+		if(!guildParam.checkAccess((ApiUser) request.getProperty("user")))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
 		try(Connection connection = ChocoBot.getDatabase();
-		    PreparedStatement pollStatement = connection.prepareStatement("SELECT * FROM polls ORDER BY message DESC");
+		    PreparedStatement pollStatement = connection.prepareStatement("SELECT * FROM polls WHERE guild = ? ORDER BY message DESC");
 		    PreparedStatement answerStatement = connection.prepareStatement("SELECT * FROM poll_answers WHERE poll = ?"))
 		{
+			pollStatement.setLong(1, guildParam.getGuildId());
 			ResultSet r1 = pollStatement.executeQuery();
 
 			ArrayList<Poll> polls = new ArrayList<>();

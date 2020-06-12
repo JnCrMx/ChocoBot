@@ -27,8 +27,6 @@ public class ApiServer
 
 	public ApiServer(int port)
 	{
-		Guild guild = ChocoBot.jda.getGuildChannelById(ChocoBot.commandChannel).getGuild();
-
 		ResourceConfig rc = new ResourceConfig();
 		rc.registerClasses(TokenEndpoint.class,
 		                   GuildEndpoint.class,
@@ -39,7 +37,6 @@ public class ApiServer
 		rc.registerClasses(TokenFilter.class);
 		rc.registerClasses(JacksonFeature.class);
 		rc.registerClasses(MultiPartFeature.class);
-		rc.property("guild", guild);
 
 		server = GrizzlyHttpServerFactory.createHttpServer(getBaseURI(port), rc);
 	}

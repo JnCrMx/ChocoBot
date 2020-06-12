@@ -1,6 +1,5 @@
 package de.jcm.discord.chocobot.api;
 
-import com.google.protobuf.Api;
 import de.jcm.discord.chocobot.ChocoBot;
 import net.dv8tion.jda.api.entities.User;
 import org.glassfish.jersey.media.multipart.FormDataParam;

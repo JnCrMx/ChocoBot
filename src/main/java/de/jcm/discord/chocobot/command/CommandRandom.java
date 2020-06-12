@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.regex.Pattern;
 
 public class CommandRandom extends Command
 {
@@ -21,7 +21,7 @@ public class CommandRandom extends Command
 	{
 	}
 
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		if (!message.getMentionedUsers().isEmpty())
 		{
@@ -97,8 +97,7 @@ public class CommandRandom extends Command
 
 					if(word.equals("@everyone") || word.equals("@here"))
 					{
-						if (Objects.requireNonNull(message.getMember())
-						           .getRoles().stream().noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
+						if(!settings.isOperator(message.getMember()))
 						{
 							channel.sendMessage(ChocoBot.errorMessage("Nein, ich werde das nicht tun!")).queue();
 							return false;

@@ -1,7 +1,9 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +16,7 @@ public class CommandHelp extends Command
 	{
 	}
 
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		if(args.length==0)
 		{
@@ -42,9 +44,9 @@ public class CommandHelp extends Command
 		else if(args.length == 1)
 		{
 			String keyword = args[0];
-			if(keyword.startsWith(ChocoBot.prefix))
+			if(keyword.startsWith(settings.getPrefix()))
 			{
-				keyword = keyword.substring(ChocoBot.prefix.length());
+				keyword = keyword.substring(settings.getPrefix().length());
 			}
 
 			Command command = Command.getCommand(keyword);

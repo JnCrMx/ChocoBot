@@ -2,8 +2,10 @@ package de.jcm.discord.chocobot.command.coin;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -18,7 +20,7 @@ public class CommandGift extends Command
 	{
 	}
 
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		if (args.length < 2)
 		{
@@ -52,7 +54,7 @@ public class CommandGift extends Command
 
 						long src = srcMember.getIdLong();
 						long dst = dstMember.getIdLong();
-						if (DatabaseUtils.getCoins(src) < amount)
+						if (DatabaseUtils.getCoins(src, guild.getIdLong()) < amount)
 						{
 							channel.sendMessage(ChocoBot.errorMessage("Du kannst nicht mehr verschenken als du selbst hast!")).queue();
 							return false;
@@ -61,8 +63,8 @@ public class CommandGift extends Command
 						{
 							if (!dstMember.getUser().isBot())
 							{
-								DatabaseUtils.changeCoins(src, -amount);
-								DatabaseUtils.changeCoins(dst, amount);
+								DatabaseUtils.changeCoins(src, guild.getIdLong(), -amount);
+								DatabaseUtils.changeCoins(dst, guild.getIdLong(), amount);
 							}
 
 							EmbedBuilder builder = new EmbedBuilder();

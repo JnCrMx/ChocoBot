@@ -1,8 +1,11 @@
 package de.jcm.discord.chocobot.command.subscription;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -38,12 +41,12 @@ public class SubscriptionListener extends ListenerAdapter
 		if(!event.getAuthor().isBot())
 		{
 			String message = event.getMessage().getContentRaw();
-			if(message.startsWith(ChocoBot.prefix))
+			if(message.startsWith("?"))
 			{
 				this.logger.info("Private Command \"{}\" from user {} ({}) received.",
 				                 message, event.getAuthor().getAsTag(), event.getAuthor().getId());
 
-				message = message.substring(ChocoBot.prefix.length()).trim();
+				message = message.substring("?".length()).trim();
 				String keyword = message;
 				String argument = "";
 				if(message.contains(" "))
@@ -139,7 +142,7 @@ public class SubscriptionListener extends ListenerAdapter
 				EmbedBuilder eb = new EmbedBuilder();
 				eb.setTitle("Abonnement");
 				eb.setDescription(String.format("Das Schlüsselwort \"%s\" wurde erfolgreich abonniert.", keyword));
-				eb.setFooter("Nutze "+ChocoBot.prefix+"unsubscribe um es wieder zu deabonnieren.");
+				eb.setFooter("Nutze ?unsubscribe um es wieder zu deabonnieren.");
 				eb.setColor(ChocoBot.COLOR_COOKIE);
 				channel.sendMessage(eb.build()).queue();
 
@@ -175,7 +178,7 @@ public class SubscriptionListener extends ListenerAdapter
 				EmbedBuilder eb = new EmbedBuilder();
 				eb.setTitle("Abonnements");
 				eb.setDescription(b.toString());
-				eb.setFooter("Nutze " + ChocoBot.prefix + "unsubscribe um Schlüsselwörter zu deabonnieren.");
+				eb.setFooter("Nutze ?unsubscribe um Schlüsselwörter zu deabonnieren.");
 				eb.setColor(ChocoBot.COLOR_COOKIE);
 
 				channel.sendMessage(eb.build()).queue();
@@ -235,9 +238,14 @@ public class SubscriptionListener extends ListenerAdapter
 	@Override
 	public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event)
 	{
-		if(ChocoBot.mutedChannels.contains(event.getChannel().getId()))
-			return;
 		if(event.getAuthor().isBot())
+			return;
+
+		Guild guild = event.getGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
+		if(settings == null)
+			return;
+		if(settings.isChannelMuted(event.getChannel()))
 			return;
 
 		String message = event.getMessage().getContentRaw();
@@ -262,7 +270,7 @@ public class SubscriptionListener extends ListenerAdapter
 							{
 								while(result.next())
 								{
-									Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
+									Member member = guild.getMemberById(result.getLong("subscriber"));
 									checkAndNotify(event, matcher.group(), member);
 								}
 							}
