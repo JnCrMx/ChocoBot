@@ -24,7 +24,7 @@ public class UserEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -63,7 +63,7 @@ public class UserEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -72,7 +72,7 @@ public class UserEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		DatabaseUtils.setCoins(userId, guild.getIdLong(), coins);
 	}

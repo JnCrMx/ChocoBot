@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -32,7 +33,7 @@ public class GuildEndpoint
 	                      @Context ContainerRequestContext request)
 	{
 		if(!guildParam.checkAccess((ApiUser) request.getProperty("user")))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		GuildSettings settings = DatabaseUtils.getSettings(guildParam.getGuildId());
 		GuildInfo info = new GuildInfo();
@@ -65,7 +66,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -74,7 +75,7 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		return guild.getMembers().stream().map(m -> {
 			UserData userData = new UserData();
@@ -110,7 +111,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -119,7 +120,7 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		return guild.getChannels().stream()
 		            .filter(c -> c.getType() == type)
@@ -135,7 +136,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -144,7 +145,7 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		return guild.getRoles().stream()
 		            .map(RoleInfo::fromRole)
@@ -159,7 +160,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -168,7 +169,7 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		return settings;
 	}
@@ -182,7 +183,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -191,10 +192,10 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		if(guild.getIdLong() != guildSettings.getGuildID())
-			throw new WebApplicationException(Response.Status.NOT_FOUND);
+			throw new NotFoundException();
 
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement statement = connection.prepareStatement("REPLACE INTO guilds (id, prefix, command_channel, remind_channel, warning_channel, poll_channel) " +
@@ -208,7 +209,7 @@ public class GuildEndpoint
 			statement.setLong(6, guildSettings.getPollChannelID());
 
 			if(statement.executeUpdate() != 1)
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+				throw new InternalServerErrorException();
 
 			DatabaseUtils.deleteCached(guild.getIdLong());
 		}
@@ -225,7 +226,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -234,7 +235,7 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement statement = connection.prepareStatement("DELETE FROM guilds WHERE id = ?"))
@@ -242,7 +243,7 @@ public class GuildEndpoint
 			statement.setLong(1, guild.getIdLong());
 
 			if(statement.executeUpdate() != 1)
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+				throw new InternalServerErrorException();
 
 			DatabaseUtils.deleteCached(guild.getIdLong());
 		}
@@ -260,7 +261,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -269,7 +270,7 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement statement = connection.prepareStatement("INSERT INTO guild_operators (id, guild) VALUES(?, ?)"))
@@ -278,7 +279,7 @@ public class GuildEndpoint
 			statement.setLong(2, guild.getIdLong());
 
 			if(statement.executeUpdate() != 1)
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+				throw new InternalServerErrorException();
 
 			DatabaseUtils.deleteCached(guild.getIdLong());
 		}
@@ -296,7 +297,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -305,7 +306,7 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement statement = connection.prepareStatement("DELETE FROM guild_operators WHERE id = ? AND guild = ?"))
@@ -314,7 +315,7 @@ public class GuildEndpoint
 			statement.setLong(2, guild.getIdLong());
 
 			if(statement.executeUpdate() != 1)
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+				throw new InternalServerErrorException();
 
 			DatabaseUtils.deleteCached(guild.getIdLong());
 		}
@@ -332,7 +333,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -341,7 +342,7 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement statement = connection.prepareStatement("INSERT INTO guild_muted_channels (channel, guild) VALUES(?, ?)"))
@@ -350,7 +351,7 @@ public class GuildEndpoint
 			statement.setLong(2, guild.getIdLong());
 
 			if(statement.executeUpdate() != 1)
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+				throw new InternalServerErrorException();
 
 			DatabaseUtils.deleteCached(guild.getIdLong());
 		}
@@ -368,7 +369,7 @@ public class GuildEndpoint
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
@@ -377,7 +378,7 @@ public class GuildEndpoint
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement statement = connection.prepareStatement("DELETE FROM guild_muted_channels WHERE channel = ? AND guild = ?"))
@@ -386,7 +387,7 @@ public class GuildEndpoint
 			statement.setLong(2, guild.getIdLong());
 
 			if(statement.executeUpdate() != 1)
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+				throw new InternalServerErrorException();
 
 			DatabaseUtils.deleteCached(guild.getIdLong());
 		}

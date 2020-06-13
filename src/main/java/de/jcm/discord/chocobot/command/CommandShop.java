@@ -22,7 +22,7 @@ public class CommandShop extends Command
 		{
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setColor(ChocoBot.COLOR_COINS);
-			builder.setTitle("Rollen-Shop");
+			builder.setTitle("Rollenshop");
 			builder.setDescription("Folgende Rollen sind verfügbar:");
 			builder.setFooter("Nutze \""+settings.getPrefix()+"shop buy <alias>\" um eine Rolle zu kaufen.");
 
@@ -91,7 +91,7 @@ public class CommandShop extends Command
 
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setColor(ChocoBot.COLOR_COINS);
-			builder.setTitle("Rollen Shop");
+			builder.setTitle("Rollenshop");
 			builder.setDescription("Du besitzt folgende Rollen:");
 			builder.setFooter("Nutze \""+settings.getPrefix()+"shop activate <alias>\" um eine diesen Rollen zu aktivieren.");
 
@@ -187,7 +187,7 @@ public class CommandShop extends Command
 
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setColor(ChocoBot.COLOR_COINS);
-		builder.setTitle("Rollen Shop");
+		builder.setTitle("Rollenshop");
 		builder.setDescription("Du hast Rolle \""+alias+"\" erfolgreich erworben!");
 		builder.setFooter("Nutze \""+settings.getPrefix()+"shop activate "+alias+"\" um sie zu aktivieren.");
 		channel.sendMessage(builder.build()).queue();
@@ -231,10 +231,10 @@ public class CommandShop extends Command
 				}
 				try
 				{
-					guild.addRoleToMember(member, role).reason("Rollen Shop").queue(s -> {
+					guild.addRoleToMember(member, role).reason("Rollenshop").queue(s -> {
 						EmbedBuilder builder = new EmbedBuilder();
 						builder.setColor(ChocoBot.COLOR_COINS);
-						builder.setTitle("Rollen Shop");
+						builder.setTitle("Rollenshop");
 						builder.setDescription("Die Rolle \"" + alias + "\" wurde erfolgreich aktiviert!");
 						builder.setFooter("Nutze \"" + settings.getPrefix() + "shop deactivate " + alias + "\" um sie wieder zu deaktivieren.");
 						channel.sendMessage(builder.build()).queue();
@@ -300,10 +300,10 @@ public class CommandShop extends Command
 				}
 				try
 				{
-					guild.removeRoleFromMember(member, role).reason("Rollen Shop").queue(s -> {
+					guild.removeRoleFromMember(member, role).reason("Rollenshop").queue(s -> {
 						EmbedBuilder builder = new EmbedBuilder();
 						builder.setColor(ChocoBot.COLOR_COINS);
-						builder.setTitle("Rollen Shop");
+						builder.setTitle("Rollenshop");
 						builder.setDescription("Die Rolle \"" + alias + "\" wurde erfolgreich deaktiviert!");
 						builder.setFooter("Nutze \"" + settings.getPrefix() + "shop activate " + alias + "\" um sie wieder zu aktivieren.");
 						channel.sendMessage(builder.build()).queue();
