@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.command.warn;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -14,14 +15,13 @@ import java.util.regex.Pattern;
 
 public class CommandWarn extends Command
 {
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		Member warnerMember = message.getMember();
 
 		assert warnerMember != null;
 
-		if (warnerMember.getRoles().stream().noneMatch((r) ->
-				ChocoBot.operatorRoles.contains(r.getId())))
+		if(!settings.isOperator(warnerMember))
 		{
 			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Leute verwarnen!")).queue();
 			return false;
@@ -47,52 +47,46 @@ public class CommandWarn extends Command
 				builder.addField("Verwarnter", warned.getAsTag(), false);
 				builder.addField("Verwarner", warner.getAsTag(), false);
 				builder.addField("Grund", reason, false);
-				GuildChannel warnChannel = ChocoBot.jda.getGuildChannelById(ChocoBot.warningChannel);
 
-				assert warnChannel != null;
-
-				if (warnChannel.getType() == ChannelType.TEXT)
-				{
-					TextChannel warnTextChannel = (TextChannel) warnChannel;
-					warnTextChannel.sendMessage(builder.build()).queue((s) ->
+				TextChannel warnTextChannel = settings.getWarningChannel();
+				warnTextChannel.sendMessage(builder.build()).queue((s) -> {
+					try
 					{
-						try
+						try(Connection connection = ChocoBot.getDatabase();
+						    PreparedStatement insertWarning = connection.prepareStatement("INSERT INTO warnings(uid, guild, reason, time, warner, message) VALUES(?, ?, ?, ?, ?, ?)"))
 						{
-							try(Connection connection = ChocoBot.getDatabase();
-							    PreparedStatement insertWarning = connection.prepareStatement("INSERT INTO warnings(uid, reason, time, warner, message) VALUES(?, ?, ?, ?, ?)"))
-							{
-								insertWarning.setLong(1, warned.getIdLong());
-								insertWarning.setString(2, reason);
-								insertWarning.setLong(3, System.currentTimeMillis());
-								insertWarning.setLong(4, warner.getIdLong());
-								insertWarning.setLong(5, s.getIdLong());
-								insertWarning.execute();
-							}
-							if (warnTextChannel.getIdLong() != channel.getIdLong())
-							{
-								channel.sendMessage(builder.build()).queue();
-							}
-
-							if (warned.getIdLong() == ChocoBot.jda.getSelfUser().getIdLong())
-							{
-								channel.sendMessage("Es tut mir leid! :cry:").queue();
-							}
+							insertWarning.setLong(1, warned.getIdLong());
+							insertWarning.setLong(2, guild.getIdLong());
+							insertWarning.setString(3, reason);
+							insertWarning.setLong(4, System.currentTimeMillis());
+							insertWarning.setLong(5, warner.getIdLong());
+							insertWarning.setLong(6, s.getIdLong());
+							insertWarning.execute();
 						}
-						catch (SQLException var9)
+						if (warnTextChannel.getIdLong() != channel.getIdLong())
 						{
-							var9.printStackTrace();
+							channel.sendMessage(builder.build()).queue();
 						}
 
-					});
-				}
+						if (warned.getIdLong() == ChocoBot.jda.getSelfUser().getIdLong())
+						{
+							channel.sendMessage("Es tut mir leid! :cry:").queue();
+						}
+					}
+					catch (SQLException var9)
+					{
+						var9.printStackTrace();
+					}
 
-				return true;
+				});
 			}
 			else
 			{
 				channel.sendMessage(ChocoBot.errorMessage("Du musst einen Verwarnten angeben!")).queue();
 				return false;
 			}
+
+			return true;
 		}
 	}
 

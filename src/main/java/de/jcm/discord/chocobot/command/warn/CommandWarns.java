@@ -1,8 +1,10 @@
 package de.jcm.discord.chocobot.command.warn;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -17,10 +19,9 @@ import java.util.Objects;
 public class CommandWarns extends Command
 {
 	@Override
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
-		boolean isMod = Objects.requireNonNull(message.getMember()).getRoles().stream()
-				.anyMatch(r -> ChocoBot.operatorRoles.contains(r.getId()));
+		boolean isMod = settings.isOperator(message.getMember());
 
 		long targetId;
 		if(args.length==0)
@@ -45,9 +46,10 @@ public class CommandWarns extends Command
 		}
 
 		try(Connection connection = ChocoBot.getDatabase();
-		    PreparedStatement listWarnings = connection.prepareStatement("SELECT id, reason, time, warner FROM warnings WHERE uid = ?"))
+		    PreparedStatement listWarnings = connection.prepareStatement("SELECT id, reason, time, warner FROM warnings WHERE uid = ? AND guild = ?"))
 		{
 			listWarnings.setLong(1, targetId);
+			listWarnings.setLong(2, guild.getIdLong());
 			try(ResultSet resultSet = listWarnings.executeQuery())
 			{
 

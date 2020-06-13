@@ -3,6 +3,7 @@ package de.jcm.discord.chocobot.game;
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -24,6 +25,7 @@ abstract class Game extends ListenerAdapter
 	List<Member> players;
 	GameState state;
 	final TextChannel gameChannel;
+	final Guild guild;
 	private Message confirmMessage;
 	private Message announceMessage;
 
@@ -32,11 +34,12 @@ abstract class Game extends ListenerAdapter
 		this.state = GameState.CONFIRM;
 		this.sponsor = sponsor;
 		this.gameChannel = gameChannel;
+		this.guild = gameChannel!=null ? gameChannel.getGuild() : null;
 	}
 
 	public void start()
 	{
-		if (DatabaseUtils.getCoins(this.sponsor.getIdLong()) < this.getSponsorCost())
+		if (DatabaseUtils.getCoins(this.sponsor.getIdLong(), guild.getIdLong()) < this.getSponsorCost())
 		{
 			this.gameChannel.sendMessage(ChocoBot.errorMessage("Du hast dafür nicht genug Coins! Du brauchst mindestens " + this.getSponsorCost() + ".")).queue();
 			this.cleanup();
@@ -128,7 +131,7 @@ abstract class Game extends ListenerAdapter
 			{
 				this.logger.info("Announced game {}({}) by {}({}).", this.getName(), this.hashCode(), this.sponsor.getUser().getAsTag(), this.sponsor.getUser().getId());
 				this.confirmMessage.delete().queue();
-				DatabaseUtils.changeCoins(this.sponsor.getUser().getIdLong(), -this.getSponsorCost());
+				DatabaseUtils.changeCoins(this.sponsor.getUser().getIdLong(), guild.getIdLong(), -this.getSponsorCost());
 				this.announce();
 			}
 

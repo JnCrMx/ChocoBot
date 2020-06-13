@@ -1,7 +1,9 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +20,7 @@ import java.util.HashMap;
 public class CommandBugReport extends Command
 {
 	@Override
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		boolean showTag = false;
 		String arg = args[0];

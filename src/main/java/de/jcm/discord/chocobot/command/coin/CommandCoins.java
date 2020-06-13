@@ -2,8 +2,10 @@ package de.jcm.discord.chocobot.command.coin;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +22,7 @@ import java.util.Objects;
 
 public class CommandCoins extends Command
 {
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		long uid = message.getAuthor().getIdLong();
 		boolean foreign = false;
@@ -30,8 +32,7 @@ public class CommandCoins extends Command
 			uid = message.getMentionedUsers().get(0).getIdLong();
 			if(uid != message.getAuthor().getIdLong())
 			{
-				if(Objects.requireNonNull(message.getMember()).getRoles().stream()
-				          .noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
+				if(!settings.isOperator(message.getMember()))
 				{
 					channel.sendMessage(ChocoBot.errorMessage(
 							"Du darfst dir nicht die Coins anderer Nutzer anzeigen lassen!"))
@@ -47,9 +48,10 @@ public class CommandCoins extends Command
 			int coins;
 			Instant lastDaily;
 			try(Connection connection = ChocoBot.getDatabase();
-				PreparedStatement getCoins = connection.prepareStatement("SELECT coins, last_daily FROM coins WHERE uid=?"))
+				PreparedStatement getCoins = connection.prepareStatement("SELECT coins, last_daily FROM coins WHERE uid=? AND guild=?"))
 			{
 				getCoins.setLong(1, uid);
+				getCoins.setLong(2, guild.getIdLong());
 
 				try(ResultSet resultSet = getCoins.executeQuery())
 				{
@@ -60,7 +62,7 @@ public class CommandCoins extends Command
 					}
 					else
 					{
-						DatabaseUtils.createEmptyUser(uid);
+						DatabaseUtils.createEmptyUser(connection, uid, guild.getIdLong());
 						coins = 0;
 						lastDaily = Instant.ofEpochMilli(0L);
 					}

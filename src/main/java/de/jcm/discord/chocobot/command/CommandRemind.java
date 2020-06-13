@@ -1,6 +1,8 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -39,7 +41,7 @@ public class CommandRemind extends Command
 		this.outputFormatter = DateTimeFormatter.ofPattern("'am' dd.MM.uuuu 'um' HH:mm");
 	}
 
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		if (args.length < 1)
 		{
@@ -136,8 +138,7 @@ public class CommandRemind extends Command
 
 				if(reMessage != null && (reMessage.contains("@everyone") || reMessage.contains("@here")))
 				{
-					if (Objects.requireNonNull(message.getMember())
-					           .getRoles().stream().noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
+					if(!settings.isOperator(message.getMember()))
 					{
 						channel.sendMessage(ChocoBot.errorMessage("Vergiss es!")).queue();
 						return false;
@@ -145,12 +146,13 @@ public class CommandRemind extends Command
 				}
 
 				try(Connection connection = ChocoBot.getDatabase();
-				    PreparedStatement insertReminder = connection.prepareStatement("INSERT INTO reminders (uid, message, time, issuer) VALUES(?, ?, ?, ?)"))
+				    PreparedStatement insertReminder = connection.prepareStatement("INSERT INTO reminders (uid, guild, message, time, issuer) VALUES(?, ?, ?, ?, ?)"))
 				{
 					insertReminder.setLong(1, user.getIdLong());
-					insertReminder.setString(2, reMessage);
-					insertReminder.setLong(3, time.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
-					insertReminder.setLong(4, message.getAuthor().getIdLong());
+					insertReminder.setLong(2, guild.getIdLong());
+					insertReminder.setString(3, reMessage);
+					insertReminder.setLong(4, time.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
+					insertReminder.setLong(5, message.getAuthor().getIdLong());
 					insertReminder.execute();
 					String var10001;
 					if (message.getAuthor().getIdLong() == user.getIdLong())

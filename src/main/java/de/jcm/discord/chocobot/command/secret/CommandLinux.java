@@ -1,6 +1,8 @@
 package de.jcm.discord.chocobot.command.secret;
 
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +14,7 @@ public class CommandLinux extends Command
     {
     }
 
-    public boolean execute(Message message, TextChannel channel, String... args)
+    public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
     {
         channel.sendMessage("I'd just like to interject for a moment.  What you're referring to as Linux,\n" +
                 "is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux.\n" +

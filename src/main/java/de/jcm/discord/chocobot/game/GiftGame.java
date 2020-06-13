@@ -71,7 +71,7 @@ public class GiftGame extends Game
 					int count = e.getValue();
 					int coins = count * REWARD_PER_GIFT;
 					builder1.addField(e.getKey().getEffectiveName(), count + EMOJI_GIFT + " => +" + coins + " Coins", false);
-					DatabaseUtils.changeCoins(e.getKey().getIdLong(), coins);
+					DatabaseUtils.changeCoins(e.getKey().getIdLong(), guild.getIdLong(), coins);
 				});
 				this.gameChannel.sendMessage(builder1.build()).queue();
 				this.end();
@@ -133,7 +133,7 @@ public class GiftGame extends Game
 				gameMessage.delete().queue();
 				this.state = GameState.FINISHED;
 
-				DatabaseUtils.changeCoins(sponsor.getIdLong(), getSponsorCost());
+				DatabaseUtils.changeCoins(sponsor.getIdLong(), guild.getIdLong(), getSponsorCost());
 				gameChannel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler! " +
 						"Deine Coins wurden rückerstattet!")).queue();
 			}
