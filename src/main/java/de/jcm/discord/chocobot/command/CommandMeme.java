@@ -2,6 +2,7 @@ package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,7 @@ public class CommandMeme extends PaidCommand
 		this.baseTarget = ChocoBot.client.target("https://oauth.reddit.com");
 	}
 
-	public boolean executePaid(Message message, TextChannel channel, String... args)
+	public boolean executePaid(Message message, TextChannel channel, Guild guild, String... args)
 	{
 		if (args.length != 1)
 		{

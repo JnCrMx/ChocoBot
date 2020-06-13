@@ -1,6 +1,8 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +17,7 @@ public class CommandSay extends Command
 	{
 	}
 
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		String msg = args[0];
 		TextChannel textChannel = channel;
@@ -31,8 +33,7 @@ public class CommandSay extends Command
 
 		if(Pattern.compile("@\\S*").matcher(msg).find())
 		{
-			if (Objects.requireNonNull(message.getMember())
-			           .getRoles().stream().noneMatch((r) -> ChocoBot.operatorRoles.contains(r.getId())))
+			if(!settings.isOperator(message.getMember()))
 			{
 				channel.sendMessage(ChocoBot.errorMessage("Ich erwähne niemanden für dich!")).queue();
 				return false;

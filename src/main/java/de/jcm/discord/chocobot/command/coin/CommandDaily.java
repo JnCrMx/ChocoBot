@@ -2,8 +2,10 @@ package de.jcm.discord.chocobot.command.coin;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +21,7 @@ import java.time.temporal.ChronoField;
 
 public class CommandDaily extends Command
 {
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		long uid = message.getAuthor().getIdLong();
 
@@ -28,9 +30,10 @@ public class CommandDaily extends Command
 			Instant lastDaily;
 			int dailyStreak;
 			try(Connection connection = ChocoBot.getDatabase();
-				PreparedStatement getCoins = connection.prepareStatement("SELECT last_daily, daily_streak FROM coins WHERE uid=?"))
+				PreparedStatement getCoins = connection.prepareStatement("SELECT last_daily, daily_streak FROM coins WHERE uid=? AND guild=?"))
 			{
 				getCoins.setLong(1, uid);
+				getCoins.setLong(2, guild.getIdLong());
 				try(ResultSet resultSet = getCoins.executeQuery())
 				{
 					if(resultSet.next())
@@ -40,7 +43,7 @@ public class CommandDaily extends Command
 					}
 					else
 					{
-						DatabaseUtils.createEmptyUser(uid);
+						DatabaseUtils.createEmptyUser(connection, uid, guild.getIdLong());
 						lastDaily = Instant.ofEpochMilli(0L);
 						dailyStreak = 0;
 					}
@@ -66,16 +69,17 @@ public class CommandDaily extends Command
 				}
 
 				try(Connection connection = ChocoBot.getDatabase();
-				    PreparedStatement updateCoins = connection.prepareStatement("UPDATE coins SET last_daily=?, daily_streak=?, coins=coins+? WHERE uid=?"))
+				    PreparedStatement updateCoins = connection.prepareStatement("UPDATE coins SET last_daily=?, daily_streak=?, coins=coins+? WHERE uid=? AND guild=?"))
 				{
 					updateCoins.setLong(1, System.currentTimeMillis());
 					updateCoins.setInt(2, dailyStreak);
 					updateCoins.setInt(3, coinsToAdd);
 					updateCoins.setLong(4, uid);
+					updateCoins.setLong(5, guild.getIdLong());
 					updateCoins.execute();
 				}
 
-				int coins = DatabaseUtils.getCoins(uid);
+				int coins = DatabaseUtils.getCoins(uid, guild.getIdLong());
 				builder.setTitle(":moneybag: Coins :moneybag:");
 				builder.setColor(ChocoBot.COLOR_COINS);
 				builder.setDescription("Du hast einen täglichen Bonus von " + coinsToAdd + " Coins erhalten!");

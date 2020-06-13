@@ -1,7 +1,9 @@
 package de.jcm.discord.chocobot.command.secret;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -11,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 public class CommandWarm extends Command
 {
 	@Override
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		if (args.length < 1 || message.getMentionedUsers().isEmpty())
 		{

@@ -2,8 +2,10 @@ package de.jcm.discord.chocobot.game;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -23,13 +25,13 @@ public class BlockGame extends Command
 	private final Random random = new Random();
 
 	@Override
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		Member player = message.getMember();
 
 		assert player != null;
 
-		if (DatabaseUtils.getCoins(player.getIdLong()) < COST)
+		if (DatabaseUtils.getCoins(player.getIdLong(), guild.getIdLong()) < COST)
 		{
 			channel.sendMessage(ChocoBot.errorMessage("Du hast dafür nicht genug Coins! Du brauchst mindestens "
 					+COST+".")).queue();
@@ -76,7 +78,7 @@ public class BlockGame extends Command
 									m.addReaction("✊").queue();
 								});
 
-								DatabaseUtils.changeCoins(player.getIdLong(), -COST);
+								DatabaseUtils.changeCoins(player.getIdLong(), guild.getIdLong(), -COST);
 								this.state = GameState.RUNNING;
 							}
 						}
@@ -164,12 +166,12 @@ public class BlockGame extends Command
 
 							// don't let the player get negative coins
 							int c;
-							if(coins<0 && (c = DatabaseUtils.getCoins(player.getIdLong()))<-coins)
+							if(coins<0 && (c = DatabaseUtils.getCoins(player.getIdLong(), guild.getIdLong()))<-coins)
 							{
 								coins = -c;
 							}
 
-							DatabaseUtils.changeCoins(player.getIdLong(), coins);
+							DatabaseUtils.changeCoins(player.getIdLong(), guild.getIdLong(), coins);
 
 							channel.sendMessage(player.getAsMention()+" "+
 									String.format(text, coins<0?-coins:coins)).queue();

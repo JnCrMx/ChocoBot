@@ -42,14 +42,13 @@ public class TokenFilter implements ContainerRequestFilter
 
 		String token = authentication.substring(authentication.indexOf(' ')+1);
 		try(Connection connection = ChocoBot.getDatabase();
-		    PreparedStatement statement = connection.prepareStatement("SELECT user, operator FROM tokens WHERE token = ?"))
+		    PreparedStatement statement = connection.prepareStatement("SELECT user FROM tokens WHERE token = ?"))
 		{
 			statement.setString(1, token);
 			ResultSet result = statement.executeQuery();
 			if(result.next())
 			{
-				ApiUser user = new ApiUser(result.getLong("user"),
-				                           result.getBoolean("operator"));
+				ApiUser user = new ApiUser(result.getLong("user"));
 				context.setProperty("user", user);
 			}
 			else

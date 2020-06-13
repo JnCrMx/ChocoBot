@@ -34,11 +34,7 @@ class RemindRunnable implements Runnable
 			PreparedStatement doneStatement = connection.prepareStatement("UPDATE reminders SET done = 1 WHERE id = ?"))
 		{
 			long clock = Clock.systemUTC().millis();
-			TextChannel remindChannel = this.jda.getTextChannelById(ChocoBot.remindChannel);
 
-			assert remindChannel != null;
-
-			Guild guild = remindChannel.getGuild();
 			listStatement.setLong(1, clock);
 			try(ResultSet resultSet = listStatement.executeQuery())
 			{
@@ -46,15 +42,22 @@ class RemindRunnable implements Runnable
 				{
 					int id = resultSet.getInt("id");
 					long uid = resultSet.getLong("uid");
+					long guildId = resultSet.getLong("guild");
 					String message = resultSet.getString("message");
 					long issuerId = resultSet.getLong("issuer");
 					long time = resultSet.getLong("time");
 					User user = this.jda.getUserById(uid);
 					User issuer = this.jda.getUserById(issuerId);
-					StringBuilder botMessage = new StringBuilder();
 
 					assert user != null;
 
+					Guild guild = this.jda.getGuildById(guildId);
+					assert guild != null;
+
+					TextChannel remindChannel = DatabaseUtils.getSettings(guild).getRemindChannel();
+					assert remindChannel != null;
+
+					StringBuilder botMessage = new StringBuilder();
 					botMessage.append(user.getAsMention());
 					botMessage.append(", ich soll dich");
 					if(issuerId != uid)

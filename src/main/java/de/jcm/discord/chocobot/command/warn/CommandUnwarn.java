@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.command.warn;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -15,7 +16,7 @@ import java.sql.SQLException;
 public class CommandUnwarn extends Command
 {
 	@Override
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		if(args.length!=1)
 		{
@@ -27,7 +28,7 @@ public class CommandUnwarn extends Command
 		Member member = message.getMember();
 		assert member != null;
 
-		if(member.getRoles().stream().noneMatch(r -> ChocoBot.operatorRoles.contains(r.getId())))
+		if(!settings.isOperator(message.getMember()))
 		{
 			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Verwarnungen löschen!")).queue();
 			return false;
@@ -47,10 +48,11 @@ public class CommandUnwarn extends Command
 		try
 		{
 			try(Connection connection = ChocoBot.getDatabase();
-			    PreparedStatement getWarning = connection.prepareStatement("SELECT message FROM warnings WHERE id = ?");
-			    PreparedStatement deleteWarning = connection.prepareStatement("DELETE FROM warnings WHERE id = ?"))
+			    PreparedStatement getWarning = connection.prepareStatement("SELECT message FROM warnings WHERE id = ? AND guild = ?");
+			    PreparedStatement deleteWarning = connection.prepareStatement("DELETE FROM warnings WHERE id = ? AND guild = ?"))
 			{
 				getWarning.setInt(1, id);
+				getWarning.setLong(2, guild.getIdLong());
 				try(ResultSet resultSet = getWarning.executeQuery())
 				{
 					if(resultSet.next())
@@ -58,15 +60,11 @@ public class CommandUnwarn extends Command
 						long messageId = resultSet.getLong("message");
 
 						deleteWarning.setInt(1, id);
+						deleteWarning.setLong(2, guild.getIdLong());
 						deleteWarning.execute();
 
-						GuildChannel warnChannel = ChocoBot.jda.getGuildChannelById(ChocoBot.warningChannel);
-						assert warnChannel != null;
-						if(warnChannel.getType() == ChannelType.TEXT)
-						{
-							TextChannel warnTextChannel = (TextChannel) warnChannel;
-							warnTextChannel.deleteMessageById(messageId).queue();
-						}
+						TextChannel warnTextChannel = settings.getWarningChannel();
+						warnTextChannel.deleteMessageById(messageId).queue();
 
 						EmbedBuilder builder = new EmbedBuilder();
 						builder.setColor(ChocoBot.COLOR_WARN);

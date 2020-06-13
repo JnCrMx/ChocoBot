@@ -46,21 +46,12 @@ import java.util.concurrent.TimeUnit;
 
 public class ChocoBot extends ListenerAdapter
 {
-	public static String prefix = "?";
-	public static String commandChannel;
-
 	public static final Color COLOR_COOKIE = new Color(253, 189, 59);
 	public static final Color COLOR_LOVE = new Color(255, 79, 237);
 	public static final Color COLOR_ERROR = new Color(255, 0, 0);
 	public static final Color COLOR_COINS = new Color(255, 255, 0);
 	public static final Color COLOR_WARN = new Color(255, 0, 0);
 	public static final Color COLOR_GAME = new Color(0, 255, 229);
-
-	public static String warningChannel;
-	public static List<String> operatorRoles;
-
-	public static String remindChannel;
-	public static List<String> mutedChannels;
 
 	private static String redditUsername;
 	private static String redditPassword;
@@ -82,7 +73,6 @@ public class ChocoBot extends ListenerAdapter
 
 	public static String boardUrl;
 	private static ApiServer apiServer;
-	public static String pollChannel;
 
 	private static void tryCreateTable(Statement statement, String sql)
 	{
@@ -106,8 +96,6 @@ public class ChocoBot extends ListenerAdapter
 		Map<String, Object> obj = yaml.load(new FileInputStream("config.yml"));
 
 		//Load config
-		prefix = (String) obj.get("prefix");
-
 		boardUrl = (String) obj.get("boardUrl");
 		int apiPort = (int) obj.get("apiPort");
 
@@ -124,14 +112,6 @@ public class ChocoBot extends ListenerAdapter
 
 		Map<String, Object> discordLogin = (Map<String, Object>) obj.get("discord");
 		String discordToken = (String) discordLogin.get("token");
-
-		Map<String, Object> serverConfig = (Map<String, Object>) obj.get("server");
-		commandChannel = (String) serverConfig.get("commandChannel");
-		warningChannel = (String) serverConfig.get("warningChannel");
-		remindChannel = (String) serverConfig.get("remindChannel");
-		pollChannel = (String) serverConfig.get("pollChannel");
-		operatorRoles = (List<String>) serverConfig.get("operatorRoles");
-		mutedChannels = (List<String>) serverConfig.get("mutedChannels");
 
 		Logger logger = LoggerFactory.getLogger(ChocoBot.class);
 
@@ -179,19 +159,28 @@ public class ChocoBot extends ListenerAdapter
 			dataSource.setUrl("jdbc:sqlite:"+dbPath);
 			dataSource.setAutoCommitOnReturn(true);
 			dataSource.setMaxTotal(1);
+
+			dataSource.setAbandonedUsageTracking(true);
+			dataSource.setLogAbandoned(true);
+			dataSource.setRemoveAbandonedOnBorrow(true);
+			dataSource.setRemoveAbandonedTimeout(1);
+
 			logger.info("Connected to SQLite database.");
 
 			try(Connection connection = getDatabase();
 			    Statement initStatement = connection.createStatement())
 			{
-				tryCreateTable(initStatement, "CREATE TABLE \"coins\" (\"uid\" INTEGER, \"coins\" INTEGER, \"last_daily\" INTEGER, \"daily_streak\" INTEGER, PRIMARY KEY(\"uid\"));");
-				tryCreateTable(initStatement, "CREATE TABLE \"warnings\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"uid\" INTEGER,\"reason\" TEXT,\"time\" INTEGER,\"message\" INTEGER, \"warner\" INTEGER);");
-				tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
+				tryCreateTable(initStatement, "CREATE TABLE \"coins\" (\"uid\" INTEGER, \"guild\" INTEGER, \"coins\" INTEGER, \"last_daily\" INTEGER, \"daily_streak\" INTEGER, PRIMARY KEY(\"uid\", \"guild\"));");
+				tryCreateTable(initStatement, "CREATE TABLE \"warnings\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"uid\" INTEGER, \"guild\" INTEGER, \"reason\" TEXT,\"time\" INTEGER,\"message\" INTEGER, \"warner\" INTEGER);");
+				tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"guild\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
 				tryCreateTable(initStatement, "CREATE TABLE \"bugreports\" (\"id\" INTEGER PRIMARY KEY, \"reporter\" INTEGER, \"last_event_time\" INTEGER);");
 				tryCreateTable(initStatement, "CREATE TABLE \"subscriptions\" (\"id\" INTEGER PRIMARY KEY, \"subscriber\" INTEGER, \"keyword\" TEXT);");
-				tryCreateTable(initStatement, "CREATE TABLE \"tokens\" (\"token\" VARCHAR(256) PRIMARY KEY, \"user\" INTEGER, \"operator\" INTEGER DEFAULT 0);");
-				tryCreateTable(initStatement, "CREATE TABLE \"polls\" (\"message\" INTEGER PRIMARY KEY, \"question\" TEXT);");
+				tryCreateTable(initStatement, "CREATE TABLE \"tokens\" (\"token\" VARCHAR(256) PRIMARY KEY, \"user\" INTEGER);");
+				tryCreateTable(initStatement, "CREATE TABLE \"polls\" (\"message\" INTEGER PRIMARY KEY, \"guild\" INTEGER, \"question\" TEXT);");
 				tryCreateTable(initStatement, "CREATE TABLE \"poll_answers\" (\"answer\" VARCHAR(256), \"poll\" INTEGER, \"votes\" INTEGER, PRIMARY KEY(\"answer\", \"poll\"));");
+				tryCreateTable(initStatement, "CREATE TABLE \"guilds\" (\"id\" INTEGER PRIMARY KEY, \"prefix\" VARCHAR(16), \"command_channel\" INTEGER, \"remind_channel\" INTEGER, \"warning_channel\" INTEGER, \"poll_channel\" INTEGER);");
+				tryCreateTable(initStatement, "CREATE TABLE \"guild_operators\" (\"id\" INTEGER, \"guild\" INTEGER, PRIMARY KEY(\"id\", \"guild\"));");
+				tryCreateTable(initStatement, "CREATE TABLE \"guild_muted_channels\" (\"channel\" INTEGER PRIMARY KEY, \"guild\" INTEGER);");
 			}
 		}
 		else if("mysql".equals(dbType))
@@ -217,14 +206,17 @@ public class ChocoBot extends ListenerAdapter
 			try(Connection connection = getDatabase();
 				Statement initStatement = connection.createStatement())
 			{
-				tryCreateTable(initStatement, "CREATE TABLE `coins` (`uid` BIGINT PRIMARY KEY, `coins` INT, `last_daily` BIGINT, `daily_streak` INT);");
-				tryCreateTable(initStatement, "CREATE TABLE `warnings` (`id` INT PRIMARY KEY AUTO_INCREMENT,`uid` BIGINT,`reason` TEXT,`time` BIGINT, `message` BIGINT, `warner` BIGINT);");
-				tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `done` BOOLEAN);");
+				tryCreateTable(initStatement, "CREATE TABLE `coins` (`uid` BIGINT, `guild` BIGINT, `coins` INT, `last_daily` BIGINT, `daily_streak` INT, PRIMARY KEY(`uid`, `guild`));");
+				tryCreateTable(initStatement, "CREATE TABLE `warnings` (`id` INT PRIMARY KEY AUTO_INCREMENT,`uid` BIGINT,`guild` BIGINT,`reason` TEXT,`time` BIGINT, `message` BIGINT, `warner` BIGINT);");
+				tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `guild` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `done` BOOLEAN);");
 				tryCreateTable(initStatement, "CREATE TABLE `bugreports` (`id` INT PRIMARY KEY, `reporter` BIGINT, `last_event_time` BIGINT);");
 				tryCreateTable(initStatement, "CREATE TABLE `subscriptions` (`id` INT PRIMARY KEY AUTO_INCREMENT, `subscriber` BIGINT, `keyword` TEXT);");
-				tryCreateTable(initStatement, "CREATE TABLE `tokens` (`token` VARCHAR(256) PRIMARY KEY, `user` BIGINT, `operator` BOOLEAN);");
-				tryCreateTable(initStatement, "CREATE TABLE `polls` (`message` BIGINT PRIMARY KEY, `question` TEXT);");
+				tryCreateTable(initStatement, "CREATE TABLE `tokens` (`token` VARCHAR(256) PRIMARY KEY, `user` BIGINT);");
+				tryCreateTable(initStatement, "CREATE TABLE `polls` (`message` BIGINT PRIMARY KEY, `guild` BIGINT, `question` TEXT);");
 				tryCreateTable(initStatement, "CREATE TABLE `poll_answers` (`answer` VARCHAR(256), `poll` BIGINT, `votes` INT, PRIMARY KEY(`answer`, `poll`));");
+				tryCreateTable(initStatement, "CREATE TABLE `guilds` (`id` BIGINT PRIMARY KEY, `prefix` VARCHAR(16), `command_channel` BIGINT, `remind_channel` BIGINT, `warning_channel` BIGINT, `poll_channel` BIGINT);");
+				tryCreateTable(initStatement, "CREATE TABLE `guild_operators` (`id` BIGINT, `guild` BIGINT, PRIMARY KEY(`id`, `guild`));");
+				tryCreateTable(initStatement, "CREATE TABLE `guild_muted_channels` (`channel` BIGINT PRIMARY KEY, `guild` BIGINT);");
 			}
 		}
 		
@@ -274,7 +266,7 @@ public class ChocoBot extends ListenerAdapter
 				.addEventListeners(new IssueEventUnsubscribeListener())
 				.addEventListeners(new SubscriptionListener())
 				.addEventListeners(new ChocoBoardListener())
-				.setActivity(Activity.listening("dem Prefix '"+prefix+"'")).build();
+				.setActivity(Activity.listening("deinen Befehlen")).build();
 
 		try
 		{

@@ -1,30 +1,33 @@
 package de.jcm.discord.chocobot.api;
 
 import de.jcm.discord.chocobot.DatabaseUtils;
-import net.dv8tion.jda.api.OnlineStatus;
+import de.jcm.discord.chocobot.GuildSettings;
+import de.jcm.discord.chocobot.api.data.UserData;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-@Path("/user")
+@Path("/{guild}/user")
 public class UserEndpoint
 {
-	@Context Configuration configuration;
-
 	@GET
 	@Path("/self")
 	@Produces(MediaType.APPLICATION_JSON)
-	public UserData self(@Context ContainerRequestContext request)
+	public UserData self(@BeanParam GuildParam guildParam,
+	                     @Context ContainerRequestContext request)
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
-		Guild guild = (Guild) configuration.getProperty("guild");
+		if(!guildParam.checkAccess(user))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		Guild guild = guildParam.toGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
 		Member member = guild.getMemberById(user.getUserId());
 
@@ -33,25 +36,44 @@ public class UserEndpoint
 		userData.tag = member.getUser().getAsTag();
 		userData.nickname = member.getEffectiveName();
 		userData.avatarUrl = member.getUser().getAvatarUrl();
-		userData.coins = DatabaseUtils.getCoins(user.getUserId());
+		userData.coins = DatabaseUtils.getCoins(user.getUserId(), guild.getIdLong());
 		userData.onlineStatus = member.getOnlineStatus();
 		userData.timeJoined = member.getTimeJoined().toEpochSecond();
-		userData.role = member.getRoles().get(0).getName();
-		userData.roleColor = member.getRoles().get(0).getColorRaw();
+		userData.role = member.getRoles().isEmpty() ? null : member.getRoles().get(0).getName();
+		userData.roleColor = member.getRoles().isEmpty() ? 0 : member.getRoles().get(0).getColorRaw();
+		if(settings == null)
+		{
+			userData.operator = member.isOwner();
+		}
+		else
+		{
+			userData.operator = settings.isOperator(member);
+		}
 
 		return userData;
 	}
 
-	private static class UserData
+	@POST
+	@Path("/{user}/coins")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public void setCoins(@BeanParam GuildParam guildParam,
+	                     @PathParam("user") long userId,
+	                     @FormDataParam("coins") int coins,
+	                     @Context ContainerRequestContext request)
 	{
-		public String userId;
-		public String tag;
-		public String nickname;
-		public String avatarUrl;
-		public int coins;
-		public OnlineStatus onlineStatus;
-		public long timeJoined;
-		public String role;
-		public int roleColor;
+		ApiUser user = (ApiUser) request.getProperty("user");
+		if(!guildParam.checkAccess(user))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		Guild guild = guildParam.toGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
+
+		Member member = guild.getMemberById(user.getUserId());
+		if(member == null
+				|| (settings == null && !member.isOwner())
+				|| (settings != null && !settings.isOperator(member)))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		DatabaseUtils.setCoins(userId, guild.getIdLong(), coins);
 	}
 }

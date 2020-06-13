@@ -1,15 +1,18 @@
 package de.jcm.discord.chocobot;
 
 import com.vdurmont.emoji.EmojiParser;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.MessageReaction;
+import net.dv8tion.jda.api.entities.TextChannel;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -22,10 +25,10 @@ public class PollRunnable implements Runnable
 {
 	private static final Pattern emojiPattern = Pattern.compile("(<[:A-Za-z0-9_+]+>|:[A-Za-z1-9_+]+:)");
 
-	@Override
-	public void run()
+
+
+	public void processGuild(TextChannel channel)
 	{
-		TextChannel channel = (TextChannel) ChocoBot.jda.getGuildChannelById(ChannelType.TEXT, ChocoBot.pollChannel);
 		channel.getIterableHistory().forEachRemaining(message -> {
 			String[] parts = message.getContentRaw().split("\n");
 			Optional<String> answerString = Stream.of(parts)
@@ -61,12 +64,13 @@ public class PollRunnable implements Runnable
 
 			try(Connection connection = ChocoBot.getDatabase();
 			    PreparedStatement insertQuestion = connection.prepareStatement(
-			    		"REPLACE INTO polls (message, question) VALUES (?, ?)");
+			    		"REPLACE INTO polls (message, guild, question) VALUES (?, ?, ?)");
 			    PreparedStatement insertAnswer = connection.prepareStatement(
 			    		"REPLACE INTO poll_answers (answer, poll, votes) VALUES (?, ?, ?)"))
 			{
 				insertQuestion.setLong(1, message.getIdLong());
-				insertQuestion.setString(2, question);
+				insertQuestion.setLong(2, channel.getGuild().getIdLong());
+				insertQuestion.setString(3, question);
 				insertQuestion.execute();
 
 				for(ImmutablePair<Answer, Integer> pair : pairs)
@@ -84,6 +88,30 @@ public class PollRunnable implements Runnable
 
 			return true;
 		});
+	}
+
+	@Override
+	public void run()
+	{
+		List<GuildSettings> guilds = new ArrayList<>();
+		try(Connection connection = ChocoBot.getDatabase();
+			PreparedStatement statement = connection.prepareStatement("SELECT * FROM guilds"))
+		{
+			ResultSet resultSet = statement.executeQuery();
+			while((resultSet.next()))
+			{
+				guilds.add(new GuildSettings(resultSet));
+			}
+		}
+		catch(SQLException throwables)
+		{
+			throwables.printStackTrace();
+		}
+
+		for(GuildSettings guild : guilds)
+		{
+			processGuild(guild.getPollChannel());
+		}
 	}
 
 	private class Answer implements Predicate<MessageReaction.ReactionEmote>

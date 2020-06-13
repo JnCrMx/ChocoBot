@@ -2,8 +2,10 @@ package de.jcm.discord.chocobot.game;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -163,13 +165,13 @@ public class SlotMachineGame extends Command
 		}
 	}
 
-	public boolean execute(Message message, TextChannel channel, String... args)
+	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		Member player = message.getMember();
 
 		assert player != null;
 
-		if (DatabaseUtils.getCoins(player.getIdLong()) < COST)
+		if (DatabaseUtils.getCoins(player.getIdLong(), guild.getIdLong()) < COST)
 		{
 			channel.sendMessage(ChocoBot.errorMessage("Du hast dafür nicht genug Coins! Du brauchst mindestens "+COST+".")).queue();
 			return false;
@@ -221,7 +223,7 @@ public class SlotMachineGame extends Command
 											SlotMachineGame.this.updateMessage(gameMessage, player, wheels),
 											0L, 1L, TimeUnit.SECONDS);
 								});
-								DatabaseUtils.changeCoins(player.getIdLong(), -COST);
+								DatabaseUtils.changeCoins(player.getIdLong(), guild.getIdLong(), -COST);
 								this.state = GameState.RUNNING;
 							}
 						}
@@ -245,7 +247,7 @@ public class SlotMachineGame extends Command
 										prize);
 								gameMessage.editMessage(msg).queue();
 
-								DatabaseUtils.changeCoins(player.getIdLong(), prize);
+								DatabaseUtils.changeCoins(player.getIdLong(), guild.getIdLong(), prize);
 							}
 							else
 							{
