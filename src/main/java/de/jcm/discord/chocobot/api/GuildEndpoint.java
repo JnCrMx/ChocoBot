@@ -152,8 +152,8 @@ public class GuildEndpoint
 	@Path("/settings")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void setSettings(@BeanParam GuildParam guildParam,
-	                                 GuildSettings guildSettings,
-	                                 @Context ContainerRequestContext request)
+	                        GuildSettings guildSettings,
+	                        @Context ContainerRequestContext request)
 	{
 		ApiUser user = (ApiUser) request.getProperty("user");
 		if(!guildParam.checkAccess(user))
@@ -172,19 +172,49 @@ public class GuildEndpoint
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
 
 		try(Connection connection = ChocoBot.getDatabase();
-		    PreparedStatement statement = connection.prepareStatement("UPDATE guilds SET prefix = ?, " +
-				                                                              "command_channel = ?, " +
-				                                                              "remind_channel = ?, " +
-				                                                              "warning_channel = ?, " +
-				                                                              "poll_channel = ?" +
-				                                                              " WHERE id = ?"))
+		    PreparedStatement statement = connection.prepareStatement("REPLACE INTO guilds (id, prefix, command_channel, remind_channel, warning_channel, poll_channel) " +
+				                                                              "VALUES(?, ?, ?, ?, ?, ?)"))
 		{
-			statement.setString(1, guildSettings.getPrefix());
-			statement.setLong(2, guildSettings.getCommandChannelID());
-			statement.setLong(3, guildSettings.getRemindChannelID());
-			statement.setLong(4, guildSettings.getWarningChannelID());
-			statement.setLong(5, guildSettings.getPollChannelID());
-			statement.setLong(6, guild.getIdLong());
+			statement.setLong(1, guild.getIdLong());
+			statement.setString(2, guildSettings.getPrefix());
+			statement.setLong(3, guildSettings.getCommandChannelID());
+			statement.setLong(4, guildSettings.getRemindChannelID());
+			statement.setLong(5, guildSettings.getWarningChannelID());
+			statement.setLong(6, guildSettings.getPollChannelID());
+
+			if(statement.executeUpdate() != 1)
+				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+
+			DatabaseUtils.deleteCached(guild.getIdLong());
+		}
+		catch(SQLException throwables)
+		{
+			throwables.printStackTrace();
+		}
+	}
+
+	@DELETE
+	@Path("/settings")
+	public void deleteSettings(@BeanParam GuildParam guildParam,
+	                        @Context ContainerRequestContext request)
+	{
+		ApiUser user = (ApiUser) request.getProperty("user");
+		if(!guildParam.checkAccess(user))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		Guild guild = guildParam.toGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
+
+		Member member = guild.getMemberById(user.getUserId());
+		if(member == null
+				|| (settings == null && !member.isOwner())
+				|| (settings != null && !settings.isOperator(member)))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement statement = connection.prepareStatement("DELETE FROM guilds WHERE id = ?"))
+		{
+			statement.setLong(1, guild.getIdLong());
 
 			if(statement.executeUpdate() != 1)
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
