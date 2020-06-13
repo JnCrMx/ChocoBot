@@ -4,6 +4,7 @@ import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
 import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.api.data.ChannelInfo;
+import de.jcm.discord.chocobot.api.data.RoleInfo;
 import de.jcm.discord.chocobot.api.data.UserData;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
@@ -127,6 +128,30 @@ public class GuildEndpoint
 	}
 
 	@GET
+	@Path("/roles")
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<RoleInfo> getRoles(@BeanParam GuildParam guildParam,
+	                               @Context ContainerRequestContext request)
+	{
+		ApiUser user = (ApiUser) request.getProperty("user");
+		if(!guildParam.checkAccess(user))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		Guild guild = guildParam.toGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
+
+		Member member = guild.getMemberById(user.getUserId());
+		if(member == null
+				|| (settings == null && !member.isOwner())
+				|| (settings != null && !settings.isOperator(member)))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		return guild.getRoles().stream()
+		            .map(RoleInfo::fromRole)
+		            .collect(Collectors.toList());
+	}
+
+	@GET
 	@Path("/settings")
 	@Produces(MediaType.APPLICATION_JSON)
 	public GuildSettings getSettings(@BeanParam GuildParam guildParam,
@@ -215,6 +240,150 @@ public class GuildEndpoint
 		    PreparedStatement statement = connection.prepareStatement("DELETE FROM guilds WHERE id = ?"))
 		{
 			statement.setLong(1, guild.getIdLong());
+
+			if(statement.executeUpdate() != 1)
+				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+
+			DatabaseUtils.deleteCached(guild.getIdLong());
+		}
+		catch(SQLException throwables)
+		{
+			throwables.printStackTrace();
+		}
+	}
+
+	@PUT
+	@Path("/settings/operators/{role}")
+	public void addOperatorRole(@BeanParam GuildParam guildParam,
+	                            @PathParam("role") long role,
+	                            @Context ContainerRequestContext request)
+	{
+		ApiUser user = (ApiUser) request.getProperty("user");
+		if(!guildParam.checkAccess(user))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		Guild guild = guildParam.toGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
+
+		Member member = guild.getMemberById(user.getUserId());
+		if(member == null
+				|| (settings == null && !member.isOwner())
+				|| (settings != null && !settings.isOperator(member)))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement statement = connection.prepareStatement("INSERT INTO guild_operators (id, guild) VALUES(?, ?)"))
+		{
+			statement.setLong(1, role);
+			statement.setLong(2, guild.getIdLong());
+
+			if(statement.executeUpdate() != 1)
+				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+
+			DatabaseUtils.deleteCached(guild.getIdLong());
+		}
+		catch(SQLException throwables)
+		{
+			throwables.printStackTrace();
+		}
+	}
+
+	@DELETE
+	@Path("/settings/operators/{role}")
+	public void removeOperatorRole(@BeanParam GuildParam guildParam,
+	                            @PathParam("role") long role,
+	                            @Context ContainerRequestContext request)
+	{
+		ApiUser user = (ApiUser) request.getProperty("user");
+		if(!guildParam.checkAccess(user))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		Guild guild = guildParam.toGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
+
+		Member member = guild.getMemberById(user.getUserId());
+		if(member == null
+				|| (settings == null && !member.isOwner())
+				|| (settings != null && !settings.isOperator(member)))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement statement = connection.prepareStatement("DELETE FROM guild_operators WHERE id = ? AND guild = ?"))
+		{
+			statement.setLong(1, role);
+			statement.setLong(2, guild.getIdLong());
+
+			if(statement.executeUpdate() != 1)
+				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+
+			DatabaseUtils.deleteCached(guild.getIdLong());
+		}
+		catch(SQLException throwables)
+		{
+			throwables.printStackTrace();
+		}
+	}
+
+	@PUT
+	@Path("/settings/muted/{channel}")
+	public void addMutedChannel(@BeanParam GuildParam guildParam,
+	                            @PathParam("channel") long channel,
+	                            @Context ContainerRequestContext request)
+	{
+		ApiUser user = (ApiUser) request.getProperty("user");
+		if(!guildParam.checkAccess(user))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		Guild guild = guildParam.toGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
+
+		Member member = guild.getMemberById(user.getUserId());
+		if(member == null
+				|| (settings == null && !member.isOwner())
+				|| (settings != null && !settings.isOperator(member)))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement statement = connection.prepareStatement("INSERT INTO guild_muted_channels (channel, guild) VALUES(?, ?)"))
+		{
+			statement.setLong(1, channel);
+			statement.setLong(2, guild.getIdLong());
+
+			if(statement.executeUpdate() != 1)
+				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+
+			DatabaseUtils.deleteCached(guild.getIdLong());
+		}
+		catch(SQLException throwables)
+		{
+			throwables.printStackTrace();
+		}
+	}
+
+	@DELETE
+	@Path("/settings/muted/{channel}")
+	public void removeMutedChannel(@BeanParam GuildParam guildParam,
+	                               @PathParam("channel") long channel,
+	                               @Context ContainerRequestContext request)
+	{
+		ApiUser user = (ApiUser) request.getProperty("user");
+		if(!guildParam.checkAccess(user))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		Guild guild = guildParam.toGuild();
+		GuildSettings settings = DatabaseUtils.getSettings(guild);
+
+		Member member = guild.getMemberById(user.getUserId());
+		if(member == null
+				|| (settings == null && !member.isOwner())
+				|| (settings != null && !settings.isOperator(member)))
+			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement statement = connection.prepareStatement("DELETE FROM guild_muted_channels WHERE channel = ? AND guild = ?"))
+		{
+			statement.setLong(1, channel);
+			statement.setLong(2, guild.getIdLong());
 
 			if(statement.executeUpdate() != 1)
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

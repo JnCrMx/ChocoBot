@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import de.jcm.discord.chocobot.api.data.ChannelInfo;
+import de.jcm.discord.chocobot.api.data.RoleInfo;
 import net.dv8tion.jda.api.entities.*;
 
 import java.sql.ResultSet;
@@ -158,7 +159,7 @@ public class GuildSettings
 	{
 		if(member.isOwner())
 			return true;
-		if(operators.contains(member.getIdLong()))
+		if(operators.contains(member.getIdLong())) // beta, not changeable in Web UI
 			return true;
 		return member.getRoles().stream().anyMatch(r->operators.contains(r.getIdLong()));
 	}
@@ -185,9 +186,14 @@ public class GuildSettings
 	}
 
 	@JsonGetter("operators")
-	public List<Long> getOperators()
+	public List<RoleInfo> getOperators()
 	{
-		return operators;
+		Guild guild = getGuild();
+		return operators.stream()
+		                .map(guild::getRoleById)
+		                .filter(Objects::nonNull)
+		                .map(RoleInfo::fromRole)
+		                .collect(Collectors.toList());
 	}
 
 	@JsonGetter("mutedChannels")
@@ -237,14 +243,20 @@ public class GuildSettings
 	}
 
 	@JsonSetter("operators")
-	public void setOperators(List<Long> operators)
+	public void setOperators(List<RoleInfo> operators)
 	{
-		this.operators = operators;
+		this.operators = operators.stream()
+		                          .map(r->r.id)
+		                          .map(Long::parseLong)
+		                          .collect(Collectors.toList());
 	}
 
 	@JsonSetter("mutedChannels")
-	public void setMutedChannels(List<Long> mutedChannels)
+	public void setMutedChannels(List<ChannelInfo> mutedChannels)
 	{
-		this.mutedChannels = mutedChannels;
+		this.mutedChannels = mutedChannels.stream()
+		                                  .map(c->c.id)
+		                                  .map(Long::parseLong)
+		                                  .collect(Collectors.toList());
 	}
 }

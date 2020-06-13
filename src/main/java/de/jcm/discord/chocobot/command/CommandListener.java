@@ -32,6 +32,8 @@ public class CommandListener extends ListenerAdapter
 
 			Guild guild = event.getGuild();
 			GuildSettings guildSettings = DatabaseUtils.getSettings(guild);
+			if(guildSettings == null)
+				return;
 
 			if(message.startsWith(guildSettings.getPrefix()))
 			{
