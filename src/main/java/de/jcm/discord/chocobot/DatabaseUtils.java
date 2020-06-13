@@ -44,7 +44,6 @@ public class DatabaseUtils
 		{
 			logger.error("Database error", var3);
 		}
-
 	}
 
 	public static int getCoins(long uid, long guild)
@@ -83,6 +82,22 @@ public class DatabaseUtils
 		    PreparedStatement changeCoins = connection.prepareStatement("UPDATE coins SET coins=coins+? WHERE uid=? AND guild=?"))
 		{
 			changeCoins.setInt(1, amount);
+			changeCoins.setLong(2, uid);
+			changeCoins.setLong(3, guild);
+			changeCoins.execute();
+		}
+		catch (SQLException var4)
+		{
+			logger.error("Database error", var4);
+		}
+	}
+
+	public static void setCoins(long uid, long guild, int coins)
+	{
+		try(Connection connection = ChocoBot.getDatabase();
+		    PreparedStatement changeCoins = connection.prepareStatement("UPDATE coins SET coins=? WHERE uid=? AND guild=?"))
+		{
+			changeCoins.setInt(1, coins);
 			changeCoins.setLong(2, uid);
 			changeCoins.setLong(3, guild);
 			changeCoins.execute();
@@ -141,5 +156,10 @@ public class DatabaseUtils
 	public static GuildSettings getSettings(Guild guild)
 	{
 		return getSettings(guild.getIdLong());
+	}
+
+	public static void deleteCached(long guild)
+	{
+		settingsCache.remove(guild);
 	}
 }

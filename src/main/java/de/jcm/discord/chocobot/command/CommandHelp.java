@@ -32,7 +32,7 @@ public class CommandHelp extends Command
 				                 if(command
 						                 .getHelpText() != null)
 				                 {
-					                 builder.addField("?" + command
+					                 builder.addField(settings.getPrefix() + command
 							                 .getKeyword(), command
 							                                  .getHelpText(), false);
 				                 }
@@ -55,13 +55,13 @@ public class CommandHelp extends Command
 				ChocoBot.errorMessage("Ich konnte diesen Befehl nicht finden!");
 				return false;
 			}
-			command.showUsage(channel);
+			command.showUsage(channel, settings);
 
 			return true;
 		}
 		else
 		{
-			showUsage(channel);
+			showUsage(channel, settings);
 			return false;
 		}
 	}

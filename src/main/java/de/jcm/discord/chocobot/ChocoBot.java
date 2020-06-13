@@ -82,7 +82,6 @@ public class ChocoBot extends ListenerAdapter
 		}
 		catch (SQLException ignored)
 		{
-			ignored.printStackTrace();
 		}
 	}
 

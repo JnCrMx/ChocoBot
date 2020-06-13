@@ -56,14 +56,14 @@ public abstract class Command
 		}
 	}
 
-	public void showUsage(TextChannel channel)
+	public void showUsage(TextChannel channel, GuildSettings settings)
 	{
 		if(getUsage()==null)
 		{
 			return;
 		}
 
-		String prefix = DatabaseUtils.getSettings(channel.getGuild()).getPrefix();
+		String prefix = settings.getPrefix();
 
 		EmbedBuilder eb = new EmbedBuilder();
 		eb.setTitle(prefix+getKeyword());
