@@ -32,7 +32,8 @@ public class ApiServer
 		                   GuildEndpoint.class,
 		                   UserEndpoint.class,
 		                   ReminderEndpoint.class,
-		                   PollEndpoint.class);
+		                   PollEndpoint.class,
+		                   ShopEndpoint.class);
 		rc.registerClasses(CORSFilter.class);
 		rc.registerClasses(TokenFilter.class);
 		rc.registerClasses(JacksonFeature.class);

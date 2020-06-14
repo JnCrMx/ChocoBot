@@ -181,6 +181,8 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE \"guilds\" (\"id\" INTEGER PRIMARY KEY, \"prefix\" VARCHAR(16), \"command_channel\" INTEGER, \"remind_channel\" INTEGER, \"warning_channel\" INTEGER, \"poll_channel\" INTEGER);");
 				tryCreateTable(initStatement, "CREATE TABLE \"guild_operators\" (\"id\" INTEGER, \"guild\" INTEGER, PRIMARY KEY(\"id\", \"guild\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"guild_muted_channels\" (\"channel\" INTEGER PRIMARY KEY, \"guild\" INTEGER);");
+				tryCreateTable(initStatement, "CREATE TABLE \"shop_roles\" (\"role\" INTEGER PRIMARY KEY, \"guild\" INTEGER, \"alias\" VARCHAR(256), \"description\" TEXT, \"cost\" INTEGER, UNIQUE (\"alias\", \"guild\"));");
+				tryCreateTable(initStatement, "CREATE TABLE \"shop_inventory\" (\"role\" INTEGER, \"user\" INTEGER, \"guild\" INTEGER, PRIMARY KEY(\"role\", \"user\"));");
 			}
 		}
 		else if("mysql".equals(dbType))
@@ -217,6 +219,8 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `guilds` (`id` BIGINT PRIMARY KEY, `prefix` VARCHAR(16), `command_channel` BIGINT, `remind_channel` BIGINT, `warning_channel` BIGINT, `poll_channel` BIGINT);");
 				tryCreateTable(initStatement, "CREATE TABLE `guild_operators` (`id` BIGINT, `guild` BIGINT, PRIMARY KEY(`id`, `guild`));");
 				tryCreateTable(initStatement, "CREATE TABLE `guild_muted_channels` (`channel` BIGINT PRIMARY KEY, `guild` BIGINT);");
+				tryCreateTable(initStatement, "CREATE TABLE `shop_roles` (`role` BIGINT PRIMARY KEY, `guild` BIGINT, `alias` VARCHAR(256), `description` TEXT, `cost` INT, UNIQUE `ident` (`alias`, `guild`));");
+				tryCreateTable(initStatement, "CREATE TABLE `shop_inventory` (`role` BIGINT, `user` BIGINT, `guild` BIGINT, PRIMARY KEY(`role`, `user`));");
 			}
 		}
 		
@@ -233,21 +237,25 @@ public class ChocoBot extends ListenerAdapter
 		Command.registerCommand(new CommandDaily());
 		Command.registerCommand(new CommandGift());
 
+		Command.registerCommand(new CommandShop());
+
 		Command.registerCommand(new CommandSay());
 		Command.registerCommand(new CommandRandom());
 		Command.registerCommand(new CommandRemind());
+		Command.registerCommand(new CommandShip());
+
 		if(redditEnabled)
 			Command.registerCommand(new CommandMeme());
 		Command.registerCommand(new CommandGif());
+		Command.registerCommand(new CommandKeks());
+
 		Command.registerCommand(new CommandWarn());
 		Command.registerCommand(new CommandWarns());
 		Command.registerCommand(new CommandUnwarn());
+
 		Command.registerCommand(new CommandHelp());
 		Command.registerCommand(new CommandCredits());
 		Command.registerCommand(new CommandBugReport());
-
-		Command.registerCommand(new CommandKeks());
-		Command.registerCommand(new CommandShip());
 
 		Command.registerCommand(new CommandOmaeWaMouShindeiru());
 		Command.registerCommand(new CommandChii());

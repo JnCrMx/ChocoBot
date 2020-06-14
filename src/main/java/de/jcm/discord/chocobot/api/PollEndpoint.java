@@ -23,7 +23,7 @@ public class PollEndpoint
 	public ArrayList<Poll> all(@BeanParam GuildParam guildParam, @Context ContainerRequestContext request)
 	{
 		if(!guildParam.checkAccess((ApiUser) request.getProperty("user")))
-			throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+			throw new ForbiddenException();
 
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement pollStatement = connection.prepareStatement("SELECT * FROM polls WHERE guild = ? ORDER BY message DESC");
