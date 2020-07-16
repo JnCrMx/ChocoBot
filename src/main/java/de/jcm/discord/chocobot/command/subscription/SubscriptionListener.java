@@ -251,7 +251,7 @@ public class SubscriptionListener extends ListenerAdapter
 		String message = event.getMessage().getContentRaw();
 
 		try(Connection connection = ChocoBot.getDatabase();
-		    PreparedStatement byKeyword = connection.prepareStatement("SELECT subscriber FROM subscriptions WHERE keyword=?");)
+		    PreparedStatement byKeyword = connection.prepareStatement("SELECT subscriber FROM subscriptions WHERE keyword=?"))
 		{
 			for(String keyword : keywordCache)
 			{
@@ -310,26 +310,26 @@ public class SubscriptionListener extends ListenerAdapter
 
 	private void checkAndNotify(GuildMessageReceivedEvent event, String keyword, Member member)
 	{
-		if(member != null)
-		{
-			if(member.hasPermission(event.getChannel(), Permission.MESSAGE_READ))
-			{
-				member.getUser().openPrivateChannel()
-				      .queue(p -> p.sendMessage(
-				      		String.format(
-				      				"Das von dir abonnierte Schlüsselwort \"%s\" wurde erwähnt:\nhttps://discordapp.com/channels/%d/%d/%d",
-							        keyword,
-							        event.getChannel().getGuild().getIdLong(),
-							        event.getChannel().getIdLong(),
-							        event.getMessage().getIdLong())).queue());
-			}
-		}
+		if(member == null)
+			return;
+		if(member.getIdLong() == event.getAuthor().getIdLong())
+			return;
+		if(!member.hasPermission(event.getChannel(), Permission.MESSAGE_READ))
+			return;
+		member.getUser().openPrivateChannel()
+		      .queue(p -> p.sendMessage(
+		      		String.format(
+		      				"Das von dir abonnierte Schlüsselwort \"%s\" wurde erwähnt:\nhttps://discordapp.com/channels/%d/%d/%d",
+					        keyword,
+					        event.getChannel().getGuild().getIdLong(),
+						    event.getChannel().getIdLong(),
+					        event.getMessage().getIdLong())).queue());
 	}
 
 	private void updateCache()
 	{
 		try(Connection connection = ChocoBot.getDatabase();
-		    PreparedStatement listKeywords = connection.prepareStatement("SELECT DISTINCT keyword FROM subscriptions");)
+		    PreparedStatement listKeywords = connection.prepareStatement("SELECT DISTINCT keyword FROM subscriptions"))
 		{
 			ArrayList<String> keywords = new ArrayList<>();
 
