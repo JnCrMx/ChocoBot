@@ -42,13 +42,20 @@ public class ReminderEndpoint
 				case "reminder":
 					sql+="issuer = ?";
 					break;
+				case "all":
+					sql+="uid = ? OR issuer = ?";
+					break;
 				default:
-					throw new IllegalArgumentException("type invalid. allowed types are: remindee, reminder");
+					throw new IllegalArgumentException("type invalid. allowed types are: remindee, reminder, all");
 			}
 
 			try(PreparedStatement statement = connection.prepareStatement(sql))
 			{
 				statement.setLong(1, user.getUserId());
+				if(type.equals("all"))
+				{
+					statement.setLong(2, user.getUserId());
+				}
 
 				ResultSet resultSet = statement.executeQuery();
 
