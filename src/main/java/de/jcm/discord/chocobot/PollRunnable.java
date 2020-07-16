@@ -1,7 +1,6 @@
 package de.jcm.discord.chocobot;
 
 import com.vdurmont.emoji.EmojiParser;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -23,11 +22,9 @@ import java.util.stream.Stream;
 
 public class PollRunnable implements Runnable
 {
-	private static final Pattern emojiPattern = Pattern.compile("(<[:A-Za-z0-9_+]+>|:[A-Za-z1-9_+]+:)");
+	private static final Pattern emojiPattern = Pattern.compile("(<[:A-Za-z0-9_+\\-]+>|:[A-Za-z1-9_+\\-]+:)");
 
-
-
-	public void processGuild(TextChannel channel)
+	private void processGuild(TextChannel channel)
 	{
 		channel.getIterableHistory().forEachRemaining(message -> {
 			String[] parts = message.getContentRaw().split("\n");
@@ -114,12 +111,12 @@ public class PollRunnable implements Runnable
 		}
 	}
 
-	private class Answer implements Predicate<MessageReaction.ReactionEmote>
+	private static class Answer implements Predicate<MessageReaction.ReactionEmote>
 	{
 		private String emojiAlias;
 		private String answer;
 
-		public Answer(String answer)
+		Answer(String answer)
 		{
 			Matcher matcher = emojiPattern.matcher(answer);
 			if(matcher.find())
