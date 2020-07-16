@@ -43,7 +43,7 @@ public class ReminderEndpoint
 					sql+="issuer = ?";
 					break;
 				case "all":
-					sql+="uid = ? OR issuer = ?";
+					sql+="(uid = ? OR issuer = ?)";
 					break;
 				default:
 					throw new IllegalArgumentException("type invalid. allowed types are: remindee, reminder, all");
