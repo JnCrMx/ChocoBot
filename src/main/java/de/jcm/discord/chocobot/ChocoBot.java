@@ -210,7 +210,7 @@ public class ChocoBot extends ListenerAdapter
 			{
 				tryCreateTable(initStatement, "CREATE TABLE `coins` (`uid` BIGINT, `guild` BIGINT, `coins` INT, `last_daily` BIGINT, `daily_streak` INT, PRIMARY KEY(`uid`, `guild`));");
 				tryCreateTable(initStatement, "CREATE TABLE `warnings` (`id` INT PRIMARY KEY AUTO_INCREMENT,`uid` BIGINT,`guild` BIGINT,`reason` TEXT,`time` BIGINT, `message` BIGINT, `warner` BIGINT);");
-				tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `guild` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `done` BOOLEAN);");
+				tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `guild` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `done` BOOLEAN DEFAULT 0);");
 				tryCreateTable(initStatement, "CREATE TABLE `bugreports` (`id` INT PRIMARY KEY, `reporter` BIGINT, `last_event_time` BIGINT);");
 				tryCreateTable(initStatement, "CREATE TABLE `subscriptions` (`id` INT PRIMARY KEY AUTO_INCREMENT, `subscriber` BIGINT, `keyword` TEXT);");
 				tryCreateTable(initStatement, "CREATE TABLE `tokens` (`token` VARCHAR(256) PRIMARY KEY, `user` BIGINT);");
