@@ -55,7 +55,8 @@ public class CommandListener extends ListenerAdapter
 					{
 						if ((System.currentTimeMillis() -
 								lastCommands.getOrDefault(event.getAuthor().getIdLong(), 0L))
-								< 5000)
+								< 3000 &&
+								!guildSettings.isOperator(member))
 						{
 							this.logger.info("Command \"{}\" from user {} ({}) was ignored due to delay not met.",
 									message, event.getAuthor().getAsTag(), event.getAuthor().getId());
