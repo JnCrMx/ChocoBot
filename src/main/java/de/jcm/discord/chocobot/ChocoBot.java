@@ -243,6 +243,7 @@ public class ChocoBot extends ListenerAdapter
 		Command.registerCommand(new CommandRandom());
 		Command.registerCommand(new CommandRemind());
 		Command.registerCommand(new CommandShip());
+		Command.registerCommand(new CommandStats());
 
 		if(redditEnabled)
 			Command.registerCommand(new CommandMeme());
