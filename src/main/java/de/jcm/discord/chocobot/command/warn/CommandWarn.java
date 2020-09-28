@@ -8,9 +8,7 @@ import net.dv8tion.jda.api.entities.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.regex.Pattern;
 
 public class CommandWarn extends Command
@@ -53,7 +51,8 @@ public class CommandWarn extends Command
 					try
 					{
 						try(Connection connection = ChocoBot.getDatabase();
-						    PreparedStatement insertWarning = connection.prepareStatement("INSERT INTO warnings(uid, guild, reason, time, warner, message) VALUES(?, ?, ?, ?, ?, ?)"))
+						    PreparedStatement insertWarning = connection.prepareStatement("INSERT INTO warnings(uid, guild, reason, time, warner, message) VALUES(?, ?, ?, ?, ?, ?)",
+						                                                                  Statement.RETURN_GENERATED_KEYS))
 						{
 							insertWarning.setLong(1, warned.getIdLong());
 							insertWarning.setLong(2, guild.getIdLong());
@@ -61,12 +60,21 @@ public class CommandWarn extends Command
 							insertWarning.setLong(4, System.currentTimeMillis());
 							insertWarning.setLong(5, warner.getIdLong());
 							insertWarning.setLong(6, s.getIdLong());
-							insertWarning.execute();
+							insertWarning.executeUpdate();
+
+							try(ResultSet keys = insertWarning.getGeneratedKeys())
+							{
+								if(keys.next())
+								{
+									builder.setAuthor("[" + keys.getInt(1) + "]");
+								}
+							}
 						}
 						if (warnTextChannel.getIdLong() != channel.getIdLong())
 						{
 							channel.sendMessage(builder.build()).queue();
 						}
+						s.editMessage(builder.build()).queue();
 
 						if (warned.getIdLong() == ChocoBot.jda.getSelfUser().getIdLong())
 						{
