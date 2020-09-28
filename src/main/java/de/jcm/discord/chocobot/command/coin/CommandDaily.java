@@ -21,6 +21,14 @@ import java.time.temporal.ChronoField;
 
 public class CommandDaily extends Command
 {
+	private static final double DAILY_FACTOR = 30 / Math.log1p(6);
+	private static final double DAILY_START = 10;
+
+	public static int getCoinsForStreak(int streak)
+	{
+		return (int) (Math.log1p(streak) * DAILY_FACTOR + DAILY_START);
+	}
+
 	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		long uid = message.getAuthor().getIdLong();
@@ -60,13 +68,8 @@ public class CommandDaily extends Command
 					builder.setFooter("Du hast deine Streak verloren! \ud83d\ude2d");
 				}
 
-				int coinsToAdd = (dailyStreak + 1) * 10;
+				int coinsToAdd = getCoinsForStreak(dailyStreak);
 				dailyStreak++;
-
-				if(dailyStreak >= 7)
-				{
-					dailyStreak = 0;
-				}
 
 				try(Connection connection = ChocoBot.getDatabase();
 				    PreparedStatement updateCoins = connection.prepareStatement("UPDATE coins SET last_daily=?, daily_streak=?, coins=coins+? WHERE uid=? AND guild=?"))
@@ -85,10 +88,6 @@ public class CommandDaily extends Command
 				builder.setDescription("Du hast einen täglichen Bonus von " + coinsToAdd + " Coins erhalten!");
 				builder.addField("Deine Coins", Integer.toString(coins), false);
 				builder.addField("Deine Streak", Integer.toString(dailyStreak), false);
-				if (dailyStreak == 0)
-				{
-					builder.setFooter("Deine Streak wurde zurückgesetzt, da sie das Maximum von 7 Tagen überschritten hat.");
-				}
 
 				channel.sendMessage(builder.build()).queue();
 				return true;
