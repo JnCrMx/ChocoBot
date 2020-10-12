@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +18,7 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommandLeaderboard extends Command
@@ -97,7 +99,7 @@ public class CommandLeaderboard extends Command
 		                            .limit(5)
 		                            .collect(StringBuffer::new,
 		                                     (s,e)-> s.append(makeBadge(rank.getAndAdd(1))).append(" ")
-		                                              .append(ChocoBot.jda.getUserById(e.getKey()).getAsTag())
+		                                              .append(Optional.ofNullable(ChocoBot.jda.getUserById(e.getKey())).map(User::getAsTag).orElse("Unknown User"))
 		                                              .append(": ").append(e.getValue()).append('\n'),
 		                                     StringBuffer::append);
 		builder.addField(title, buffer.toString(), true);
