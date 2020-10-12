@@ -30,6 +30,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import java.awt.*;
+import java.awt.color.CMMException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -80,8 +81,12 @@ public class ChocoBot extends ListenerAdapter
 		{
 			statement.execute(sql);
 		}
-		catch (SQLException ignored)
+		catch (SQLException e)
 		{
+			if(!e.getMessage().contains("already exists"))
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -163,7 +168,7 @@ public class ChocoBot extends ListenerAdapter
 			dataSource.setAbandonedUsageTracking(true);
 			dataSource.setLogAbandoned(true);
 			dataSource.setRemoveAbandonedOnBorrow(true);
-			dataSource.setRemoveAbandonedTimeout(1);
+			dataSource.setRemoveAbandonedTimeout(10);
 
 			logger.info("Connected to SQLite database.");
 
@@ -183,6 +188,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE \"guild_muted_channels\" (\"channel\" INTEGER PRIMARY KEY, \"guild\" INTEGER);");
 				tryCreateTable(initStatement, "CREATE TABLE \"shop_roles\" (\"role\" INTEGER PRIMARY KEY, \"guild\" INTEGER, \"alias\" VARCHAR(256), \"description\" TEXT, \"cost\" INTEGER, UNIQUE (\"alias\", \"guild\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"shop_inventory\" (\"role\" INTEGER, \"user\" INTEGER, \"guild\" INTEGER, PRIMARY KEY(\"role\", \"user\"));");
+				tryCreateTable(initStatement, "CREATE TABLE \"user_stats\" (\"uid\" INTEGER, \"guild\" INTEGER, \"stat\" VARCHAR(256), \"value\" INTEGER, PRIMARY KEY(\"uid\", \"guild\", \"stat\"))");
 			}
 		}
 		else if("mysql".equals(dbType))
@@ -221,6 +227,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `guild_muted_channels` (`channel` BIGINT PRIMARY KEY, `guild` BIGINT);");
 				tryCreateTable(initStatement, "CREATE TABLE `shop_roles` (`role` BIGINT PRIMARY KEY, `guild` BIGINT, `alias` VARCHAR(256), `description` TEXT, `cost` INT, UNIQUE `ident` (`alias`, `guild`));");
 				tryCreateTable(initStatement, "CREATE TABLE `shop_inventory` (`role` BIGINT, `user` BIGINT, `guild` BIGINT, PRIMARY KEY(`role`, `user`));");
+				tryCreateTable(initStatement, "CREATE TABLE `user_stats` (`uid` BIGINT, `guild` BIGINT, `stat` VARCHAR(256), `value` INT, PRIMARY KEY(`uid`, `guild`, `stat`))");
 			}
 		}
 		
@@ -236,6 +243,8 @@ public class ChocoBot extends ListenerAdapter
 		Command.registerCommand(new CommandCoins());
 		Command.registerCommand(new CommandDaily());
 		Command.registerCommand(new CommandGift());
+		Command.registerCommand(new CommandMyStats());
+		Command.registerCommand(new CommandLeaderboard());
 
 		Command.registerCommand(new CommandShop());
 

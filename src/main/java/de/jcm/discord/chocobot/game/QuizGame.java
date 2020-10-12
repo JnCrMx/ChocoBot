@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 
 import javax.annotation.Nonnull;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -114,24 +116,34 @@ public class QuizGame extends Game
 						.sorted(Comparator.comparingLong(e -> answerTimes.get(e.getKey())))
 						.flatMap(e->Stream.of(e.getKey())).toArray(Member[]::new);
 
-				for(int i=0; i<rightAnswers.length; i++)
+				try(Connection connection = ChocoBot.getDatabase())
 				{
-					Member member = rightAnswers[i];
-
-					int reward = WINNER_REWARD;
-					reward += (players.size()-i-1)*10;
-
-					if(member.getIdLong() == sponsor.getIdLong())
+					for(int i=0; i<rightAnswers.length; i++)
 					{
-						reward += getSponsorCost();
-						builder1.addField(member.getEffectiveName(), "+" + (reward-getSponsorCost()) + " Coins",
-								false);
+						Member member = rightAnswers[i];
+
+						int reward = WINNER_REWARD;
+						reward += (players.size()-i-1)*10;
+
+						if(member.getIdLong() == sponsor.getIdLong())
+						{
+							reward += getSponsorCost();
+							builder1.addField(member.getEffectiveName(), "+" + (reward-getSponsorCost()) + " Coins",
+									false);
+						}
+						else
+						{
+							builder1.addField(member.getEffectiveName(), "+" + reward + " Coins", false);
+						}
+						DatabaseUtils.changeCoins(connection, member.getIdLong(), guild.getIdLong(), reward);
+
+						DatabaseUtils.increaseStat(connection, member.getIdLong(), guild.getIdLong(), "game."+getName().toLowerCase()+".won", 1);
+						DatabaseUtils.increaseStat(connection, member.getIdLong(), guild.getIdLong(), "game."+getName().toLowerCase()+".won.place."+(i+1), 1);
 					}
-					else
-					{
-						builder1.addField(member.getEffectiveName(), "+" + reward + " Coins", false);
-					}
-					DatabaseUtils.changeCoins(member.getIdLong(), guild.getIdLong(), reward);
+				}
+				catch(SQLException throwables)
+				{
+					throwables.printStackTrace();
 				}
 
 				if (builder1.getFields().isEmpty())

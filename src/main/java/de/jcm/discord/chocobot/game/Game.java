@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -85,6 +87,15 @@ abstract class Game extends ListenerAdapter
 
 	private void announce()
 	{
+		try(Connection connection = ChocoBot.getDatabase())
+		{
+			DatabaseUtils.increaseStat(connection, sponsor.getIdLong(), guild.getIdLong(), "game."+getName().toLowerCase()+".sponsored", 1);
+		}
+		catch(SQLException throwables)
+		{
+			throwables.printStackTrace();
+		}
+
 		this.players = new ArrayList<>();
 		this.players.add(this.sponsor);
 		EmbedBuilder eb = new EmbedBuilder();
@@ -100,6 +111,20 @@ abstract class Game extends ListenerAdapter
 			this.announceMessage.delete().queueAfter(10L, TimeUnit.SECONDS, (v) ->
 			{
 				this.logger.info("Started game {}({}) with {} player(s).", this.getName(), this.hashCode(), this.players.size());
+
+				try(Connection connection = ChocoBot.getDatabase())
+				{
+					for(Member player : players)
+					{
+						DatabaseUtils.increaseStat(connection, player.getIdLong(), guild
+								.getIdLong(), "game."+getName().toLowerCase()+".played", 1);
+					}
+				}
+				catch(SQLException throwables)
+				{
+					throwables.printStackTrace();
+				}
+
 				this.play();
 			});
 		});

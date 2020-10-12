@@ -10,6 +10,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 
 import javax.annotation.Nonnull;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -66,13 +68,29 @@ public class GiftGame extends Game
 				builder1.setColor(ChocoBot.COLOR_GAME);
 				builder1.setTitle("Punkte");
 				builder1.setDescription("Die folgenden Punktzahlen wurden erreicht:");
-				this.scores.entrySet().stream().sorted(Comparator.comparingInt(Entry::getValue)).forEach((e) ->
+				try(Connection connection = ChocoBot.getDatabase())
 				{
-					int count = e.getValue();
-					int coins = count * REWARD_PER_GIFT;
-					builder1.addField(e.getKey().getEffectiveName(), count + EMOJI_GIFT + " => +" + coins + " Coins", false);
-					DatabaseUtils.changeCoins(e.getKey().getIdLong(), guild.getIdLong(), coins);
-				});
+					this.scores.entrySet().stream().sorted(Comparator.comparingInt(Entry::getValue)).forEach((e) ->
+					{
+						int count = e.getValue();
+						int coins = count * REWARD_PER_GIFT;
+						builder1.addField(e.getKey().getEffectiveName(), count + EMOJI_GIFT + " => +" + coins + " Coins", false);
+						DatabaseUtils.changeCoins(connection, e.getKey().getIdLong(), guild.getIdLong(), coins);
+
+						try
+						{
+							DatabaseUtils.increaseStat(connection, e.getKey().getIdLong(), guild.getIdLong(), "game."+getName().toLowerCase()+".collected", count);
+						}
+						catch(SQLException throwables)
+						{
+							throwables.printStackTrace();
+						}
+					});
+				}
+				catch(SQLException throwables)
+				{
+					throwables.printStackTrace();
+				}
 				this.gameChannel.sendMessage(builder1.build()).queue();
 				this.end();
 			});

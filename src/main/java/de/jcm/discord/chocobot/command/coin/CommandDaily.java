@@ -80,6 +80,8 @@ public class CommandDaily extends Command
 					updateCoins.setLong(4, uid);
 					updateCoins.setLong(5, guild.getIdLong());
 					updateCoins.execute();
+
+					DatabaseUtils.updateStat(connection, uid, guild.getIdLong(), "daily.max_streak", dailyStreak);
 				}
 
 				int coins = DatabaseUtils.getCoins(uid, guild.getIdLong());

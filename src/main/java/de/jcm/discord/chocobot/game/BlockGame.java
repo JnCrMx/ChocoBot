@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -78,7 +80,16 @@ public class BlockGame extends Command
 									m.addReaction("✊").queue();
 								});
 
-								DatabaseUtils.changeCoins(player.getIdLong(), guild.getIdLong(), -COST);
+								try(Connection connection = ChocoBot.getDatabase())
+								{
+									DatabaseUtils.changeCoins(connection, player.getIdLong(), guild.getIdLong(), -COST);
+									DatabaseUtils.increaseStat(connection, player.getIdLong(), guild.getIdLong(), "game.block.played", 1);
+								}
+								catch(SQLException throwables)
+								{
+									throwables.printStackTrace();
+								}
+
 								this.state = GameState.RUNNING;
 							}
 						}
@@ -164,6 +175,15 @@ public class BlockGame extends Command
 
 							}
 
+							try(Connection connection = ChocoBot.getDatabase())
+							{
+								DatabaseUtils.increaseStat(connection, player.getIdLong(), guild.getIdLong(), "game.block.prize."+coins, 1);
+							}
+							catch(SQLException throwables)
+							{
+								throwables.printStackTrace();
+							}
+
 							// don't let the player get negative coins
 							int c;
 							if(coins<0 && (c = DatabaseUtils.getCoins(player.getIdLong(), guild.getIdLong()))<-coins)
@@ -172,7 +192,6 @@ public class BlockGame extends Command
 							}
 
 							DatabaseUtils.changeCoins(player.getIdLong(), guild.getIdLong(), coins);
-
 							channel.sendMessage(player.getAsMention()+" "+
 									String.format(text, coins<0?-coins:coins)).queue();
 						}
