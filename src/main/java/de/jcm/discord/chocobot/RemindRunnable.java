@@ -52,7 +52,8 @@ class RemindRunnable implements Runnable
 					assert user != null;
 
 					Guild guild = this.jda.getGuildById(guildId);
-					assert guild != null;
+					if(guild == null)
+						continue;
 
 					TextChannel remindChannel = DatabaseUtils.getSettings(guild).getRemindChannel();
 					assert remindChannel != null;
