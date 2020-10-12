@@ -71,6 +71,7 @@ public class CommandDaily extends Command
 				int coinsToAdd = getCoinsForStreak(dailyStreak);
 				dailyStreak++;
 
+				int coins;
 				try(Connection connection = ChocoBot.getDatabase();
 				    PreparedStatement updateCoins = connection.prepareStatement("UPDATE coins SET last_daily=?, daily_streak=?, coins=coins+? WHERE uid=? AND guild=?"))
 				{
@@ -81,10 +82,11 @@ public class CommandDaily extends Command
 					updateCoins.setLong(5, guild.getIdLong());
 					updateCoins.execute();
 
-					DatabaseUtils.updateStat(connection, uid, guild.getIdLong(), "daily.max_streak", dailyStreak);
-				}
+					coins = DatabaseUtils.getCoins(connection, uid, guild.getIdLong());
 
-				int coins = DatabaseUtils.getCoins(uid, guild.getIdLong());
+					DatabaseUtils.updateStat(connection, uid, guild.getIdLong(), "daily.max_streak", dailyStreak);
+					DatabaseUtils.updateStat(connection, uid, guild.getIdLong(), "max_coins", coins);
+				}
 				builder.setTitle(":moneybag: Coins :moneybag:");
 				builder.setColor(ChocoBot.COLOR_COINS);
 				builder.setDescription("Du hast einen täglichen Bonus von " + coinsToAdd + " Coins erhalten!");
