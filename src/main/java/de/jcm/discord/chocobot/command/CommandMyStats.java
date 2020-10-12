@@ -35,8 +35,8 @@ public class CommandMyStats extends Command
 			{},
 			{"Block"},
 			{"Gespielt \uD83C\uDFAE", "game.block.played"},
-			{"+1000 \uD83D\uDCB8", "game.block.1000"},
-			{"-250 \uD83D\uDE08", "game.block.-250"},
+			{"+1000 \uD83D\uDCB8", "game.block.prize.1000"},
+			{"-250 \uD83D\uDE08", "game.block.prize.-250"},
 	};
 
 	@Override
