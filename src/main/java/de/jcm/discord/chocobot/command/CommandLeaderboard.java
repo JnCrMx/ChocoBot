@@ -15,6 +15,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoField;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +42,7 @@ public class CommandLeaderboard extends Command
 			Map<Long, Integer> currentCoins = new HashMap<>();
 			Map<Long, Integer> currentStreaks = new HashMap<>();
 
-			try(PreparedStatement statement = connection.prepareStatement("SELECT uid, coins, daily_streak FROM coins WHERE guild = ?"))
+			try(PreparedStatement statement = connection.prepareStatement("SELECT uid, coins, daily_streak, last_daily FROM coins WHERE guild = ?"))
 			{
 				statement.setLong(1, guild.getIdLong());
 
@@ -47,7 +51,12 @@ public class CommandLeaderboard extends Command
 					while(result.next())
 					{
 						currentCoins.put(result.getLong("uid"), result.getInt("coins"));
-						currentStreaks.put(result.getLong("uid"), result.getInt("daily_streak"));
+
+						LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(result.getLong("last_daily")), ZoneId.systemDefault());
+						if(dateTime.getLong(ChronoField.EPOCH_DAY) + 1L >= LocalDateTime.now().getLong(ChronoField.EPOCH_DAY))
+						{
+							currentStreaks.put(result.getLong("uid"), result.getInt("daily_streak"));
+						}
 					}
 				}
 			}
