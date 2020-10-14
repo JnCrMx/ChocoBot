@@ -36,6 +36,11 @@ public class CommandMyStats extends Command
 			{"Block"},
 			{"Gespielt \uD83C\uDFAE", "game.block.played"},
 			{"+1000 \uD83D\uDCB8", "game.block.prize.1000"},
+			{"+500", "game.block.prize.500"},
+			{"+100", "game.block.prize.100"},
+			{"+/-0", "game.block.prize.0"},
+			{"-20", "game.block.prize.-20"},
+			{"-100", "game.block.prize.-100"},
 			{"-250 \uD83D\uDE08", "game.block.prize.-250"},
 	};
 
@@ -59,7 +64,14 @@ public class CommandMyStats extends Command
 				}
 				else if(line.length == 1)
 				{
-					builder.addField(line[0], "", false);
+					if(line[0].equals("--inline--"))
+					{
+						builder.addBlankField(true);
+					}
+					else
+					{
+						builder.addField(line[0], "", false);
+					}
 				}
 				else
 				{
