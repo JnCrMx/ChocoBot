@@ -150,7 +150,7 @@ public class BlockGame extends Command
 								coins = -100;
 							}
 							// 5% -> -250 Coins
-							else if(rnd<1+9+10+30+20+25+5)
+							else if(rnd<1+9+10+30+20+25+ 5)
 							{
 								image = "bowser.png";
 								text = "***Gwahaha!** Danke, dass du mich soeben aus dem Block befreit hast.... " +

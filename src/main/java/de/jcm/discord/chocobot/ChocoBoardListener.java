@@ -1,7 +1,6 @@
 package de.jcm.discord.chocobot;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -29,7 +28,7 @@ public class ChocoBoardListener extends ListenerAdapter
 			if(message.contains(" "))
 			{
 				String argument = message.split(" ")[1];
-				if(argument.equals("token"))
+				if(argument.equals("token") || argument.equals("t"))
 				{
 					try(Connection connection = ChocoBot.getDatabase();
 					    PreparedStatement statement = connection.prepareStatement("SELECT 1 FROM tokens WHERE user = ?");
@@ -69,7 +68,7 @@ public class ChocoBoardListener extends ListenerAdapter
 						throwables.printStackTrace();
 					}
 				}
-				else if(argument.equals("revoke"))
+				else if(argument.equals("revoke") || argument.equals("r"))
 				{
 					try(Connection connection = ChocoBot.getDatabase();
 					    PreparedStatement delete = connection.prepareStatement("DELETE FROM tokens WHERE user = ?"))

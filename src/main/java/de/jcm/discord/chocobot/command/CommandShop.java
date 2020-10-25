@@ -56,7 +56,7 @@ public class CommandShop extends Command
 			channel.sendMessage(builder.build()).queue();
 			return true;
 		}
-		else if(args.length == 1 && args[0].equals("inventory"))
+		else if(args.length == 1 && (args[0].equals("inventory") || args[0].equals("i")))
 		{
 			return inventory(message.getAuthor(), guild, settings, channel);
 		}
@@ -64,10 +64,13 @@ public class CommandShop extends Command
 		{
 			switch(args[0])
 			{
+				case "b":
 				case "buy":
 					return buy(message.getAuthor(), guild, settings, channel, args[1]);
+				case "a":
 				case "activate":
 					return activate(message.getAuthor(), guild, settings, channel, args[1]);
+				case "d":
 				case "deactivate":
 					return deactivate(message.getAuthor(), guild, settings, channel, args[1]);
 			}
@@ -349,9 +352,9 @@ public class CommandShop extends Command
 	protected @Nullable String getUsage()
 	{
 		return  "%c : Zeige alle verfügbaren Rollen an.\n" +
-				"%c inventory : Zeige alle Rollen an, die du gekauft hast.\n" +
-				"%c buy <alias> : Kaufe eine Rolle.\n" +
-				"%c activate <alias> : Aktiviere eine gekaufte Rolle.\n" +
-				"%c deactivate <alias> : Deaktiviere eine gekaufte Rolle.";
+				"%c i(nventory) : Zeige alle Rollen an, die du gekauft hast.\n" +
+				"%c b(uy) <alias> : Kaufe eine Rolle.\n" +
+				"%c a(ctivate) <alias> : Aktiviere eine gekaufte Rolle.\n" +
+				"%c d(eactivate) <alias> : Deaktiviere eine gekaufte Rolle.";
 	}
 }
