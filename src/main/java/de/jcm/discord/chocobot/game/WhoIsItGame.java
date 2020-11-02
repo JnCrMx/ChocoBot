@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,7 @@ public class WhoIsItGame extends Game
 	private static final Random RNG = new Random();
 
 	private ImmutablePair<Member, String> avatar;
+	private final AtomicBoolean ready = new AtomicBoolean(false);
 
 	private Message gameMessage;
 	private ScheduledFuture<?> deleteFuture;
@@ -125,6 +127,7 @@ public class WhoIsItGame extends Game
 
 				gameChannel.sendMessage(builder.build()).addFile(gif, "weristes.gif").queue(msg1->{
 					this.gameMessage = msg1;
+					this.ready.set(true);
 
 					EmbedBuilder builder1 = new EmbedBuilder();
 					builder1.setColor(ChocoBot.COLOR_COOKIE);
@@ -154,6 +157,8 @@ public class WhoIsItGame extends Game
 	@Override
 	public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event)
 	{
+		if(!ready.get())
+			return;
 		if(avatar == null || avatar.getLeft() == null)
 			return;
 		if(event.getAuthor().isBot())
