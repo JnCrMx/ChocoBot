@@ -12,6 +12,7 @@ sourceCompatibility = 1.11
 repositories {
     mavenCentral()
     jcenter()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -50,6 +51,8 @@ dependencies {
     compile 'com.vdurmont:emoji-java:5.1.1'
 
     implementation 'com.auth0:java-jwt:3.10.0'
+
+    implementation 'com.github.rtyley:animated-gif-lib-for-java:animated-gif-lib-1.4'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'

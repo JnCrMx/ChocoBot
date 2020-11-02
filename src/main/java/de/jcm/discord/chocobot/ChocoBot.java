@@ -238,6 +238,7 @@ public class ChocoBot extends ListenerAdapter
 		Command.registerCommand(new BlockGame());
 		Command.registerCommand(new CommandGame(GiftGame.class));
 		Command.registerCommand(new CommandGame(QuizGame.class));
+		Command.registerCommand(new CommandGame(WhoIsItGame.class));
 
 		Command.registerCommand(new CommandCoins());
 		Command.registerCommand(new CommandDaily());
