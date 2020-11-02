@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.api;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import net.dv8tion.jda.api.entities.User;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.ws.rs.*;
@@ -65,11 +66,11 @@ public class ReminderEndpoint
 					Reminder reminder = new Reminder();
 					reminder.id = resultSet.getInt("id");
 					reminder.remindee = ChocoBot.jda
-							.getUserById(resultSet.getLong("uid")).getAsTag();
+							.retrieveUserById(resultSet.getLong("uid")).map(User::getAsTag).complete();
 					reminder.message = resultSet.getString("message");
 					reminder.time = resultSet.getLong("time");
 					reminder.reminder = ChocoBot.jda
-							.getUserById(resultSet.getLong("issuer")).getAsTag();
+							.retrieveUserById(resultSet.getLong("issuer")).map(User::getAsTag).complete();
 					reminder.done = resultSet.getBoolean("done");
 
 					reminders.add(reminder);

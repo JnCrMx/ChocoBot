@@ -24,6 +24,6 @@ public class ApiUser
 
 	public User toUser()
 	{
-		return ChocoBot.jda.getUserById(userId);
+		return ChocoBot.jda.retrieveUserById(userId).complete();
 	}
 }

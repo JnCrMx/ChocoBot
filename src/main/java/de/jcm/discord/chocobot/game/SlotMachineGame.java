@@ -40,14 +40,14 @@ public class SlotMachineGame extends Command
 	private static final String[] EMOJIS_WHEEL;
 	private final Random random = new Random();
 
-	private final String FORMAT_PLAYING =
+	private final static String FORMAT_PLAYING =
 					"%s\n"+
 					"``---[Slot-Machine]---``\n" +
 					"           %s : %s : %s \n\n" +
 					"           %s : %s : %s **<**\n\n" +
 					"           %s : %s : %s \n" +
 					"``--------------------``";
-	private final String FORMAT_WON =
+	private final static String FORMAT_WON =
 					"%s\n"+
 					"``---[Slot-Machine]---``\n" +
 					"           %s : %s : %s \n\n" +
@@ -55,7 +55,7 @@ public class SlotMachineGame extends Command
 					"           %s : %s : %s \n" +
 					"``-----[GEWONNEN]-----``\n"+
 					"**%d Coins!**";
-	private final String FORMAT_LOST =
+	private final static String FORMAT_LOST =
 					"%s\n"+
 					"``---[Slot-Machine]---``\n" +
 					"           %s : %s : %s \n\n" +

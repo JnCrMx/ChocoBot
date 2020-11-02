@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
@@ -30,7 +31,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import java.awt.*;
-import java.awt.color.CMMException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -38,7 +38,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -277,7 +276,8 @@ public class ChocoBot extends ListenerAdapter
 
 		logger.info("Registered commands.");
 
-		jda = (new JDABuilder(discordToken))
+		jda = (JDABuilder.createDefault(discordToken))
+				.enableIntents(GatewayIntent.GUILD_MEMBERS)
 				.addEventListeners(new ChocoBot())
 				.addEventListeners(new CommandListener())
 				.addEventListeners(new MirrorListener())

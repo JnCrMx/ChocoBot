@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +57,7 @@ public class CommandWarns extends Command
 				EmbedBuilder builder = new EmbedBuilder();
 				builder.setColor(ChocoBot.COLOR_WARN);
 				builder.setTitle("Verwarnungen von " +
-						                 Objects.requireNonNull(ChocoBot.jda.getUserById(targetId)).getAsTag());
+						                 Objects.requireNonNull(ChocoBot.jda.retrieveUserById(targetId)).complete().getAsTag());
 
 				int count = 0;
 				for(; resultSet.next(); count++)
@@ -66,7 +67,7 @@ public class CommandWarns extends Command
 					if(isMod)
 					{
 						long warnerId = resultSet.getLong("warner");
-						String warnerTag = Objects.requireNonNull(ChocoBot.jda.getUserById(warnerId)).getAsTag();
+						String warnerTag = ChocoBot.jda.retrieveUserById(warnerId).map(User::getAsTag).complete();
 
 						builder.addField("[" + id + "] von " + warnerTag, reason, false);
 					}

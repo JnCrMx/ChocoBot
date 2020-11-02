@@ -77,8 +77,8 @@ public class CommandShip extends Command
 
 			word1.trimToSize();
 			word2.trimToSize();
-			String w1 = solveMentions(word1.toString(), channel.getGuild());
-			String w2 = solveMentions(word2.toString(), channel.getGuild());
+			String w1 = solveMentions(word1.toString());
+			String w2 = solveMentions(word2.toString());
 			if (w1.length() != 0 && w2.length() != 0)
 			{
 				if (w1.equals(w2))
@@ -149,12 +149,12 @@ public class CommandShip extends Command
 		return (int) (first * 100.0D / 255.0D);
 	}
 
-	private static String solveMentions(String string, Guild guild)
+	private static String solveMentions(String string)
 	{
 		Pattern pattern = Pattern.compile("<@(|!)([0-9]*)>");
 		Matcher matcher = pattern.matcher(string);
 		return matcher.replaceAll((r) ->
-				Objects.requireNonNull(guild.getMemberById(r.group(2))).getUser().getName());
+				Objects.requireNonNull(ChocoBot.jda.retrieveUserById(matcher.group(2))).map(User::getName).complete());
 	}
 
 	@NotNull

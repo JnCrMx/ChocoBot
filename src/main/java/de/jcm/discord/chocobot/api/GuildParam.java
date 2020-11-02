@@ -5,7 +5,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 
 import javax.ws.rs.PathParam;
-import java.util.Objects;
 
 public class GuildParam
 {

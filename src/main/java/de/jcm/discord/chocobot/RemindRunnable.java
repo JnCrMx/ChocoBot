@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -46,8 +45,8 @@ class RemindRunnable implements Runnable
 					String message = resultSet.getString("message");
 					long issuerId = resultSet.getLong("issuer");
 					long time = resultSet.getLong("time");
-					User user = this.jda.getUserById(uid);
-					User issuer = this.jda.getUserById(issuerId);
+					User user = this.jda.retrieveUserById(uid).complete();
+					User issuer = this.jda.retrieveUserById(issuerId).complete();
 
 					assert user != null;
 

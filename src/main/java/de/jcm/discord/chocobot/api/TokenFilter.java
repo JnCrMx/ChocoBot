@@ -21,7 +21,7 @@ public class TokenFilter implements ContainerRequestFilter
 	private ResourceInfo resourceInfo;
 
 	@Override
-	public void filter(ContainerRequestContext context) throws IOException
+	public void filter(ContainerRequestContext context)
 	{
 		if(context.getMethod().equals("OPTIONS"))
 			return;

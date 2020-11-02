@@ -11,7 +11,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 @Path("/{guild}/user")
 public class UserEndpoint
@@ -29,7 +28,7 @@ public class UserEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).complete();
 
 		UserData userData = new UserData();
 		userData.userId = member.getId();
@@ -68,7 +67,7 @@ public class UserEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))

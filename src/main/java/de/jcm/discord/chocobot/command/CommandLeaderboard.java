@@ -22,7 +22,6 @@ import java.time.temporal.ChronoField;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommandLeaderboard extends Command
@@ -108,7 +107,10 @@ public class CommandLeaderboard extends Command
 		                            .limit(5)
 		                            .collect(StringBuffer::new,
 		                                     (s,e)-> s.append(makeBadge(rank.getAndAdd(1))).append(" ")
-		                                              .append(Optional.ofNullable(ChocoBot.jda.getUserById(e.getKey())).map(User::getAsTag).orElse("Unknown User"))
+		                                              .append(ChocoBot.jda.retrieveUserById(e.getKey())
+		                                                                  .map(User::getAsTag)
+		                                                                  .onErrorMap(q->"Unknown user")
+		                                                                  .complete())
 		                                              .append(": ").append(e.getValue()).append('\n'),
 		                                     StringBuffer::append);
 		builder.addField(title, buffer.toString(), true);

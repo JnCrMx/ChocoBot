@@ -270,8 +270,8 @@ public class SubscriptionListener extends ListenerAdapter
 							{
 								while(result.next())
 								{
-									Member member = guild.getMemberById(result.getLong("subscriber"));
-									checkAndNotify(event, matcher.group(), member);
+									guild.retrieveMemberById(result.getLong("subscriber"))
+									     .queue(m->checkAndNotify(event, matcher.group(), m));
 								}
 							}
 						}
@@ -294,8 +294,8 @@ public class SubscriptionListener extends ListenerAdapter
 						{
 							while(result.next())
 							{
-								Member member = event.getGuild().getMemberById(result.getLong("subscriber"));
-								checkAndNotify(event, keyword, member);
+								guild.retrieveMemberById(result.getLong("subscriber"))
+								     .queue(m->checkAndNotify(event, keyword, m));
 							}
 						}
 					}

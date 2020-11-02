@@ -17,7 +17,7 @@ repositories {
 dependencies {
     implementation fileTree('libs/')
 
-    implementation ('net.dv8tion:JDA:4.0.0_46') {
+    implementation ('net.dv8tion:JDA:4.2.0_214') {
         exclude module: 'opus-java'
     }
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.30.1'

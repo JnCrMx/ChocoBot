@@ -8,10 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 public class CommandRandom extends Command
 {
@@ -32,31 +29,24 @@ public class CommandRandom extends Command
 		}
 		else
 		{
-			ArrayList<Member> users;
-			Member user;
 			if (!message.getMentionedRoles().isEmpty())
 			{
-				users = new ArrayList<>();
-				for (Role role : message.getMentionedRoles())
-				{
-					users.addAll(channel.getGuild().getMembersWithRoles(role));
-				}
+				List<Role> roles = message.getMentionedRoles();
 
-				user = users.get(this.random.nextInt(users.size()));
-				channel.sendMessage("Es ist: " + user.getAsMention()).queue();
+				guild.findMembers(m-> Collections.disjoint(m.getRoles(), roles)).onSuccess(members->{
+					Member member = members.get(this.random.nextInt(members.size()));
+					channel.sendMessage("Es ist: " + member.getAsMention()).queue();
+				});
 				return true;
 			}
 			else if (args[0].equals("@everyone") || args[0].equals("@here"))
 			{
-				users = new ArrayList<>(channel.getGuild().getMembers());
-				if (args[0].equals("@here"))
-				{
-					users.removeIf((m) ->
-							m.getOnlineStatus() == OnlineStatus.OFFLINE || m.getOnlineStatus() == OnlineStatus.INVISIBLE || m.getOnlineStatus() == OnlineStatus.UNKNOWN);
-				}
-
-				user = users.get(this.random.nextInt(users.size()));
-				channel.sendMessage("Es ist: " + user.getAsMention()).queue();
+				boolean here = args[0].equals("@here");
+				guild.findMembers(m-> !here || m.getOnlineStatus() != OnlineStatus.OFFLINE)
+				     .onSuccess(members->{
+					     Member member = members.get(this.random.nextInt(members.size()));
+					     channel.sendMessage("Es ist: " + member.getAsMention()).queue();
+				     });
 				return true;
 			}
 			else
@@ -97,7 +87,7 @@ public class CommandRandom extends Command
 
 					if(word.equals("@everyone") || word.equals("@here"))
 					{
-						if(!settings.isOperator(message.getMember()))
+						if(!settings.isOperator(Objects.requireNonNull(message.getMember())))
 						{
 							channel.sendMessage(ChocoBot.errorMessage("Nein, ich werde das nicht tun!")).queue();
 							return false;

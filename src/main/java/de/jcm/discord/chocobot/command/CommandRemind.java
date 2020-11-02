@@ -138,7 +138,7 @@ public class CommandRemind extends Command
 
 				if(reMessage != null && (reMessage.contains("@everyone") || reMessage.contains("@here")))
 				{
-					if(!settings.isOperator(message.getMember()))
+					if(!settings.isOperator(Objects.requireNonNull(message.getMember())))
 					{
 						channel.sendMessage(ChocoBot.errorMessage("Vergiss es!")).queue();
 						return false;

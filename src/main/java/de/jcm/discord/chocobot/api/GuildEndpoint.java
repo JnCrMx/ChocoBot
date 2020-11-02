@@ -10,13 +10,11 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -71,13 +69,13 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
 			throw new ForbiddenException();
 
-		return guild.getMembers().stream().map(m -> {
+		return guild.getMembers().stream().map(m -> { //TODO: Fix
 			UserData userData = new UserData();
 
 			userData.userId = m.getId();
@@ -116,7 +114,7 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
@@ -141,7 +139,7 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
@@ -165,7 +163,7 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
@@ -188,7 +186,7 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
@@ -231,7 +229,7 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
@@ -266,7 +264,7 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
@@ -302,7 +300,7 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
@@ -338,7 +336,7 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
@@ -374,7 +372,7 @@ public class GuildEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))

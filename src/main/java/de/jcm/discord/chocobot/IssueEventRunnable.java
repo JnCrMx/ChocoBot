@@ -37,8 +37,7 @@ public class IssueEventRunnable implements Runnable
 							lastEventTimeSec, 0, ZoneOffset.UTC);
 
 					PrivateChannel channel = Objects.requireNonNull(
-							ChocoBot.jda.getUserById(reporter))
-					                                .openPrivateChannel().complete();
+							ChocoBot.jda.openPrivateChannelById(reporter).complete());
 
 					LocalDateTime maxLastEventTime = lastEventTime;
 

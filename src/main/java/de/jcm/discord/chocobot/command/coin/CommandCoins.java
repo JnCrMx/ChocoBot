@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -18,7 +19,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
-import java.util.Objects;
 
 public class CommandCoins extends Command
 {
@@ -76,8 +76,7 @@ public class CommandCoins extends Command
 			if(foreign)
 			{
 				builder.addField(
-						Objects.requireNonNull(ChocoBot.jda.getUserById(uid))
-						       .getAsTag() + "s Coins",
+						ChocoBot.jda.retrieveUserById(uid).map(User::getAsTag).complete() + "s Coins",
 						Integer.toString(coins),
 						false);
 			}

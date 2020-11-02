@@ -1,7 +1,5 @@
 package de.jcm.discord.chocobot.api;
 
-import de.jcm.discord.chocobot.ChocoBot;
-import net.dv8tion.jda.api.entities.Guild;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -59,7 +57,6 @@ public class ApiServer
 	{
 		@Override
 		public void filter(ContainerRequestContext request, ContainerResponseContext response)
-				throws IOException
 		{
 			response.getHeaders().add("Access-Control-Allow-Origin", "*");
 			response.getHeaders().add("Access-Control-Allow-Headers",

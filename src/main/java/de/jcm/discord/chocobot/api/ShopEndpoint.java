@@ -190,7 +190,7 @@ public class ShopEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))
@@ -237,7 +237,7 @@ public class ShopEndpoint
 		Guild guild = guildParam.toGuild();
 		GuildSettings settings = DatabaseUtils.getSettings(guild);
 
-		Member member = guild.getMemberById(user.getUserId());
+		Member member = guild.retrieveMemberById(user.getUserId()).onErrorMap(t->null).complete();
 		if(member == null
 				|| (settings == null && !member.isOwner())
 				|| (settings != null && !settings.isOperator(member)))

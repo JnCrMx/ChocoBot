@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.List;
+import java.util.Objects;
 
 public class CommandStats extends Command
 {
@@ -25,28 +25,28 @@ public class CommandStats extends Command
 		builder.setAuthor(guild.getName());
 		builder.setThumbnail(guild.getIconUrl());
 
-		List<Member> members = guild.getMembers();
+		guild.loadMembers().onSuccess(members->{
+			builder.addField("Mitglieder", String.valueOf(members.size()), true);
+			builder.addField("Menschen", String.valueOf(members.stream().filter(m->!m.getUser().isBot()).count()), true);
+			builder.addField("Bots", String.valueOf(members.stream().filter(m->m.getUser().isBot()).count()), true);
 
-		builder.addField("Mitglieder", String.valueOf(members.size()), true);
-		builder.addField("Menschen", String.valueOf(members.stream().filter(m->!m.getUser().isBot()).count()), true);
-		builder.addField("Bots", String.valueOf(members.stream().filter(m->m.getUser().isBot()).count()), true);
+			builder.addField("Owner", Objects.requireNonNull(guild.getOwner()).getUser().getAsTag(), true);
+			builder.addField("Erstellungszeit", DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).format(guild.getTimeCreated()), true);
 
-		builder.addField("Owner", guild.getOwner().getUser().getAsTag(), true);
-		builder.addField("Erstellungszeit", DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).format(guild.getTimeCreated()), true);
+			builder.addBlankField(true);
 
-		builder.addBlankField(true);
+			builder.addField("Boost-Level", String.valueOf(guild.getBoostTier().getKey()), true);
+			builder.addField("Boosts", String.valueOf(guild.getBoostCount()), true);
 
-		builder.addField("Boost-Level", String.valueOf(guild.getBoostTier().getKey()), true);
-		builder.addField("Boosts", String.valueOf(guild.getBoostCount()), true);
+			builder.addBlankField(true);
 
-		builder.addBlankField(true);
+			builder.addField("normale Emojis", guild.getEmotes().stream().filter(e->!e.isAnimated()).count()+"/"+guild.getMaxEmotes(), true);
+			builder.addField("animierte Emojis", guild.getEmotes().stream().filter(Emote::isAnimated).count()+"/"+guild.getMaxEmotes(), true);
 
-		builder.addField("normale Emojis", guild.getEmotes().stream().filter(e->!e.isAnimated()).count()+"/"+guild.getMaxEmotes(), true);
-		builder.addField("animierte Emojis", guild.getEmotes().stream().filter(Emote::isAnimated).count()+"/"+guild.getMaxEmotes(), true);
+			builder.addBlankField(true);
 
-		builder.addBlankField(true);
-
-		channel.sendMessage(builder.build()).queue();
+			channel.sendMessage(builder.build()).queue();
+		});
 
 		return true;
 	}
