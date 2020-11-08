@@ -80,7 +80,7 @@ abstract class Game extends ListenerAdapter
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setColor(ChocoBot.COLOR_GAME);
 		builder.setTitle("Abgebrochen!");
-		builder.setDescription(this.sponsor.getAsMention() + " Dein Spiel wurde abgeborchen!");
+		builder.setDescription(this.sponsor.getAsMention() + " Dein Spiel wurde abgebrochen!");
 		builder.setColor(ChocoBot.COLOR_ERROR);
 		this.gameChannel.sendMessage(builder.build()).queueAfter(10L, TimeUnit.SECONDS);
 	}
