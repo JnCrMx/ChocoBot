@@ -34,7 +34,7 @@ public class CommandSay extends Command
 			}
 		}
 
-		Member targetMember = textChannel.getGuild().getMember(message.getAuthor());
+		Member targetMember = textChannel.getGuild().retrieveMember(message.getAuthor()).complete();
 		if(targetMember == null)
 		{
 			channel.sendMessage(ChocoBot.errorMessage("Du bist nicht auf diesem Server!")).queue();
