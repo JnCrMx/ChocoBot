@@ -217,7 +217,7 @@ public class CommandShop extends Command
 			{
 				long roleId = resultSet.getLong("role");
 
-				Member member = guild.getMember(user);
+				Member member = guild.retrieveMember(user).complete();
 				assert member != null;
 
 				Role role = guild.getRoleById(roleId);
@@ -286,7 +286,7 @@ public class CommandShop extends Command
 			{
 				long roleId = resultSet.getLong("role");
 
-				Member member = guild.getMember(user);
+				Member member = guild.retrieveMember(user).complete();
 				assert member != null;
 
 				Role role = guild.getRoleById(roleId);
