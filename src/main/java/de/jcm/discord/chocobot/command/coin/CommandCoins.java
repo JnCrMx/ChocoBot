@@ -3,12 +3,12 @@ package de.jcm.discord.chocobot.command.coin;
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
 import de.jcm.discord.chocobot.GuildSettings;
+import de.jcm.discord.chocobot.api.data.UserData;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -76,7 +76,7 @@ public class CommandCoins extends Command
 			if(foreign)
 			{
 				builder.addField(
-						ChocoBot.jda.retrieveUserById(uid).map(User::getAsTag).complete() + "s Coins",
+						ChocoBot.provideUser(uid, UserData::getTag, "Unknown user") + "s Coins",
 						Integer.toString(coins),
 						false);
 			}

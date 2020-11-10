@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot;
 
 import de.jcm.discord.chocobot.api.ApiServer;
+import de.jcm.discord.chocobot.api.data.UserData;
 import de.jcm.discord.chocobot.command.*;
 import de.jcm.discord.chocobot.command.coin.CommandCoins;
 import de.jcm.discord.chocobot.command.coin.CommandDaily;
@@ -43,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class ChocoBot extends ListenerAdapter
 {
@@ -73,6 +75,8 @@ public class ChocoBot extends ListenerAdapter
 
 	public static String boardUrl;
 	private static ApiServer apiServer;
+
+	public static Map<Long, UserData> userCache = new HashMap<>();
 
 	private static void tryCreateTable(Statement statement, String sql)
 	{
@@ -188,6 +192,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE \"shop_roles\" (\"role\" INTEGER PRIMARY KEY, \"guild\" INTEGER, \"alias\" VARCHAR(256), \"description\" TEXT, \"cost\" INTEGER, UNIQUE (\"alias\", \"guild\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"shop_inventory\" (\"role\" INTEGER, \"user\" INTEGER, \"guild\" INTEGER, PRIMARY KEY(\"role\", \"user\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"user_stats\" (\"uid\" INTEGER, \"guild\" INTEGER, \"stat\" VARCHAR(256), \"value\" INTEGER, PRIMARY KEY(\"uid\", \"guild\", \"stat\"))");
+				tryCreateTable(initStatement, "CREATE TABLE \"name_cache\" (\"id\" INTEGER PRIMARY KEY, \"name\" VARCHAR(256))");
 			}
 		}
 		else if("mysql".equals(dbType))
@@ -227,6 +232,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `shop_roles` (`role` BIGINT PRIMARY KEY, `guild` BIGINT, `alias` VARCHAR(256), `description` TEXT, `cost` INT, UNIQUE `ident` (`alias`, `guild`));");
 				tryCreateTable(initStatement, "CREATE TABLE `shop_inventory` (`role` BIGINT, `user` BIGINT, `guild` BIGINT, PRIMARY KEY(`role`, `user`));");
 				tryCreateTable(initStatement, "CREATE TABLE `user_stats` (`uid` BIGINT, `guild` BIGINT, `stat` VARCHAR(256), `value` INT, PRIMARY KEY(`uid`, `guild`, `stat`))");
+				tryCreateTable(initStatement, "CREATE TABLE `name_cache` (`id` BIGINT PRIMARY KEY, `name` VARCHAR(256))");
 			}
 		}
 		
@@ -328,6 +334,7 @@ public class ChocoBot extends ListenerAdapter
 		}
 
 		executorService.scheduleAtFixedRate(new PollRunnable(), 0L, 1L, TimeUnit.HOURS);
+		executorService.scheduleWithFixedDelay(new UsernameCrawler(jda), 0L, 1L, TimeUnit.DAYS);
 
 		apiServer = new ApiServer(apiPort);
 		logger.info("Started API.");
@@ -358,5 +365,25 @@ public class ChocoBot extends ListenerAdapter
 		eb.setColor(COLOR_ERROR);
 		eb.setDescription(message);
 		return eb.build();
+	}
+
+	public static UserData provideUser(long id)
+	{
+		return userCache.computeIfAbsent(id, id2 ->
+				jda.retrieveUserById(id2).map(UserData.FROM_USER).complete()
+		);
+	}
+
+	public static <T> T provideUser(long id, Function<UserData, T> mapper, T error)
+	{
+		UserData data = provideUser(id);
+		if(data == null)
+			return error;
+		return mapper.apply(data);
+	}
+
+	public static <T> T provideUser(String id, Function<UserData, T> mapper, T error)
+	{
+		return provideUser(Long.parseLong(id), mapper, error);
 	}
 }

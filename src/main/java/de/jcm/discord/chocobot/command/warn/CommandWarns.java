@@ -2,6 +2,7 @@ package de.jcm.discord.chocobot.command.warn;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.GuildSettings;
+import de.jcm.discord.chocobot.api.data.UserData;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -15,7 +16,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Objects;
 
 public class CommandWarns extends Command
 {
@@ -56,9 +56,7 @@ public class CommandWarns extends Command
 
 				EmbedBuilder builder = new EmbedBuilder();
 				builder.setColor(ChocoBot.COLOR_WARN);
-				builder.setTitle("Verwarnungen von " +
-						                 Objects.requireNonNull(ChocoBot.jda.retrieveUserById(targetId)).complete().getAsTag());
-
+				builder.setTitle("Verwarnungen von " + ChocoBot.provideUser(targetId, UserData::getTag, "Unknown user"));
 				int count = 0;
 				for(; resultSet.next(); count++)
 				{

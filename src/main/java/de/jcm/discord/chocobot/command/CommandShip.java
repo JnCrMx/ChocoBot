@@ -2,15 +2,18 @@ package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.GuildSettings;
+import de.jcm.discord.chocobot.api.data.UserData;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -153,8 +156,7 @@ public class CommandShip extends Command
 	{
 		Pattern pattern = Pattern.compile("<@(|!)([0-9]*)>");
 		Matcher matcher = pattern.matcher(string);
-		return matcher.replaceAll((r) ->
-				Objects.requireNonNull(ChocoBot.jda.retrieveUserById(matcher.group(2))).map(User::getName).complete());
+		return matcher.replaceAll((r) -> ChocoBot.provideUser(matcher.group(2), UserData::getName, "Unknown user"));
 	}
 
 	@NotNull
