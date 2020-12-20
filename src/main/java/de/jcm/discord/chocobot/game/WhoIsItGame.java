@@ -172,7 +172,7 @@ public class WhoIsItGame extends Game
 			return;
 
 		String guess = event.getMessage().getContentRaw();
-		guess = guess.replace("\n", "");
+		guess = guess.replace("\n", "").toLowerCase(Locale.ROOT);
 
 		if(lastGuesses.getOrDefault(uid, 0L) + TIMEOUT > System.currentTimeMillis())
 		{
@@ -181,9 +181,9 @@ public class WhoIsItGame extends Game
 		}
 
 		Member right = avatar.getLeft();
-		if(guess.equals(right.getEffectiveName()) ||
-				guess.equals(right.getUser().getName()) ||
-				guess.equals(right.getUser().getAsTag()) ||
+		if(guess.equals(right.getEffectiveName().toLowerCase(Locale.ROOT)) ||
+				guess.equals(right.getUser().getName().toLowerCase(Locale.ROOT)) ||
+				guess.equals(right.getUser().getAsTag().toLowerCase(Locale.ROOT)) ||
 				guess.equals(right.getId()))
 		{
 			deleteFuture.cancel(true);
