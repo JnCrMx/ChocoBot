@@ -68,7 +68,7 @@ public class CommandLeaderboard extends Command
 			makeLeaderboard(builder, "maximale Streak \uD83D\uDC8E", stats.getOrDefault("daily.max_streak", new HashMap<>()));
 
 			builder.addBlankField(false);
-			makeLeaderboard(builder, "Quiz gesponsort \uD83D\uDCEF", stats.getOrDefault("game.quiz.sponsored", new HashMap<>()));
+			makeLeaderboard(builder, "Quiz gesponsert \uD83D\uDCEF", stats.getOrDefault("game.quiz.sponsored", new HashMap<>()));
 			makeLeaderboard(builder, "Quiz gespielt \uD83C\uDFAE", stats.getOrDefault("game.quiz.played", new HashMap<>()));
 			makeLeaderboard(builder, "Quiz gewonnen \uD83C\uDFC5", stats.getOrDefault("game.quiz.won", new HashMap<>()));
 			makeLeaderboard(builder, "Quiz als 1. Platz gewonnen \uD83E\uDD47", stats.getOrDefault("game.quiz.won.place.1", new HashMap<>()));
@@ -76,7 +76,7 @@ public class CommandLeaderboard extends Command
 			makeLeaderboard(builder, "Quiz als 3. Platz gewonnen \uD83E\uDD49", stats.getOrDefault("game.quiz.won.place.3", new HashMap<>()));
 
 			builder.addBlankField(false);
-			makeLeaderboard(builder, "Geschenke gesponsort \uD83D\uDCEF", stats.getOrDefault("game.geschenke.sponsored", new HashMap<>()));
+			makeLeaderboard(builder, "Geschenke gesponsert \uD83D\uDCEF", stats.getOrDefault("game.geschenke.sponsored", new HashMap<>()));
 			makeLeaderboard(builder, "Geschenke gespielt \uD83C\uDFAE", stats.getOrDefault("game.geschenke.played", new HashMap<>()));
 			makeLeaderboard(builder, "Geschenke gesammelt \uD83C\uDF81", stats.getOrDefault("game.geschenke.collected", new HashMap<>()));
 

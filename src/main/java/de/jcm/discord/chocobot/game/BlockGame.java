@@ -132,7 +132,7 @@ public class BlockGame extends Command
 							// 30% -> +/- 0 Coins
 							else if(rnd<1+9+10+ 30)
 							{
-								text = "Schade... offentsichtlich enthielt dieser Block nichts.";
+								text = "Schade... offensichtlich enthielt dieser Block nichts.";
 								coins = 0;
 							}
 							// 20% -> -20 Coins

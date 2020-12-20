@@ -56,7 +56,7 @@ public class GiftGame extends Game
 		int giftCount = players.size()*5;
 		int messageCount = giftCount*5;
 
-		builder.setDescription("In den letzen "+messageCount+" Nachrichten wurden "+
+		builder.setDescription("In den letzten "+messageCount+" Nachrichten wurden "+
 				giftCount+" Geschenke versteckt. Such nach ihnen und reagiere auf sie!");
 		this.gameChannel.sendMessage(builder.build()).queue((m) ->
 		{

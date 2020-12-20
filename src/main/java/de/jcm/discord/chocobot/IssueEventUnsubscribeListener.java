@@ -63,7 +63,7 @@ public class IssueEventUnsubscribeListener extends ListenerAdapter
 						            {
 						            	e.printStackTrace();
 							            event.getChannel().sendMessage(
-									            ChocoBot.errorMessage("Es gab einen Fehler bei der Abbstellung!"))
+									            ChocoBot.errorMessage("Es gab einen Fehler bei der Abbestellung!"))
 							                 .queue();
 						            }
 					            }
