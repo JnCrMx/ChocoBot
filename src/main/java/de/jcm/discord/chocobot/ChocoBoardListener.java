@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Locale;
 
 public class ChocoBoardListener extends ListenerAdapter
 {
@@ -27,8 +28,8 @@ public class ChocoBoardListener extends ListenerAdapter
 		{
 			if(message.contains(" "))
 			{
-				String argument = message.split(" ")[1];
-				if(argument.equals("token") || argument.equals("t"))
+				String subcommand = message.split(" ")[1].toLowerCase(Locale.ROOT);
+				if(subcommand.equals("token") || subcommand.equals("t"))
 				{
 					try(Connection connection = ChocoBot.getDatabase();
 					    PreparedStatement statement = connection.prepareStatement("SELECT 1 FROM tokens WHERE user = ?");
@@ -68,7 +69,7 @@ public class ChocoBoardListener extends ListenerAdapter
 						throwables.printStackTrace();
 					}
 				}
-				else if(argument.equals("revoke") || argument.equals("r"))
+				else if(subcommand.equals("revoke") || subcommand.equals("r"))
 				{
 					try(Connection connection = ChocoBot.getDatabase();
 					    PreparedStatement delete = connection.prepareStatement("DELETE FROM tokens WHERE user = ?"))

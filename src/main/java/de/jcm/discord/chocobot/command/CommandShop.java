@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Locale;
 
 public class CommandShop extends Command
 {
@@ -62,7 +63,8 @@ public class CommandShop extends Command
 		}
 		else if(args.length == 2)
 		{
-			switch(args[0])
+			String subcommand = args[0].toLowerCase(Locale.ROOT);
+			switch(subcommand)
 			{
 				case "b":
 				case "buy":
