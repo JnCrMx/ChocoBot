@@ -66,7 +66,7 @@ class RemindRunnable implements Runnable
 
 						assert issuer != null;
 
-						botMessage.append(Objects.requireNonNull(guild.getMember(issuer)).getEffectiveName());
+						botMessage.append(Objects.requireNonNull(guild.retrieveMember(issuer).complete()).getEffectiveName());
 					}
 
 					if(message != null)

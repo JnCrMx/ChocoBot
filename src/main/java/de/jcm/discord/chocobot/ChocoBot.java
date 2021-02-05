@@ -193,6 +193,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE \"shop_inventory\" (\"role\" INTEGER, \"user\" INTEGER, \"guild\" INTEGER, PRIMARY KEY(\"role\", \"user\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"user_stats\" (\"uid\" INTEGER, \"guild\" INTEGER, \"stat\" VARCHAR(256), \"value\" INTEGER, PRIMARY KEY(\"uid\", \"guild\", \"stat\"))");
 				tryCreateTable(initStatement, "CREATE TABLE \"name_cache\" (\"id\" INTEGER PRIMARY KEY, \"name\" VARCHAR(256))");
+				tryCreateTable(initStatement, "CREATE TABLE \"christmas_presents\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"sender\" INTEGER, \"guild\" INTEGER, \"amount\" INTEGER, \"message\" TEXT, \"year\" INTEGER, \"opened\" INTEGER DEFAULT 0)");
 			}
 		}
 		else if("mysql".equals(dbType))
@@ -233,6 +234,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `shop_inventory` (`role` BIGINT, `user` BIGINT, `guild` BIGINT, PRIMARY KEY(`role`, `user`));");
 				tryCreateTable(initStatement, "CREATE TABLE `user_stats` (`uid` BIGINT, `guild` BIGINT, `stat` VARCHAR(256), `value` INT, PRIMARY KEY(`uid`, `guild`, `stat`))");
 				tryCreateTable(initStatement, "CREATE TABLE `name_cache` (`id` BIGINT PRIMARY KEY, `name` VARCHAR(256))");
+				tryCreateTable(initStatement, "CREATE TABLE `christmas_presents` (`id` INTEGER PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `sender` BIGINT, `guild` BIGINT, `amount` INT, `message` TEXT, `year` INT, `opened` BOOLEAN DEFAULT 0)");
 			}
 		}
 		
@@ -281,6 +283,8 @@ public class ChocoBot extends ListenerAdapter
 		Command.registerCommand(new CommandQuit());
 		Command.registerCommand(new CommandAnime());
 
+		Command.registerCommand(new CommandChristmas());
+
 		logger.info("Registered commands.");
 
 		jda = (JDABuilder.createDefault(discordToken))
@@ -291,6 +295,7 @@ public class ChocoBot extends ListenerAdapter
 				.addEventListeners(new IssueEventUnsubscribeListener())
 				.addEventListeners(new SubscriptionListener())
 				.addEventListeners(new ChocoBoardListener())
+				.addEventListeners(new MerryChristmasListener())
 				.setActivity(Activity.listening("deinen Befehlen")).build();
 
 		try

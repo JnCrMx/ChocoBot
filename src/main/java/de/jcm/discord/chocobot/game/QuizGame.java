@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 public class QuizGame extends Game
 {
 	private static List<QuizGame.QuizQuestion> quizQuestions;
-	private static final String[] EMOJIS_ANSWER = new String[]{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"};
+	public static final String[] EMOJIS_ANSWER = new String[]{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"};
 	private static final int WINNER_REWARD = 50;
 	private Message quizMessage;
 	private int rightAnswer;

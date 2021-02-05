@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 
@@ -37,8 +38,15 @@ public class CommandDaily extends Command
 		{
 			Instant lastDaily;
 			int dailyStreak;
+
+			LocalDateTime now = LocalDateTime.now();
+			boolean christmas = now.getMonth() == Month.DECEMBER &&
+					now.getDayOfMonth() >= 24 && now.getDayOfMonth() <= 26;
+			boolean christmasGifts = false;
+
 			try(Connection connection = ChocoBot.getDatabase();
-				PreparedStatement getCoins = connection.prepareStatement("SELECT last_daily, daily_streak FROM coins WHERE uid=? AND guild=?"))
+				PreparedStatement getCoins = connection.prepareStatement("SELECT last_daily, daily_streak FROM coins WHERE uid=? AND guild=?");
+				PreparedStatement checkChristmasGifts = connection.prepareStatement("SELECT id FROM christmas_presents WHERE uid=? AND guild=? AND opened=0"))
 			{
 				getCoins.setLong(1, uid);
 				getCoins.setLong(2, guild.getIdLong());
@@ -56,19 +64,37 @@ public class CommandDaily extends Command
 						dailyStreak = 0;
 					}
 				}
+
+				if(christmas)
+				{
+					checkChristmasGifts.setLong(1, uid);
+					checkChristmasGifts.setLong(2, guild.getIdLong());
+					ResultSet resultSet = checkChristmasGifts.executeQuery();
+					christmasGifts = resultSet.next();
+				}
 			}
 
 			LocalDateTime dateTime = LocalDateTime.ofInstant(lastDaily, ZoneId.systemDefault());
-			if (dateTime.getLong(ChronoField.EPOCH_DAY) < LocalDateTime.now().getLong(ChronoField.EPOCH_DAY))
+			if (dateTime.getLong(ChronoField.EPOCH_DAY) < now.getLong(ChronoField.EPOCH_DAY))
 			{
 				EmbedBuilder builder = new EmbedBuilder();
-				if (dateTime.getLong(ChronoField.EPOCH_DAY) + 1L < LocalDateTime.now().getLong(ChronoField.EPOCH_DAY))
+
+				boolean christmasSave = false;
+				if (dateTime.getLong(ChronoField.EPOCH_DAY) + 1L < LocalDateTime.now().getLong(ChronoField.EPOCH_DAY)
+						&& lastDaily.getEpochSecond() != 0)
 				{
-					dailyStreak = 0;
-					builder.setFooter("Du hast deine Streak verloren! \ud83d\ude2d");
+					if(christmas) // streaks don't decay on Christmas ;)
+					{
+						christmasSave = true;
+					}
+					else
+					{
+						dailyStreak = 0;
+						builder.setFooter("Du hast deine Streak verloren! \ud83d\ude2d");
+					}
 				}
 
-				int coinsToAdd = getCoinsForStreak(dailyStreak);
+				int coinsToAdd = getCoinsForStreak(dailyStreak) * (christmas ? 2 : 1);
 				dailyStreak++;
 
 				int coins;
@@ -92,6 +118,19 @@ public class CommandDaily extends Command
 				builder.setDescription("Du hast einen täglichen Bonus von " + coinsToAdd + " Coins erhalten!");
 				builder.addField("Deine Coins", Integer.toString(coins), false);
 				builder.addField("Deine Streak", Integer.toString(dailyStreak), false);
+
+				if(christmas)
+				{
+					builder.appendDescription("\nDa Weihnachten ist, erhältst du doppelt so viele Coins! \uD83C\uDF84");
+				}
+				if(christmasSave)
+				{
+					builder.appendDescription("\nEin Weihnachtsengel hat deine Streak gerettet! \uD83D\uDC7C");
+				}
+				if(christmasGifts)
+				{
+					builder.setFooter("Du hast noch ungeöffnete Weihnachtsgeschenke! \uD83C\uDF81");
+				}
 
 				channel.sendMessage(builder.build()).queue();
 				return true;
