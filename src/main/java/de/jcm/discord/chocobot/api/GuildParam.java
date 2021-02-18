@@ -23,7 +23,7 @@ public class GuildParam
 
 		if(guild == null || user1 == null )
 			return false;
-		return guild.isMember(user1);
+		return guild.retrieveMember(user1).onErrorMap(e->null).complete() != null;
 	}
 
 	public Guild toGuild()

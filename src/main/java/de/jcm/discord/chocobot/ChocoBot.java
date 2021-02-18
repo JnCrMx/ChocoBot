@@ -19,6 +19,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
@@ -290,6 +291,7 @@ public class ChocoBot extends ListenerAdapter
 
 		jda = (JDABuilder.createDefault(discordToken))
 				.enableIntents(GatewayIntent.GUILD_MEMBERS)
+				.setMemberCachePolicy(MemberCachePolicy.ALL)
 				.addEventListeners(new ChocoBot())
 				.addEventListeners(new CommandListener())
 				.addEventListeners(new MirrorListener())
