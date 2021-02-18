@@ -5,6 +5,7 @@ import de.jcm.discord.chocobot.DatabaseUtils;
 import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -16,6 +17,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +28,64 @@ public class BlockGame extends Command
 	private static final int COST = 10;
 
 	private final Random random = new Random();
+
+	public static class Prize
+	{
+		private final double probability;
+		private final int coins;
+		private final String image;
+		private final String message;
+
+		public Prize(double probability, int coins, String image, String message)
+		{
+			this.probability = probability;
+			this.coins = coins;
+			this.image = image;
+			this.message = message;
+		}
+
+		public double getProbability()
+		{
+			return probability;
+		}
+
+		public int getCoins()
+		{
+			return coins;
+		}
+
+		public String getImage()
+		{
+			return image;
+		}
+
+		public String getMessage()
+		{
+			return message;
+		}
+	}
+
+	public static final Prize[] PRIZES = {
+			new Prize(1.0/100, +1000, "large-coin-stack.png",
+			          "OMG! Du hast soeben %d Coins aus dem Block bekommen, du Glückspilz!"),
+			new Prize(9.0/100, +500, "medium-coin-stack.png",
+			          "Du Glücklicher! Du hast %d Coins aus dem Block ergattern können!"),
+			new Prize(10.0/100, +100, "small-coin-stack.png",
+			          "Du hattest Glück, In dem Block waren %d Münzen!"),
+			new Prize(30.0/100, 0, null,
+			          "Schade... offensichtlich enthielt dieser Block nichts."),
+			new Prize(20.0/100, -20, "goomba.png",
+			          "Oha. Ein Gumba, der aus dem Block kam, hat dir soeben %d Coins gemopst!"),
+			new Prize(25.0/100, -100, "koopa.png",
+			          "Aus dem Block kam... ein Koopa... der dir %d Münzen gestohlen hat..."),
+			new Prize((5.0-0.01)/100, -250, "bowser.png",
+			          "***Gwahaha!** Danke, dass du mich soeben aus dem Block befreit hast.... " +
+					          "Dafür habe ich dir %d deiner glänzenden Münzen geklaut!*"),
+			new Prize(0.01/100, +100000, "mueller.png",
+			          "Bist du deppert? Nach langer Zeit hast du die Legende Müller aus dem Block befreit!! " +
+					          "Da schau hi als Dankeschön lässt er %d coins rüberwachsen! " +
+					          "Alles Müller oder was?")
+	};
 
 	@Override
 	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
@@ -101,61 +162,23 @@ public class BlockGame extends Command
 						{
 							this.gameMessage.delete().queue();
 
-							int rnd = random.nextInt(100);
+							double rnd = random.nextDouble();
 
 							String image = null;
 							String text = "Fehler! Deine 10 Coins werden dir rückerstattet.";
 							int coins = 10;
 
-							// 1% -> +1000 Coins
-							if(rnd < 1)
+							double sum = 0.0;
+							for(Prize prize : PRIZES)
 							{
-								image = "large-coin-stack.png";
-								text = "OMG! Du hast soeben %d Coins aus dem Block bekommen, " +
-										"du Glückspilz!";
-								coins = +1000;
-							}
-							// 9% -> +500 Coins
-							else if(rnd<1+ 9)
-							{
-								image = "medium-coin-stack.png";
-								text = "Du Glücklicher! Du hast %d Coins aus dem Block ergattern können!";
-								coins = +500;
-							}
-							// 10% -> +100 Coins
-							else if(rnd<1+9+ 10)
-							{
-								image = "small-coin-stack.png";
-								text = "Du hattest Glück, In dem Block waren %d Münzen!";
-								coins = +100;
-							}
-							// 30% -> +/- 0 Coins
-							else if(rnd<1+9+10+ 30)
-							{
-								text = "Schade... offensichtlich enthielt dieser Block nichts.";
-								coins = 0;
-							}
-							// 20% -> -20 Coins
-							else if(rnd<1+9+10+30+ 20)
-							{
-								image = "goomba.png";
-								text = "Oha. Ein Gumba, der aus dem Block kam, hat dir soeben %d Coins gemopst!";
-								coins = -20;
-							}
-							// 25% -> -100 Coins
-							else if(rnd<1+9+10+30+20+ 25)
-							{
-								image = "koopa.png";
-								text = "Aus dem Block kam... ein Koopa... der dir %d Münzen gestohlen hat...";
-								coins = -100;
-							}
-							// 5% -> -250 Coins
-							else if(rnd<1+9+10+30+20+25+ 5)
-							{
-								image = "bowser.png";
-								text = "***Gwahaha!** Danke, dass du mich soeben aus dem Block befreit hast.... " +
-										"Dafür habe ich dir %d deiner glänzenden Münzen geklaut!*";
-								coins = -250;
+								if(rnd >= sum && rnd <= sum + prize.getProbability())
+								{
+									coins = prize.getCoins();
+									image = prize.getImage();
+									text = prize.getMessage();
+									break;
+								}
+								sum += prize.getProbability();
 							}
 
 							try
@@ -193,7 +216,7 @@ public class BlockGame extends Command
 
 							DatabaseUtils.changeCoins(player.getIdLong(), guild.getIdLong(), coins);
 							channel.sendMessage(player.getAsMention()+" "+
-									String.format(text, coins<0?-coins:coins)).queue();
+									String.format(text, Math.abs(coins))).queue();
 						}
 					}
 				});
