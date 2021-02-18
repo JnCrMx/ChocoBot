@@ -14,16 +14,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.temporal.ChronoField;
 
 public class CommandDaily extends Command
 {
 	private static final double DAILY_FACTOR = 30 / Math.log1p(6);
 	private static final double DAILY_START = 10;
+
+	private static final int FIRST_BONUS = 45;
 
 	public static int getCoinsForStreak(int streak)
 	{
@@ -43,10 +42,12 @@ public class CommandDaily extends Command
 			boolean christmas = now.getMonth() == Month.DECEMBER &&
 					now.getDayOfMonth() >= 24 && now.getDayOfMonth() <= 26;
 			boolean christmasGifts = false;
+			boolean first;
 
 			try(Connection connection = ChocoBot.getDatabase();
 				PreparedStatement getCoins = connection.prepareStatement("SELECT last_daily, daily_streak FROM coins WHERE uid=? AND guild=?");
-				PreparedStatement checkChristmasGifts = connection.prepareStatement("SELECT id FROM christmas_presents WHERE uid=? AND guild=? AND opened=0"))
+				PreparedStatement checkChristmasGifts = connection.prepareStatement("SELECT id FROM christmas_presents WHERE uid=? AND guild=? AND opened=0");
+				PreparedStatement checkFirst = connection.prepareStatement("SELECT 1 FROM coins WHERE guild=? AND last_daily > ?"))
 			{
 				getCoins.setLong(1, uid);
 				getCoins.setLong(2, guild.getIdLong());
@@ -72,6 +73,12 @@ public class CommandDaily extends Command
 					ResultSet resultSet = checkChristmasGifts.executeQuery();
 					christmasGifts = resultSet.next();
 				}
+
+				checkFirst.setLong(1, guild.getIdLong());
+				checkFirst.setLong(2, now.toLocalDate().atStartOfDay(ZoneId.systemDefault())
+				                         .toInstant().toEpochMilli());
+				ResultSet resultSet = checkFirst.executeQuery();
+				first = !resultSet.next();
 			}
 
 			LocalDateTime dateTime = LocalDateTime.ofInstant(lastDaily, ZoneId.systemDefault());
@@ -94,7 +101,7 @@ public class CommandDaily extends Command
 					}
 				}
 
-				int coinsToAdd = getCoinsForStreak(dailyStreak) * (christmas ? 2 : 1);
+				int coinsToAdd = getCoinsForStreak(dailyStreak) * (christmas ? 2 : 1) + (first ? FIRST_BONUS : 0);
 				dailyStreak++;
 
 				int coins;
@@ -130,6 +137,10 @@ public class CommandDaily extends Command
 				if(christmasGifts)
 				{
 					builder.setFooter("Du hast noch ungeöffnete Weihnachtsgeschenke! \uD83C\uDF81");
+				}
+				if(first)
+				{
+					builder.appendDescription("\nDu bist Erster auf diesem Server und erhältst deshalb einen Bonus von "+FIRST_BONUS+" Coins! \uD83E\uDD73");
 				}
 
 				channel.sendMessage(builder.build()).queue();
