@@ -282,6 +282,7 @@ public class ChocoBot extends ListenerAdapter
 		Command.registerCommand(new CommandWarm());
 		Command.registerCommand(new CommandQuit());
 		Command.registerCommand(new CommandAnime());
+		CommandPride.registerAll();
 
 		Command.registerCommand(new CommandChristmas());
 
