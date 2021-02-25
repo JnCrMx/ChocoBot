@@ -45,6 +45,7 @@ class RemindRunnable implements Runnable
 					String message = resultSet.getString("message");
 					long issuerId = resultSet.getLong("issuer");
 					long time = resultSet.getLong("time");
+					long channelId = resultSet.getLong("channel");
 					User user = this.jda.retrieveUserById(uid).complete();
 					User issuer = this.jda.retrieveUserById(issuerId).complete();
 
@@ -54,8 +55,17 @@ class RemindRunnable implements Runnable
 					if(guild == null)
 						continue;
 
-					TextChannel remindChannel = DatabaseUtils.getSettings(guild).getRemindChannel();
-					assert remindChannel != null;
+					TextChannel remindChannel = null;
+					if(channelId != 0)
+					{
+						remindChannel = jda.getTextChannelById(channelId);
+					}
+
+					if(remindChannel == null)
+					{
+						remindChannel = DatabaseUtils.getSettings(guild).getRemindChannel();
+						assert remindChannel != null;
+					}
 
 					StringBuilder botMessage = new StringBuilder();
 					botMessage.append(user.getAsMention());

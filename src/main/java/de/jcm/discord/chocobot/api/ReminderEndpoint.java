@@ -1,7 +1,10 @@
 package de.jcm.discord.chocobot.api;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import de.jcm.discord.chocobot.ChocoBot;
-import net.dv8tion.jda.api.entities.User;
+import de.jcm.discord.chocobot.api.data.ChannelInfo;
+import de.jcm.discord.chocobot.api.data.UserData;
+import net.dv8tion.jda.api.entities.GuildChannel;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.ws.rs.*;
@@ -65,13 +68,17 @@ public class ReminderEndpoint
 				{
 					Reminder reminder = new Reminder();
 					reminder.id = resultSet.getInt("id");
-					reminder.remindee = ChocoBot.jda
-							.retrieveUserById(resultSet.getLong("uid")).map(User::getAsTag).complete();
+					reminder.remindee = ChocoBot.provideUser(resultSet.getLong("uid"), UserData::getTag, "?");
 					reminder.message = resultSet.getString("message");
 					reminder.time = resultSet.getLong("time");
-					reminder.reminder = ChocoBot.jda
-							.retrieveUserById(resultSet.getLong("issuer")).map(User::getAsTag).complete();
+					reminder.reminder = ChocoBot.provideUser(resultSet.getLong("issuer"), UserData::getTag, "?");;
 					reminder.done = resultSet.getBoolean("done");
+
+					GuildChannel channel = ChocoBot.jda.getGuildChannelById(resultSet.getLong("channel"));
+					if(channel != null)
+					{
+						reminder.channel = ChannelInfo.fromChannel(channel);
+					}
 
 					reminders.add(reminder);
 				}
@@ -118,5 +125,8 @@ public class ReminderEndpoint
 		public long time;
 		public String reminder;
 		public boolean done;
+
+		@JsonInclude(JsonInclude.Include.NON_NULL)
+		public ChannelInfo channel;
 	}
 }

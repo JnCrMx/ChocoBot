@@ -146,13 +146,14 @@ public class CommandRemind extends Command
 				}
 
 				try(Connection connection = ChocoBot.getDatabase();
-				    PreparedStatement insertReminder = connection.prepareStatement("INSERT INTO reminders (uid, guild, message, time, issuer) VALUES(?, ?, ?, ?, ?)"))
+				    PreparedStatement insertReminder = connection.prepareStatement("INSERT INTO reminders (uid, guild, message, time, issuer, channel) VALUES(?, ?, ?, ?, ?, ?)"))
 				{
 					insertReminder.setLong(1, user.getIdLong());
 					insertReminder.setLong(2, guild.getIdLong());
 					insertReminder.setString(3, reMessage);
 					insertReminder.setLong(4, time.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
 					insertReminder.setLong(5, message.getAuthor().getIdLong());
+					insertReminder.setLong(6, channel.getIdLong());
 					insertReminder.execute();
 					String var10001;
 					if (message.getAuthor().getIdLong() == user.getIdLong())
