@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,10 +28,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class WhoIsItGame extends Game
 {
-	private static final int REWARD = 150;
+	private static final int BASE_REWARD = 150;
+	private static final int ADDITIONAL_REWARD = 15;
 	private static final long TIMEOUT = 5000L;
 
 	private static final HashMap<Long, List<ImmutablePair<Member, String>>> avatarCache = new HashMap<>();
@@ -154,6 +157,42 @@ public class WhoIsItGame extends Game
 		});
 	}
 
+	private static boolean matchString(String expected, String actual)
+	{
+		if(expected.equalsIgnoreCase(actual))
+			return true;
+		if(expected.toLowerCase(Locale.ROOT).equals(actual.toLowerCase(Locale.ROOT)))
+			return true;
+
+		String expectedNormal = expected.replaceAll("[^\\p{Alnum}]", "");
+		String actualNormal = actual.replaceAll("[^\\p{Alnum}]", "");
+
+		if(expectedNormal.equalsIgnoreCase(actualNormal) ||
+				expected.equalsIgnoreCase(actualNormal) ||
+				actual.equalsIgnoreCase(expectedNormal))
+			return true;
+
+		if(expected.length() < 5)
+			return false;
+
+		double diff = ((double)StringUtils.difference(expected, actual).length())
+				/ Math.min(expected.length(), actual.length());
+		if(diff < 0.2)
+			return true;
+
+		double diffN = ((double)StringUtils.difference(expectedNormal, actualNormal).length())
+				/ Math.min(expectedNormal.length(), actualNormal.length());
+		if(diffN < 0.1)
+			return true;
+
+		return false;
+	}
+
+	private static boolean matchStrings(String actual, String... expected)
+	{
+		return Stream.of(expected).anyMatch(s->matchString(s, actual));
+	}
+
 	@Override
 	public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event)
 	{
@@ -172,19 +211,21 @@ public class WhoIsItGame extends Game
 			return;
 
 		String guess = event.getMessage().getContentRaw();
-		guess = guess.replace("\n", "").toLowerCase(Locale.ROOT);
+		guess = guess.replace("\n", "");
 
 		if(lastGuesses.getOrDefault(uid, 0L) + TIMEOUT > System.currentTimeMillis())
 		{
 			event.getMessage().addReaction("U+23F3").queue();
+			event.getMessage().delete().queueAfter(1, TimeUnit.SECONDS);
 			return;
 		}
 
 		Member right = avatar.getLeft();
-		if(guess.equals(right.getEffectiveName().toLowerCase(Locale.ROOT)) ||
-				guess.equals(right.getUser().getName().toLowerCase(Locale.ROOT)) ||
-				guess.equals(right.getUser().getAsTag().toLowerCase(Locale.ROOT)) ||
-				guess.equals(right.getId()))
+		if(guess.equals(right.getId()) ||
+				matchStrings(guess,
+				             right.getEffectiveName(),
+				             right.getUser().getName(),
+				             right.getUser().getAsTag()))
 		{
 			deleteFuture.cancel(true);
 			event.getMessage().addReaction("U+2705").queue();
@@ -196,24 +237,26 @@ public class WhoIsItGame extends Game
 					                        "Es war "+avatar.getLeft().getEffectiveName()+"!");
 			builder1.setThumbnail(avatar.getRight());
 
-			builder1.addField(event.getMember().getEffectiveName(), "+" + REWARD + " Coins", false);
+			int reward = BASE_REWARD + (players.size()-1)*ADDITIONAL_REWARD;
+			builder1.addField(event.getMember().getEffectiveName(), "+" + reward + " Coins", false);
 
 			try(Connection connection = ChocoBot.getDatabase())
 			{
 				DatabaseUtils.increaseStat(connection, uid, guild.getIdLong(), "game."+getName().toLowerCase()+".won", 1);
+
 				if(uid == sponsor.getIdLong())
 				{
 					DatabaseUtils.changeCoins(connection,
 					                          uid,
 					                          guild.getIdLong(),
-					                          REWARD + getSponsorCost());
+					                          reward + getSponsorCost());
 				}
 				else
 				{
 					DatabaseUtils.changeCoins(connection,
 					                          uid,
 					                          guild.getIdLong(),
-					                          REWARD);
+					                          reward);
 					builder1.addField(sponsor.getEffectiveName(), "-" + getSponsorCost() + " Coins", false);
 				}
 			}
@@ -230,6 +273,7 @@ public class WhoIsItGame extends Game
 		else
 		{
 			event.getMessage().addReaction("U+274C").queue();
+			event.getMessage().delete().queueAfter(5, TimeUnit.SECONDS);
 			lastGuesses.put(uid, System.currentTimeMillis());
 		}
 	}
