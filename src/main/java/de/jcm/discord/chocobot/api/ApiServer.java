@@ -63,7 +63,7 @@ public class ApiServer
 			                          "origin, content-type, accept, authorization, access-control-allow-origin");
 			response.getHeaders().add("Access-Control-Allow-Credentials", "true");
 			response.getHeaders().add("Access-Control-Allow-Methods",
-			                          "GET, POST, PUT, DELETE, OPTIONS, HEAD");
+			                          "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD");
 		}
 	}
 

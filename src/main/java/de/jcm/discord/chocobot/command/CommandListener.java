@@ -44,6 +44,11 @@ public class CommandListener extends ListenerAdapter
 				}
 
 				Command command = Command.getCommand(keyword);
+				if(command == null)
+				{
+					command = CommandCustom.forGuild(guild.getIdLong(), keyword);
+				}
+
 				if (command != null)
 				{
 					Member member = event.getMember();

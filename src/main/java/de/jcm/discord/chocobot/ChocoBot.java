@@ -181,7 +181,7 @@ public class ChocoBot extends ListenerAdapter
 			{
 				tryCreateTable(initStatement, "CREATE TABLE \"coins\" (\"uid\" INTEGER, \"guild\" INTEGER, \"coins\" INTEGER, \"last_daily\" INTEGER, \"daily_streak\" INTEGER, PRIMARY KEY(\"uid\", \"guild\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"warnings\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT,\"uid\" INTEGER, \"guild\" INTEGER, \"reason\" TEXT,\"time\" INTEGER,\"message\" INTEGER, \"warner\" INTEGER);");
-				tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"guild\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"done\" INTEGER DEFAULT 0);");
+				tryCreateTable(initStatement, "CREATE TABLE \"reminders\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"guild\" INTEGER, \"message\" TEXT, \"time\" INTEGER, \"issuer\" INTEGER, \"channel\" INTEGER DEFAULT 0, \"done\" INTEGER DEFAULT 0);");
 				tryCreateTable(initStatement, "CREATE TABLE \"bugreports\" (\"id\" INTEGER PRIMARY KEY, \"reporter\" INTEGER, \"last_event_time\" INTEGER);");
 				tryCreateTable(initStatement, "CREATE TABLE \"subscriptions\" (\"id\" INTEGER PRIMARY KEY, \"subscriber\" INTEGER, \"keyword\" TEXT);");
 				tryCreateTable(initStatement, "CREATE TABLE \"tokens\" (\"token\" VARCHAR(256) PRIMARY KEY, \"user\" INTEGER);");
@@ -195,6 +195,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE \"user_stats\" (\"uid\" INTEGER, \"guild\" INTEGER, \"stat\" VARCHAR(256), \"value\" INTEGER, PRIMARY KEY(\"uid\", \"guild\", \"stat\"))");
 				tryCreateTable(initStatement, "CREATE TABLE \"name_cache\" (\"id\" INTEGER PRIMARY KEY, \"name\" VARCHAR(256))");
 				tryCreateTable(initStatement, "CREATE TABLE \"christmas_presents\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"sender\" INTEGER, \"guild\" INTEGER, \"amount\" INTEGER, \"message\" TEXT, \"year\" INTEGER, \"opened\" INTEGER DEFAULT 0)");
+				tryCreateTable(initStatement, "CREATE TABLE \"custom_commands\" (\"guild\" INTEGER, \"keyword\" VARCHAR(256) NOT NULL, \"message\" TEXT, PRIMARY KEY(\"guild\", \"keyword\"))");
 			}
 		}
 		else if("mysql".equals(dbType))
@@ -222,7 +223,7 @@ public class ChocoBot extends ListenerAdapter
 			{
 				tryCreateTable(initStatement, "CREATE TABLE `coins` (`uid` BIGINT, `guild` BIGINT, `coins` INT, `last_daily` BIGINT, `daily_streak` INT, PRIMARY KEY(`uid`, `guild`));");
 				tryCreateTable(initStatement, "CREATE TABLE `warnings` (`id` INT PRIMARY KEY AUTO_INCREMENT,`uid` BIGINT,`guild` BIGINT,`reason` TEXT,`time` BIGINT, `message` BIGINT, `warner` BIGINT);");
-				tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `guild` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `done` BOOLEAN DEFAULT 0);");
+				tryCreateTable(initStatement, "CREATE TABLE `reminders` (`id` INT PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `guild` BIGINT, `message` TEXT, `time` BIGINT, `issuer` BIGINT, `channel` BIGINT DEFAULT 0, `done` BOOLEAN DEFAULT 0);");
 				tryCreateTable(initStatement, "CREATE TABLE `bugreports` (`id` INT PRIMARY KEY, `reporter` BIGINT, `last_event_time` BIGINT);");
 				tryCreateTable(initStatement, "CREATE TABLE `subscriptions` (`id` INT PRIMARY KEY AUTO_INCREMENT, `subscriber` BIGINT, `keyword` TEXT);");
 				tryCreateTable(initStatement, "CREATE TABLE `tokens` (`token` VARCHAR(256) PRIMARY KEY, `user` BIGINT);");
@@ -236,6 +237,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `user_stats` (`uid` BIGINT, `guild` BIGINT, `stat` VARCHAR(256), `value` INT, PRIMARY KEY(`uid`, `guild`, `stat`))");
 				tryCreateTable(initStatement, "CREATE TABLE `name_cache` (`id` BIGINT PRIMARY KEY, `name` VARCHAR(256))");
 				tryCreateTable(initStatement, "CREATE TABLE `christmas_presents` (`id` INTEGER PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `sender` BIGINT, `guild` BIGINT, `amount` INT, `message` TEXT, `year` INT, `opened` BOOLEAN DEFAULT 0)");
+				tryCreateTable(initStatement, "CREATE TABLE `custom_commands` (`guild` BIGINT, `keyword` VARCHAR(256) NOT NULL, `message` TEXT, PRIMARY KEY(`guild`, `keyword`))");
 			}
 		}
 		
