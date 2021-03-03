@@ -199,11 +199,13 @@ public class DatabaseUtils
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement get = connection.prepareStatement("SELECT * FROM guilds WHERE id = ?");
 		    PreparedStatement getOperators = connection.prepareStatement("SELECT * FROM guild_operators WHERE guild = ?");
-		    PreparedStatement getMuted = connection.prepareStatement("SELECT * FROM guild_muted_channels WHERE guild = ?"))
+		    PreparedStatement getMuted = connection.prepareStatement("SELECT * FROM guild_muted_channels WHERE guild = ?");
+		    PreparedStatement getLanguageOverrides = connection.prepareStatement("SELECT * FROM guild_language_overrides WHERE guild = ?"))
 		{
 			get.setLong(1, guild);
 			getOperators.setLong(1, guild);
 			getMuted.setLong(1, guild);
+			getLanguageOverrides.setLong(1, guild);
 
 			try(ResultSet resultSet = get.executeQuery())
 			{
@@ -212,6 +214,7 @@ public class DatabaseUtils
 					GuildSettings settings = new GuildSettings(resultSet);
 					settings.readOperators(getOperators.executeQuery());
 					settings.readMutedChannels(getMuted.executeQuery());
+					settings.readLanguageOverrides(getLanguageOverrides.executeQuery());
 
 					settingsCache.put(guild, new ImmutablePair<>(settings, System.currentTimeMillis()));
 

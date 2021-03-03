@@ -21,6 +21,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +34,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import java.awt.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -78,6 +77,8 @@ public class ChocoBot extends ListenerAdapter
 	private static ApiServer apiServer;
 
 	public static Map<Long, UserData> userCache = new HashMap<>();
+
+	public static Map<String, Map<String, String>> languages = new HashMap<>();
 
 	private static void tryCreateTable(Statement statement, String sql)
 	{
@@ -187,9 +188,10 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE \"tokens\" (\"token\" VARCHAR(256) PRIMARY KEY, \"user\" INTEGER);");
 				tryCreateTable(initStatement, "CREATE TABLE \"polls\" (\"message\" INTEGER PRIMARY KEY, \"guild\" INTEGER, \"question\" TEXT);");
 				tryCreateTable(initStatement, "CREATE TABLE \"poll_answers\" (\"answer\" VARCHAR(256), \"poll\" INTEGER, \"votes\" INTEGER, PRIMARY KEY(\"answer\", \"poll\"));");
-				tryCreateTable(initStatement, "CREATE TABLE \"guilds\" (\"id\" INTEGER PRIMARY KEY, \"prefix\" VARCHAR(16), \"command_channel\" INTEGER, \"remind_channel\" INTEGER, \"warning_channel\" INTEGER, \"poll_channel\" INTEGER);");
+				tryCreateTable(initStatement, "CREATE TABLE \"guilds\" (\"id\" INTEGER PRIMARY KEY, \"prefix\" VARCHAR(16), \"command_channel\" INTEGER, \"remind_channel\" INTEGER, \"warning_channel\" INTEGER, \"poll_channel\" INTEGER, \"language\" VARCHAR(8));");
 				tryCreateTable(initStatement, "CREATE TABLE \"guild_operators\" (\"id\" INTEGER, \"guild\" INTEGER, PRIMARY KEY(\"id\", \"guild\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"guild_muted_channels\" (\"channel\" INTEGER PRIMARY KEY, \"guild\" INTEGER);");
+				tryCreateTable(initStatement, "CREATE TABLE \"guild_language_overrides\" (\"guild\" INTEGER, \"key\" VARCHAR(256), \"value\" TEXT, PRIMARY KEY(\"guild\", \"value\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"shop_roles\" (\"role\" INTEGER PRIMARY KEY, \"guild\" INTEGER, \"alias\" VARCHAR(256), \"description\" TEXT, \"cost\" INTEGER, UNIQUE (\"alias\", \"guild\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"shop_inventory\" (\"role\" INTEGER, \"user\" INTEGER, \"guild\" INTEGER, PRIMARY KEY(\"role\", \"user\"));");
 				tryCreateTable(initStatement, "CREATE TABLE \"user_stats\" (\"uid\" INTEGER, \"guild\" INTEGER, \"stat\" VARCHAR(256), \"value\" INTEGER, PRIMARY KEY(\"uid\", \"guild\", \"stat\"))");
@@ -229,9 +231,10 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `tokens` (`token` VARCHAR(256) PRIMARY KEY, `user` BIGINT);");
 				tryCreateTable(initStatement, "CREATE TABLE `polls` (`message` BIGINT PRIMARY KEY, `guild` BIGINT, `question` TEXT);");
 				tryCreateTable(initStatement, "CREATE TABLE `poll_answers` (`answer` VARCHAR(256), `poll` BIGINT, `votes` INT, PRIMARY KEY(`answer`, `poll`));");
-				tryCreateTable(initStatement, "CREATE TABLE `guilds` (`id` BIGINT PRIMARY KEY, `prefix` VARCHAR(16), `command_channel` BIGINT, `remind_channel` BIGINT, `warning_channel` BIGINT, `poll_channel` BIGINT);");
+				tryCreateTable(initStatement, "CREATE TABLE `guilds` (`id` BIGINT PRIMARY KEY, `prefix` VARCHAR(16), `command_channel` BIGINT, `remind_channel` BIGINT, `warning_channel` BIGINT, `poll_channel` BIGINT, `language` VARCHAR(8));");
 				tryCreateTable(initStatement, "CREATE TABLE `guild_operators` (`id` BIGINT, `guild` BIGINT, PRIMARY KEY(`id`, `guild`));");
 				tryCreateTable(initStatement, "CREATE TABLE `guild_muted_channels` (`channel` BIGINT PRIMARY KEY, `guild` BIGINT);");
+				tryCreateTable(initStatement, "CREATE TABLE `guild_language_overrides` (`guild` BIGINT, `key` VARCHAR(256), `value` TEXT, PRIMARY KEY(`guild`, `value`));");
 				tryCreateTable(initStatement, "CREATE TABLE `shop_roles` (`role` BIGINT PRIMARY KEY, `guild` BIGINT, `alias` VARCHAR(256), `description` TEXT, `cost` INT, UNIQUE `ident` (`alias`, `guild`));");
 				tryCreateTable(initStatement, "CREATE TABLE `shop_inventory` (`role` BIGINT, `user` BIGINT, `guild` BIGINT, PRIMARY KEY(`role`, `user`));");
 				tryCreateTable(initStatement, "CREATE TABLE `user_stats` (`uid` BIGINT, `guild` BIGINT, `stat` VARCHAR(256), `value` INT, PRIMARY KEY(`uid`, `guild`, `stat`))");
@@ -240,7 +243,31 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `custom_commands` (`guild` BIGINT, `keyword` VARCHAR(256) NOT NULL, `message` TEXT, PRIMARY KEY(`guild`, `keyword`))");
 			}
 		}
-		
+
+		logger.info("Reading language files...");
+		try(InputStream in = ChocoBot.class.getResourceAsStream("/languages.txt");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(in));)
+		{
+			reader.lines().forEach(l -> {
+				Map<String, String> map = languages.computeIfAbsent(l, q->new HashMap<>());
+				try(InputStream lin = ChocoBot.class.getResourceAsStream("/lang/" + l + ".lang");
+					BufferedReader lre = new BufferedReader(new InputStreamReader(lin)))
+				{
+					lre.lines()
+					   .map(line->new ImmutablePair<>(line.substring(0, line.indexOf('=')), line.substring(line.indexOf('=')+1)))
+					   .forEach(e->map.put(e.getKey(), e.getValue()));
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
+			});
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+
 		DatabaseUtils.prepare();
 		QuizGame.prepare();
 
@@ -368,10 +395,10 @@ public class ChocoBot extends ListenerAdapter
 		executorService.schedule(ChocoBot::initReddit, exp - 10, TimeUnit.SECONDS);
 	}
 
-	public static MessageEmbed errorMessage(String message)
+	public static MessageEmbed errorMessage(GuildSettings settings, String message)
 	{
 		EmbedBuilder eb = new EmbedBuilder();
-		eb.setTitle("Fehler");
+		eb.setTitle(settings.translate("error"));
 		eb.setColor(COLOR_ERROR);
 		eb.setDescription(message);
 		return eb.build();

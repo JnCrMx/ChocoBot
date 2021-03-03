@@ -29,7 +29,10 @@ public abstract class Command
 	protected abstract String getKeyword();
 
 	@Nullable
-	protected abstract String getHelpText();
+	protected String getHelpText(GuildSettings settings)
+	{
+		return settings.translate("command."+getKeyword()+".help");
+	}
 
 	public boolean multipleArguments()
 	{
@@ -57,7 +60,8 @@ public abstract class Command
 
 	public void showUsage(TextChannel channel, GuildSettings settings)
 	{
-		if(getUsage()==null)
+		String usage = getUsage(settings);
+		if(usage==null)
 		{
 			return;
 		}
@@ -67,13 +71,14 @@ public abstract class Command
 		EmbedBuilder eb = new EmbedBuilder();
 		eb.setTitle(prefix+getKeyword());
 
-		String usage = getUsage();
 		usage = usage.replace("%p", prefix);
 		usage = usage.replace("%c", prefix+getKeyword());
 		usage = usage.replace("%C", getKeyword());
-		if(getHelpText()!=null)
+
+		String helpText = getHelpText(settings);
+		if(helpText!=null)
 		{
-			usage = usage.replace("%h", getHelpText());
+			usage = usage.replace("%h", helpText);
 		}
 
 		eb.setDescription(usage);
@@ -83,7 +88,10 @@ public abstract class Command
 	}
 
 	@Nullable
-	protected abstract String getUsage();
+	protected String getUsage(GuildSettings settings)
+	{
+		return settings.translate("command."+getKeyword()+".usage");
+	}
 
 	@Nullable
 	public static Command getCommand(String keyword)

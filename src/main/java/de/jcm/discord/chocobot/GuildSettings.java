@@ -9,9 +9,7 @@ import net.dv8tion.jda.api.entities.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GuildSettings
@@ -22,8 +20,11 @@ public class GuildSettings
 	private long remindChannel;
 	private long warningChannel;
 	private long pollChannel;
+	private String language;
+
 	private List<Long> operators = new ArrayList<>();
 	private List<Long> mutedChannels = new ArrayList<>();
+	private Map<String, String> languageOverrides = new HashMap<>();
 
 	public GuildSettings()
 	{
@@ -38,6 +39,7 @@ public class GuildSettings
 		this.remindChannel = resultSet.getLong("remind_channel");
 		this.warningChannel = resultSet.getLong("warning_channel");
 		this.pollChannel = resultSet.getLong("poll_channel");
+		this.language = resultSet.getString("language");
 	}
 
 	void readOperators(ResultSet resultSet) throws SQLException
@@ -55,6 +57,16 @@ public class GuildSettings
 		while(resultSet.next())
 		{
 			mutedChannels.add(resultSet.getLong("channel"));
+		}
+	}
+
+	void readLanguageOverrides(ResultSet resultSet) throws SQLException
+	{
+		languageOverrides.clear();
+		while(resultSet.next())
+		{
+			languageOverrides.put(resultSet.getString("key"),
+			                      resultSet.getString("value"));
 		}
 	}
 
@@ -258,5 +270,31 @@ public class GuildSettings
 		                                  .map(c->c.id)
 		                                  .map(Long::parseLong)
 		                                  .collect(Collectors.toList());
+	}
+
+	private String getLanguageEntry(String key)
+	{
+		return languageOverrides.getOrDefault(
+				key, ChocoBot.languages.get(language).get(key));
+	}
+
+	public String translate(String key, Object...args)
+	{
+		String translation = getLanguageEntry(key);
+
+		int keyStart;
+		while((keyStart = translation.indexOf("@{"))!=-1)
+		{
+			int keyEnd = translation.indexOf('}', keyStart);
+
+			String newKey = translation.substring(keyStart+2, keyEnd);
+
+			String before = translation.substring(0, keyStart);
+			String after = translation.substring(keyEnd+1);
+
+			translation = before + translate(newKey, args) + after;
+		}
+
+		return String.format(translation, args);
 	}
 }
