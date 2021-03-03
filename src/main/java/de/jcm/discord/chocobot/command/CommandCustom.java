@@ -1,11 +1,11 @@
 package de.jcm.discord.chocobot.command;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +15,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
 
 public class CommandCustom extends Command
 {
@@ -32,10 +34,35 @@ public class CommandCustom extends Command
 	private String keyword;
 	private String message;
 
+	private static String replaceMember(String string, String mention, Member member)
+	{
+		string = string.replace("$"+mention+"."+"id", member.getId());
+		string = string.replace("$"+mention+"."+"name", member.getUser().getName());
+		string = string.replace("$"+mention+"."+"displayname", member.getEffectiveName());
+		string = string.replace("$"+mention+"."+"nickname", Objects.requireNonNullElse(member.getNickname(), ""));
+		string = string.replace("$"+mention+"."+"ping", member.getAsMention());
+		string = string.replace("$"+mention+"."+"avatar", member.getUser().getEffectiveAvatarUrl());
+
+		return string;
+	}
+
 	@Override
 	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
-		channel.sendMessage(this.message).queue();
+		String string = this.message;
+
+		string = replaceMember(string, "self", Objects.requireNonNull(message.getMember()));
+		string = replaceMember(string, "sender", Objects.requireNonNull(message.getMember()));
+		string = replaceMember(string, "0", Objects.requireNonNull(message.getMember()));
+
+		List<Member> mentions = message.getMentionedMembers();
+		for(int i=0; i<mentions.size(); i++)
+		{
+			string = replaceMember(string, Integer.toString(i+1), mentions.get(i));
+		}
+		string = string.replaceAll("\\$[\\w.]*", "");
+
+		channel.sendMessage(string).queue();
 		return true;
 	}
 
