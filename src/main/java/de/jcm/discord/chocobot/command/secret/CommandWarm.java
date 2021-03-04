@@ -17,7 +17,7 @@ public class CommandWarm extends Command
 	{
 		if (args.length < 1 || message.getMentionedUsers().isEmpty())
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst mir schon sagen, wen du erwärmen willst!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.secret.warm.error.who")).queue();
 			return false;
 		}
 
@@ -41,45 +41,33 @@ public class CommandWarm extends Command
 		{
 			if(self)
 			{
-				channel.sendMessage(String.format(
-						"%s ist ganz schön kühl und bräuchte mal eine Um(w)armung!",
-						warmer.getAsMention())).queue();
+				channel.sendMessage(settings.translate("command.secret.warm.cool.self", warmer.getAsMention(), temperature)).queue();
 			}
 			else
 			{
-				channel.sendMessage(String.format(
-						"%s findet %s super cool!",
-						warmer.getAsMention(), warmed.getAsMention())).queue();
+				channel.sendMessage(settings.translate("command.secret.warm.cool.other", warmer.getAsMention(), warmed.getAsMention(), temperature)).queue();
 			}
 		}
 		else if(temperature < 50.0)
 		{
 			if(self)
 			{
-				channel.sendMessage(String.format(
-						"%s braucht dringend jemanden, um mit ihr/ihm zu kuscheln und sie/ihn um %.2f°C zu erwärmen!",
-						warmer.getAsMention(), temperature)).queue();
+				channel.sendMessage(settings.translate("command.secret.warm.warm.self", warmer.getAsMention(), temperature)).queue();
 			}
 			else
 			{
-				channel.sendMessage(String.format(
-						"%s kuschelt sich an %s und wärmt sie/ihn somit um %.2f°C :revolving_hearts:",
-						warmer.getAsMention(), warmed.getAsMention(), temperature)).queue();
+				channel.sendMessage(settings.translate("command.secret.warm.warm.other", warmer.getAsMention(), warmed.getAsMention(), temperature)).queue();
 			}
 		}
 		else
 		{
 			if(self)
 			{
-				channel.sendMessage(String.format(
-						"Nicht auf die Herdplatte fassen, %s, die ist ganz schön heiß: %.2f°C :fire:",
-						warmer.getAsMention(), temperature)).queue();
+				channel.sendMessage(settings.translate("command.secret.warm.hot.self", warmer.getAsMention(), temperature)).queue();
 			}
 			else
 			{
-				channel.sendMessage(String.format(
-						"%s findet %s ultra heiß! :fire:",
-						warmer.getAsMention(), warmed.getAsMention())).queue();
+				channel.sendMessage(settings.translate("command.secret.warm.hot.other", warmer.getAsMention(), warmed.getAsMention(), temperature)).queue();
 			}
 		}
 
@@ -93,13 +81,13 @@ public class CommandWarm extends Command
 	}
 
 	@Override
-	protected @Nullable String getHelpText()
+	protected @Nullable String getHelpText(GuildSettings settings)
 	{
 		return null;
 	}
 
 	@Override
-	protected @Nullable String getUsage()
+	protected @Nullable String getUsage(GuildSettings settings)
 	{
 		return null;
 	}

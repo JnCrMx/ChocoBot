@@ -41,6 +41,7 @@ public class IssueEventRunnable implements Runnable
 
 					LocalDateTime maxLastEventTime = lastEventTime;
 
+					GuildSettings settings = null;
 					List<?> events = ChocoBot.githubApp.getIssueEvents(id);
 					for(Object o : events)
 					{
@@ -50,6 +51,9 @@ public class IssueEventRunnable implements Runnable
 						LocalDateTime time = LocalDateTime.from(temp);
 						if(time.isAfter(lastEventTime))
 						{
+							if(settings == null)
+								settings = DatabaseUtils.getUserSettings(channel.getUser());
+
 							event = ChocoBot.githubApp.getIssueEvent(event);
 
 							Map<?, ?> actor = (Map<?, ?>) event.get("actor");
@@ -62,7 +66,7 @@ public class IssueEventRunnable implements Runnable
 									(String) actor.get("html_url"),
 									(String) actor.get("avatar_url"));
 							eb.setTimestamp(time);
-							eb.setTitle(String.format("Neuigkeiten zu \"%s\"", issue.get("title")),
+							eb.setTitle(settings.translate("issue_events.title", issue.get("title")),
 							            (String) issue.get("html_url"));
 
 							if(eventType.equals("closed"))
@@ -75,17 +79,16 @@ public class IssueEventRunnable implements Runnable
 									String message = (String)
 											((Map<?, ?>) commit.get("commit"))
 													.get("message");
-									eb.setDescription(String.format(
-											"Der Issue wurde durch die Änderung \"%s\" (%s) geschlossen.",
-											message, htmlUrl));
+									eb.setDescription(settings.translate(
+											"issue_events.event.closed_commit", message, htmlUrl));
 								}
 								else
 								{
-									eb.setDescription("Der Issue wurde geschlossen.");
+									eb.setDescription(settings.translate("issue_events.event.closed"));
 								}
 							}
 
-							eb.setFooter("Reagiere mit \u274c um diese Benachrichtigungen abzubestellen");
+							eb.setFooter(settings.translate("issue_events.footer"));
 
 							channel.sendMessage(eb.build()).queue();
 
@@ -103,6 +106,9 @@ public class IssueEventRunnable implements Runnable
 						LocalDateTime time = LocalDateTime.from(temp);
 						if(time.isAfter(lastEventTime))
 						{
+							if(settings == null)
+								settings = DatabaseUtils.getUserSettings(channel.getUser());
+
 							Map<?, ?> user = (Map<?, ?>) comment.get("user");
 							Map<?, ?> issue = ChocoBot.githubApp.get(
 									(String) comment.get("issue_url"), Map.class);
@@ -113,13 +119,13 @@ public class IssueEventRunnable implements Runnable
 									(String) user.get("html_url"),
 									(String) user.get("avatar_url"));
 							eb.setTimestamp(time);
-							eb.setTitle(String.format("Neuigkeiten zu \"%s\"", issue.get("title")),
+							eb.setTitle(settings.translate("issue_events.title", issue.get("title")),
 							            (String) issue.get("html_url"));
 
-							eb.setDescription(String.format("Der Issue wurde kommentiert:\n%s\n\n\n%s",
+							eb.setDescription(settings.translate("issue_events.event.comment",
 							                                comment.get("html_url"), comment.get("body")));
 
-							eb.setFooter("Reagiere mit \u274c um diese Benachrichtigungen abzubestellen");
+							eb.setFooter(settings.translate("issue_events.footer"));
 
 							channel.sendMessage(eb.build()).queue();
 

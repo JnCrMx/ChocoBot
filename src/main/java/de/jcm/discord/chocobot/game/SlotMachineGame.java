@@ -40,29 +40,6 @@ public class SlotMachineGame extends Command
 	private static final String[] EMOJIS_WHEEL;
 	private final Random random = new Random();
 
-	private final static String FORMAT_PLAYING =
-					"%s\n"+
-					"``---[Slot-Machine]---``\n" +
-					"           %s : %s : %s \n\n" +
-					"           %s : %s : %s **<**\n\n" +
-					"           %s : %s : %s \n" +
-					"``--------------------``";
-	private final static String FORMAT_WON =
-					"%s\n"+
-					"``---[Slot-Machine]---``\n" +
-					"           %s : %s : %s \n\n" +
-					"           %s : %s : %s **<**\n\n" +
-					"           %s : %s : %s \n" +
-					"``-----[GEWONNEN]-----``\n"+
-					"**%d Coins!**";
-	private final static String FORMAT_LOST =
-					"%s\n"+
-					"``---[Slot-Machine]---``\n" +
-					"           %s : %s : %s \n\n" +
-					"           %s : %s : %s **<**\n\n" +
-					"           %s : %s : %s \n" +
-					"``-----[VERLOREN]-----``";
-
 	public SlotMachineGame()
 	{
 	}
@@ -86,17 +63,17 @@ public class SlotMachineGame extends Command
 		return array;
 	}
 
-	private String buildMessage(Member player, int[] wheels)
+	private String buildMessage(Member player, GuildSettings settings, int[] wheels)
 	{
 		String[][] a = buildWheelStrings(wheels);
 
-		return String.format(FORMAT_PLAYING, player.getAsMention(),
+		return settings.translate("game.slot-machine.format.playing", player.getAsMention(),
 				a[0][0], a[1][0], a[2][0],
 				a[0][1], a[1][1], a[2][1],
 				a[0][2], a[1][2], a[2][2]);
 	}
 
-	private void updateMessage(Message message, Member player, int[] wheels)
+	private void updateMessage(Message message, GuildSettings settings, Member player, int[] wheels)
 	{
 		wheels[0] += 1;
 		wheels[1] += 2;
@@ -105,7 +82,7 @@ public class SlotMachineGame extends Command
 		for(int i=0;i<wheels.length;i++)
 			wheels[i] = wheels[i] % EMOJIS_WHEEL.length;
 
-		message.editMessage(buildMessage(player, wheels)).submit();
+		message.editMessage(buildMessage(player, settings, wheels)).submit();
 	}
 
 	private int getCategory(String emoji)
@@ -173,7 +150,7 @@ public class SlotMachineGame extends Command
 
 		if (DatabaseUtils.getCoins(player.getIdLong(), guild.getIdLong()) < COST)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du hast dafür nicht genug Coins! Du brauchst mindestens "+COST+".")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "game.error.not_enough", COST)).queue();
 			return false;
 		}
 		else
@@ -181,9 +158,9 @@ public class SlotMachineGame extends Command
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setColor(ChocoBot.COLOR_GAME);
 			builder.setAuthor("@" + player.getEffectiveName());
-			builder.setTitle("Bestätigen?");
-			builder.setDescription("Wenn du wirklich fortfahren willst, reagiere mit :white_check_mark:!");
-			builder.addField("Preis", COST+" Coins", false);
+			builder.setTitle(settings.translate("game.confirm.title"));
+			builder.setDescription(settings.translate("game.confirm.description"));
+			builder.addField(settings.translate("game.confirm.cost.key"), settings.translate("game.confirm.cost.value", COST), false);
 			channel.sendMessage(builder.build()).queue((m) ->
 			{
 				m.addReaction("✅").queue();
@@ -215,12 +192,12 @@ public class SlotMachineGame extends Command
 								m.delete().queue();
 								this.wheels = random.ints(3L, 0, EMOJIS_WHEEL.length)
 										.toArray();
-								channel.sendMessage(buildMessage(player, wheels)).queue((m2) ->
+								channel.sendMessage(buildMessage(player, settings, wheels)).queue((m2) ->
 								{
 									this.gameMessage = m2;
 									this.gameMessage.addReaction("\ud83d\udccd").queue();
 									this.future = ChocoBot.executorService.scheduleWithFixedDelay(() ->
-											SlotMachineGame.this.updateMessage(gameMessage, player, wheels),
+											SlotMachineGame.this.updateMessage(gameMessage, settings, player, wheels),
 											0L, 1L, TimeUnit.SECONDS);
 								});
 								DatabaseUtils.changeCoins(player.getIdLong(), guild.getIdLong(), -COST);
@@ -240,7 +217,7 @@ public class SlotMachineGame extends Command
 							{
 								String[][] a = buildWheelStrings(wheels);
 
-								String msg = String.format(FORMAT_WON, player.getAsMention(),
+								String msg = settings.translate("game.slot-machine.format.won", player.getAsMention(),
 										a[0][0], a[1][0], a[2][0],
 										a[0][1], a[1][1], a[2][1],
 										a[0][2], a[1][2], a[2][2],
@@ -253,7 +230,7 @@ public class SlotMachineGame extends Command
 							{
 								String[][] a = buildWheelStrings(wheels);
 
-								String msg = String.format(FORMAT_LOST, player.getAsMention(),
+								String msg = settings.translate("game.slot-machine.format.lost", player.getAsMention(),
 										a[0][0], a[1][0], a[2][0],
 										a[0][1], a[1][1], a[2][1],
 										a[0][2], a[1][2], a[2][2]);
@@ -274,18 +251,6 @@ public class SlotMachineGame extends Command
 	public String getKeyword()
 	{
 		return "slot-machine";
-	}
-
-	@Nullable
-	public String getHelpText()
-	{
-		return "Spiele an einer Slot-Maschine.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return "%c : %h";
 	}
 
 	static

@@ -26,6 +26,8 @@ public class ChocoBoardListener extends ListenerAdapter
 
 		if(message.startsWith("?chocoboard") || message.startsWith("?board"))
 		{
+			GuildSettings settings = DatabaseUtils.getUserSettings(user);
+
 			if(message.contains(" "))
 			{
 				String subcommand = message.split(" ")[1].toLowerCase(Locale.ROOT);
@@ -39,10 +41,7 @@ public class ChocoBoardListener extends ListenerAdapter
 						ResultSet result = statement.executeQuery();
 						if(result.next())
 						{
-							channel.sendMessage(ChocoBot.errorMessage(
-									"Du hast bereits einen Token. " +
-											"Nutze ``?chocoboard revoke`` um diesen zu entfernen."))
-							       .queue();
+							channel.sendMessage(ChocoBot.translateError(settings, "chocoboard.token.error.dup")).queue();
 						}
 						else
 						{
@@ -53,14 +52,14 @@ public class ChocoBoardListener extends ListenerAdapter
 							{
 								EmbedBuilder builder = new EmbedBuilder();
 								builder.setColor(ChocoBot.COLOR_COOKIE);
-								builder.setTitle("ChocoBoard", ChocoBot.boardUrl);
-								builder.setDescription("Dein Token lautet:\n\n "+token);
+								builder.setTitle(settings.translate("chocoboard.token.title"), ChocoBot.boardUrl);
+								builder.setDescription(settings.translate("chocoboard.token.description", token));
 
 								channel.sendMessage(builder.build()).queue();
 							}
 							else
 							{
-								channel.sendMessage(ChocoBot.errorMessage("Es gab einen Datenbankfehler!")).queue();
+								channel.sendMessage(ChocoBot.translateError(settings, "chocoboard.token.error.db")).queue();
 							}
 						}
 					}
@@ -79,8 +78,8 @@ public class ChocoBoardListener extends ListenerAdapter
 
 						EmbedBuilder builder = new EmbedBuilder();
 						builder.setColor(ChocoBot.COLOR_COOKIE);
-						builder.setTitle("ChocoBoard", ChocoBot.boardUrl);
-						builder.setDescription(count+" Token(s) erfolgreich gelöscht!");
+						builder.setTitle(settings.translate("chocoboard.revoke.title"), ChocoBot.boardUrl);
+						builder.setDescription(settings.translate("chocoboard.revoke.description", count));
 
 						channel.sendMessage(builder.build()).queue();
 					}
@@ -94,8 +93,8 @@ public class ChocoBoardListener extends ListenerAdapter
 			{
 				EmbedBuilder builder = new EmbedBuilder();
 				builder.setColor(ChocoBot.COLOR_COOKIE);
-				builder.setTitle("ChocoBoard", ChocoBot.boardUrl);
-				builder.setDescription("Klicke auf den Titel um zum ChocoBoard zu gelangen!");
+				builder.setTitle(settings.translate("chocoboard.title"), ChocoBot.boardUrl);
+				builder.setDescription(settings.translate("chocoboard.description"));
 
 				channel.sendMessage(builder.build()).queue();
 			}

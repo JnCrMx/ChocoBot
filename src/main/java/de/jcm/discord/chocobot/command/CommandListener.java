@@ -66,8 +66,7 @@ public class CommandListener extends ListenerAdapter
 							this.logger.info("Command \"{}\" from user {} ({}) was ignored due to delay not met.",
 									message, event.getAuthor().getAsTag(), event.getAuthor().getId());
 							event.getChannel().sendMessage(
-									ChocoBot.errorMessage(event.getMember().getEffectiveName() +
-											", bitte warte etwas, bevor du weitere Befehle sendest!"))
+									ChocoBot.translateError(guildSettings, "command.error.timeout", event.getMember().getEffectiveName()))
 									.queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
 							event.getMessage().delete().queueAfter(10, TimeUnit.SECONDS);
 						}
@@ -119,9 +118,9 @@ public class CommandListener extends ListenerAdapter
 								"Command \"{}\" from user {} ({}) was ignored because it was sent to wrong channel.",
 								message, event.getAuthor().getAsTag(), event.getAuthor().getId());
 
-						event.getChannel().sendMessage(event.getAuthor().getAsMention()+
-								", schreibe deine Befehle bitte in "+
-								guildSettings.getCommandChannel().getAsMention()+"!")
+						event.getChannel().sendMessage(
+								guildSettings.translate("command.error.channel", event.getAuthor().getAsMention(),
+								                        guildSettings.getCommandChannel().getAsMention()))
 								.queue(s->s.delete().queueAfter(10, TimeUnit.SECONDS));
 						event.getMessage().delete().queueAfter(10, TimeUnit.SECONDS);
 					}

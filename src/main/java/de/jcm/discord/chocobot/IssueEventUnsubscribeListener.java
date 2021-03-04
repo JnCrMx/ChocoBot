@@ -24,6 +24,8 @@ public class IssueEventUnsubscribeListener extends ListenerAdapter
 		MessageReaction.ReactionEmote emote = event.getReactionEmote();
 		if(emote.isEmoji() && emote.getEmoji().equals("\u274c"))
 		{
+			GuildSettings settings = DatabaseUtils.getUserSettings(event.getUser());
+
 			event.getChannel().retrieveMessageById(event.getMessageId())
 			     .queue(message ->
 			            {
@@ -45,26 +47,20 @@ public class IssueEventUnsubscribeListener extends ListenerAdapter
 							            if(deleteStatement.getUpdateCount()==1)
 							            {
 								            EmbedBuilder eb = new EmbedBuilder();
-								            eb.setTitle("Abbestellung");
+								            eb.setTitle(settings.translate("issue_events.unsubscribe.title"));
 								            eb.setColor(ChocoBot.COLOR_COOKIE);
-								            eb.setDescription(String.format(
-								            		"Die Benachrichtigungen zum Issue #%d wurden erfolgreich abbestellt!",
-										            id));
+								            eb.setDescription(settings.translate("issue_events.unsubscribe.description", id));
 								            event.getChannel().sendMessage(eb.build()).queue();
 							            }
 							            else
 							            {
-								            event.getChannel().sendMessage(ChocoBot.errorMessage(
-								            		"Du scheinst eh keine Benachrichtigungen von diesem Issue zu erhalten."))
-								                 .queue();
+								            event.getChannel().sendMessage(ChocoBot.translateError(settings, "issue_events.unsubscribe.error.noent")).queue();
 							            }
 						            }
 						            catch(SQLException e)
 						            {
 						            	e.printStackTrace();
-							            event.getChannel().sendMessage(
-									            ChocoBot.errorMessage("Es gab einen Fehler bei der Abbestellung!"))
-							                 .queue();
+							            event.getChannel().sendMessage(ChocoBot.translateError(settings, "issue_events.unsubscribe.error.internal")).queue();
 						            }
 					            }
 				            }

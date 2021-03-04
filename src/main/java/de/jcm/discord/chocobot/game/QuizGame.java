@@ -78,7 +78,7 @@ public class QuizGame extends Game
 		QuizGame.QuizQuestion question = quizQuestions.get(random.nextInt(quizQuestions.size()));
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setColor(ChocoBot.COLOR_GAME);
-		builder.setTitle("Quiz");
+		builder.setTitle(settings.translate("game.quiz.title"));
 		builder.setDescription(question.question);
 		List<String> answerList = new ArrayList<>(List.of(question.answers));
 		Collections.shuffle(answerList);
@@ -109,8 +109,8 @@ public class QuizGame extends Game
 				this.state = GameState.FINISHED;
 				EmbedBuilder builder1 = new EmbedBuilder();
 				builder1.setColor(ChocoBot.COLOR_GAME);
-				builder1.setTitle("Gewinner");
-				builder1.setDescription("Die folgenden Teilnehmer haben richtig geantwortet:");
+				builder1.setTitle(settings.translate("game.quiz.results.title"));
+				builder1.setDescription(settings.translate("game.quiz.results.description"));
 
 				Member[] rightAnswers = answers.entrySet().stream().filter(e->e.getValue()==rightAnswer)
 						.sorted(Comparator.comparingLong(e -> answerTimes.get(e.getKey())))
@@ -128,12 +128,12 @@ public class QuizGame extends Game
 						if(member.getIdLong() == sponsor.getIdLong())
 						{
 							reward += getSponsorCost();
-							builder1.addField(member.getEffectiveName(), "+" + (reward-getSponsorCost()) + " Coins",
+							builder1.addField(member.getEffectiveName(), settings.translate("game.quiz.results.won", reward-getSponsorCost()),
 									false);
 						}
 						else
 						{
-							builder1.addField(member.getEffectiveName(), "+" + reward + " Coins", false);
+							builder1.addField(member.getEffectiveName(), settings.translate("game.quiz.results.won",reward), false);
 						}
 						DatabaseUtils.changeCoins(connection, member.getIdLong(), guild.getIdLong(), reward);
 
@@ -148,16 +148,16 @@ public class QuizGame extends Game
 
 				if (builder1.getFields().isEmpty())
 				{
-					builder1.setDescription("Niemand hat richtig geantwortet \ud83d\ude2d");
+					builder1.setDescription(settings.translate("game.quiz.results.no_correct"));
 				}
 
 				if(Stream.of(rightAnswers).noneMatch(e->e.getIdLong()==sponsor.getIdLong()))
 				{
-					builder1.addField(sponsor.getEffectiveName(), "-" + getSponsorCost() + " Coins",
+					builder1.addField(sponsor.getEffectiveName(), settings.translate("game.quiz.results.lost", getSponsorCost()),
 							false);
 				}
 
-				builder1.setFooter(question.question + " " + question.answers[0]);
+				builder1.setFooter(settings.translate("game.quiz.results.footer", question.question, question.answers[0]));
 				this.gameChannel.sendMessage(builder1.build()).queue();
 				this.end();
 			});

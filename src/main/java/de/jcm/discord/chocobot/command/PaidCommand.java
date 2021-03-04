@@ -17,30 +17,31 @@ public abstract class PaidCommand extends Command
         {
             DatabaseUtils.changeCoins(message.getAuthor().getIdLong(), guild.getIdLong(), -getCost());
 
-            return executePaid(message, channel, guild, args);
+            return executePaid(message, channel, guild, settings, args);
         }
         else
         {
-            channel.sendMessage(
-                    ChocoBot.errorMessage(
-                            "Du hast nicht genug Coins, um diesen Befehl auszuführen!\n"+
-                                    "Die Kosten betragen "+getCost()+" Coins."))
-                   .queue();
+            channel.sendMessage(ChocoBot.translateError(settings, "command.pair.error.not_enough", getCost())).queue();
             return false;
         }
     }
 
-    protected abstract boolean executePaid(Message message, TextChannel channel, Guild guild, String... args);
+    protected abstract boolean executePaid(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args);
     protected abstract int getCost();
+
     @Nullable
-    protected abstract String getPaidHelpText();
+    protected String getPaidHelpText(GuildSettings settings)
+    {
+        return super.getHelpText(settings);
+    }
 
     @Override
-    protected final @Nullable String getHelpText()
+    protected final @Nullable String getHelpText(GuildSettings settings)
     {
-        if(getPaidHelpText()==null)
+        String text = getPaidHelpText(settings);
+        if(text==null)
             return null;
 
-        return getPaidHelpText()+" (Kosten: "+getCost()+" Coins)";
+        return text+" "+settings.translate("command.paid.help_cost", getCost());
     }
 }

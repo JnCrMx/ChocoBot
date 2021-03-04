@@ -16,7 +16,7 @@ public class CommandArch extends Command
 
     public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
     {
-        channel.sendMessage("I use arch btw").queue();
+        channel.sendMessage(settings.translate("command.secret.arch.message")).queue();
         return true;
     }
 
@@ -27,13 +27,13 @@ public class CommandArch extends Command
     }
 
     @Nullable
-    public String getHelpText()
+    public String getHelpText(GuildSettings settings)
     {
         return null;
     }
 
     @Override
-    protected @Nullable String getUsage()
+    protected @Nullable String getUsage(GuildSettings settings)
     {
         return null;
     }

@@ -2,6 +2,7 @@ package de.jcm.discord.chocobot.game;
 
 import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -28,6 +29,7 @@ abstract class Game extends ListenerAdapter
 	GameState state;
 	final TextChannel gameChannel;
 	final Guild guild;
+	final GuildSettings settings;
 	private Message confirmMessage;
 	private Message announceMessage;
 
@@ -37,13 +39,14 @@ abstract class Game extends ListenerAdapter
 		this.sponsor = sponsor;
 		this.gameChannel = gameChannel;
 		this.guild = gameChannel!=null ? gameChannel.getGuild() : null;
+		this.settings = guild!=null ? DatabaseUtils.getSettings(guild) : null;
 	}
 
 	public void start()
 	{
 		if (DatabaseUtils.getCoins(this.sponsor.getIdLong(), guild.getIdLong()) < this.getSponsorCost())
 		{
-			this.gameChannel.sendMessage(ChocoBot.errorMessage("Du hast dafür nicht genug Coins! Du brauchst mindestens " + this.getSponsorCost() + ".")).queue();
+			this.gameChannel.sendMessage(ChocoBot.translateError(settings, "game.error.not_enough", getSponsorCost())).queue();
 			this.cleanup();
 		}
 		else
@@ -57,9 +60,10 @@ abstract class Game extends ListenerAdapter
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setColor(ChocoBot.COLOR_GAME);
 		builder.setAuthor("@" + this.sponsor.getEffectiveName());
-		builder.setTitle("Bestätigen?");
-		builder.setDescription("Wenn du wirklich fortfahren willst, reagiere mit :white_check_mark:!");
-		builder.addField("Preis", this.getSponsorCost() + " Coins", false);
+		builder.setTitle(settings.translate("game.confirm.title"));
+		builder.setDescription(settings.translate("game.confirm.description"));
+		builder.addField(settings.translate("game.confirm.cost.key"),
+		                 settings.translate("game.confirm.cost.value", getSponsorCost()), false);
 		this.gameChannel.sendMessage(builder.build()).queue((m) ->
 		{
 			this.confirmMessage = m;
@@ -79,8 +83,8 @@ abstract class Game extends ListenerAdapter
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setColor(ChocoBot.COLOR_GAME);
-		builder.setTitle("Abgebrochen!");
-		builder.setDescription(this.sponsor.getAsMention() + " Dein Spiel wurde abgebrochen!");
+		builder.setTitle(settings.translate("game.cancel.title"));
+		builder.setDescription(settings.translate("game.cancel.description", sponsor.getAsMention()));
 		builder.setColor(ChocoBot.COLOR_ERROR);
 		this.gameChannel.sendMessage(builder.build()).queueAfter(10L, TimeUnit.SECONDS);
 	}
@@ -100,9 +104,9 @@ abstract class Game extends ListenerAdapter
 		this.players.add(this.sponsor);
 		EmbedBuilder eb = new EmbedBuilder();
 		eb.setColor(ChocoBot.COLOR_GAME);
-		eb.setTitle("Spiele-Ansage");
-		eb.setDescription("In wenigen Sekunden beginnt das Spiel " + this.getName() + "!");
-		eb.setFooter("Reagiere mit ✅ um beizutreten!");
+		eb.setTitle(settings.translate("game.announce.title"));
+		eb.setDescription(settings.translate("game.announce.description", getName()));
+		eb.setFooter(settings.translate("game.announce.footer"));
 		this.gameChannel.sendMessage(eb.build()).queue((s) ->
 		{
 			this.announceMessage = s;

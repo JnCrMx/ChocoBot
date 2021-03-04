@@ -5,10 +5,12 @@ import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 
 public class CommandRandom extends Command
 {
@@ -24,7 +26,7 @@ public class CommandRandom extends Command
 		{
 			List<User> users = message.getMentionedUsers();
 			User user = users.get(this.random.nextInt(users.size()));
-			channel.sendMessage("Es ist: " + user.getAsMention()).queue();
+			channel.sendMessage(settings.translate("command.random.user", user.getAsMention())).queue();
 			return true;
 		}
 		else
@@ -35,7 +37,7 @@ public class CommandRandom extends Command
 
 				guild.findMembers(m-> Collections.disjoint(m.getRoles(), roles)).onSuccess(members->{
 					Member member = members.get(this.random.nextInt(members.size()));
-					channel.sendMessage("Es ist: " + member.getAsMention()).queue();
+					channel.sendMessage(settings.translate("command.random.user", member.getAsMention())).queue();
 				});
 				return true;
 			}
@@ -45,7 +47,7 @@ public class CommandRandom extends Command
 				guild.findMembers(m-> !here || m.getOnlineStatus() != OnlineStatus.OFFLINE)
 				     .onSuccess(members->{
 					     Member member = members.get(this.random.nextInt(members.size()));
-					     channel.sendMessage("Es ist: " + member.getAsMention()).queue();
+					     channel.sendMessage(settings.translate("command.random.user", member.getAsMention())).queue();
 				     });
 				return true;
 			}
@@ -72,7 +74,7 @@ public class CommandRandom extends Command
 						}
 						while(integer.compareTo(end)>0);
 
-						channel.sendMessage("Es ist die "+integer.toString()+"!").queue();
+						channel.sendMessage(settings.translate("command.random.number", integer.toString())).queue();
 						return true;
 					}
 					catch (NumberFormatException ignored)
@@ -89,17 +91,17 @@ public class CommandRandom extends Command
 					{
 						if(!settings.isOperator(Objects.requireNonNull(message.getMember())))
 						{
-							channel.sendMessage(ChocoBot.errorMessage("Nein, ich werde das nicht tun!")).queue();
+							channel.sendMessage(ChocoBot.translateError(settings, "command.random.error.perm")).queue();
 							return false;
 						}
 					}
 
-					channel.sendMessage("Es ist: " + word).queue();
+					channel.sendMessage(settings.translate("command.random.word", word)).queue();
 					return true;
 				}
 				else
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Diese Art des Zufalls ist momentan nicht unterstützt!")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.random.error.unsupported")).queue();
 					return false;
 				}
 			}
@@ -110,22 +112,5 @@ public class CommandRandom extends Command
 	public String getKeyword()
 	{
 		return "random";
-	}
-
-	@Nullable
-	public String getHelpText()
-	{
-		return "Nutze verschiedene Zufallsfunktionen.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return  "%c <Nutzer> [<Nutzer> ...] : Finde einen zufälligen Nutzer aus den angegebenen Nutzern.\n" +
-				"%c <Rolle> [<Rolle> ...] : Finde einen zufälligen Nutzer aus den angegebenen Rollen.\n" +
-				"%c @everyone : Finde einen zufälligen Nutzer von diesem Server.\n" +
-				"%c @here : Finde einen zufälligen Nutzer von diesem Server, der online ist.\n" +
-				"%c <Start> <Ende> : Zeige eine Zufallszahl zwischen <Start> und <Ende> an.\n" +
-				"%c <Wort> <Wort> [<Wort> ...] : Wähle zufällig ein Wort aus.";
 	}
 }

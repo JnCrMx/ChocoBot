@@ -45,13 +45,13 @@ public class CommandLinux extends Command
     }
 
     @Nullable
-    public String getHelpText()
+    public String getHelpText(GuildSettings settings)
     {
         return null;
     }
 
     @Override
-    protected @Nullable String getUsage()
+    protected @Nullable String getUsage(GuildSettings settings)
     {
         return null;
     }

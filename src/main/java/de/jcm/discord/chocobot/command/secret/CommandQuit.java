@@ -13,7 +13,7 @@ public class CommandQuit extends Command
 	@Override
 	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
-		channel.sendMessage(":door:").queue();
+		channel.sendMessage(settings.translate("command.secret.quit.message")).queue();
 
 		return true;
 	}
@@ -25,13 +25,13 @@ public class CommandQuit extends Command
 	}
 
 	@Override
-	protected @Nullable String getHelpText()
+	protected @Nullable String getHelpText(GuildSettings settings)
 	{
 		return null;
 	}
 
 	@Override
-	protected @Nullable String getUsage()
+	protected @Nullable String getUsage(GuildSettings settings)
 	{
 		return null;
 	}

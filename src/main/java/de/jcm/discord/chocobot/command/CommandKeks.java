@@ -61,15 +61,4 @@ public class CommandKeks extends Command
 	{
 		return "keks";
 	}
-
-	public String getHelpText()
-	{
-		return "Zeige einen Keks an.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return null;
-	}
 }

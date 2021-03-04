@@ -19,29 +19,29 @@ public class CommandStats extends Command
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 
-		builder.setTitle("Server-Statistik");
+		builder.setTitle(settings.translate("command.stats.title"));
 		builder.setTimestamp(LocalDateTime.now());
 		builder.setColor(ChocoBot.COLOR_COOKIE);
 		builder.setAuthor(guild.getName());
 		builder.setThumbnail(guild.getIconUrl());
 
 		guild.loadMembers().onSuccess(members->{
-			builder.addField("Mitglieder", String.valueOf(members.size()), true);
-			builder.addField("Menschen", String.valueOf(members.stream().filter(m->!m.getUser().isBot()).count()), true);
-			builder.addField("Bots", String.valueOf(members.stream().filter(m->m.getUser().isBot()).count()), true);
+			builder.addField(settings.translate("command.stats.entry.members"), String.valueOf(members.size()), true);
+			builder.addField(settings.translate("command.stats.entry.humans"), String.valueOf(members.stream().filter(m->!m.getUser().isBot()).count()), true);
+			builder.addField(settings.translate("command.stats.entry.bots"), String.valueOf(members.stream().filter(m->m.getUser().isBot()).count()), true);
 
-			builder.addField("Owner", Objects.requireNonNull(guild.getOwner()).getUser().getAsTag(), true);
-			builder.addField("Erstellungszeit", DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).format(guild.getTimeCreated()), true);
-
-			builder.addBlankField(true);
-
-			builder.addField("Boost-Level", String.valueOf(guild.getBoostTier().getKey()), true);
-			builder.addField("Boosts", String.valueOf(guild.getBoostCount()), true);
+			builder.addField(settings.translate("command.stats.entry.owner"), Objects.requireNonNull(guild.getOwner()).getUser().getAsTag(), true);
+			builder.addField(settings.translate("command.stats.entry.creation"), DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).format(guild.getTimeCreated()), true);
 
 			builder.addBlankField(true);
 
-			builder.addField("normale Emojis", guild.getEmotes().stream().filter(e->!e.isAnimated()).count()+"/"+guild.getMaxEmotes(), true);
-			builder.addField("animierte Emojis", guild.getEmotes().stream().filter(Emote::isAnimated).count()+"/"+guild.getMaxEmotes(), true);
+			builder.addField(settings.translate("command.stats.entry.boost_level"), String.valueOf(guild.getBoostTier().getKey()), true);
+			builder.addField(settings.translate("command.stats.entry.boosts"), String.valueOf(guild.getBoostCount()), true);
+
+			builder.addBlankField(true);
+
+			builder.addField(settings.translate("command.stats.entry.emojis.normal"), guild.getEmotes().stream().filter(e->!e.isAnimated()).count()+"/"+guild.getMaxEmotes(), true);
+			builder.addField(settings.translate("command.stats.entry.emojis.animated"), guild.getEmotes().stream().filter(Emote::isAnimated).count()+"/"+guild.getMaxEmotes(), true);
 
 			builder.addBlankField(true);
 
@@ -55,17 +55,5 @@ public class CommandStats extends Command
 	protected @NotNull String getKeyword()
 	{
 		return "stats";
-	}
-
-	@Override
-	protected @Nullable String getHelpText()
-	{
-		return "Zeigt Statistiken über den Server an.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return "%c : %h";
 	}
 }

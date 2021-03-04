@@ -1,5 +1,7 @@
 package de.jcm.discord.chocobot.command.secret;
 
+import de.jcm.discord.chocobot.DatabaseUtils;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -19,8 +21,11 @@ public class MirrorListener extends ListenerAdapter
 			return;
 
 		String message = event.getMessage().getContentRaw();
+		GuildSettings settings = DatabaseUtils.getSettings(event.getGuild());
+		if(settings == null)
+			return;
 
-		if(message.equals("∞x Spiegel"))
+		if(message.equals(settings.translate("secret.mirror.infinity")))
 		{
 			StringWriter writer = new StringWriter();
 			PrintWriter writer1 = new PrintWriter(writer);
@@ -35,7 +40,7 @@ public class MirrorListener extends ListenerAdapter
 			return;
 		}
 
-		Pattern pattern = Pattern.compile("(|(\\d*)x )Spiegel");
+		Pattern pattern = Pattern.compile(settings.translate("secret.mirror.pattern"));
 		Matcher matcher = pattern.matcher(message);
 		if(matcher.matches())
 		{
@@ -53,7 +58,7 @@ public class MirrorListener extends ListenerAdapter
 			}
 			count=count.add(BigInteger.ONE);
 
-			event.getChannel().sendMessage(count+"x Spiegel").queue();
+			event.getChannel().sendMessage(settings.translate("secret.mirror.message", count.toString())).queue();
 		}
 	}
 }

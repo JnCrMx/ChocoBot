@@ -1,8 +1,6 @@
 package de.jcm.discord.chocobot.command.secret;
 
-import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.GuildSettings;
-import de.jcm.discord.chocobot.api.data.UserData;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -16,8 +14,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CommandPride extends Command
 {
@@ -31,6 +31,7 @@ public class CommandPride extends Command
 				new Color(0x008026),
 				new Color(0x0007ff),
 				new Color(0x750686)));
+		PRIDE_FLAGS.put("pride", PRIDE_FLAGS.get("lgbt"));
 
 		PRIDE_FLAGS.put("gay", PRIDE_FLAGS.get("lgbt"));
 		PRIDE_FLAGS.put("schwul", PRIDE_FLAGS.get("gay"));
@@ -45,7 +46,9 @@ public class CommandPride extends Command
 
 		PRIDE_FLAGS.put("bisexual", Arrays.asList(
 				new Color(0xd70071),
+				new Color(0xd70071),
 				new Color(0x9c4e97),
+				new Color(0x0035aa),
 				new Color(0x0035aa)));
 		PRIDE_FLAGS.put("bi", PRIDE_FLAGS.get("bisexual"));
 		PRIDE_FLAGS.put("bisexuell", PRIDE_FLAGS.get("bisexual"));
@@ -81,6 +84,33 @@ public class CommandPride extends Command
 				new Color(0x7e287f)));
 		PRIDE_FLAGS.put("ace", PRIDE_FLAGS.get("asexual"));
 		PRIDE_FLAGS.put("asexuell", PRIDE_FLAGS.get("asexual"));
+
+		PRIDE_FLAGS.put("aromatic", Arrays.asList(
+				new Color(0x3ca542),
+				new Color(0xa8d377),
+				new Color(0xfefefe),
+				new Color(0xa9a9a9),
+				new Color(0x000000)));
+		PRIDE_FLAGS.put("aro", PRIDE_FLAGS.get("aromatic"));
+		PRIDE_FLAGS.put("aromatisch", PRIDE_FLAGS.get("aromatic"));
+
+		PRIDE_FLAGS.put("graysexual", Arrays.asList(
+				new Color(0x740395),
+				new Color(0xaeb2aa),
+				new Color(0xffffff),
+				new Color(0xaeb2aa),
+				new Color(0x740395)));
+		PRIDE_FLAGS.put("greysexual", PRIDE_FLAGS.get("graysexual"));
+		PRIDE_FLAGS.put("gray", PRIDE_FLAGS.get("graysexual"));
+		PRIDE_FLAGS.put("grey", PRIDE_FLAGS.get("graysexual"));
+
+		PRIDE_FLAGS.put("aroace", Arrays.asList(
+				new Color(0xe38d00),
+				new Color(0xedce00),
+				new Color(0xffffff),
+				new Color(0x62b0dd),
+				new Color(0x1a3555)));
+		PRIDE_FLAGS.put("aro-ace", PRIDE_FLAGS.get("aroace"));
 
 		PRIDE_FLAGS.put("genderqueer", Arrays.asList(
 				new Color(0xb498c8),
@@ -145,13 +175,13 @@ public class CommandPride extends Command
 	}
 
 	@Override
-	protected @Nullable String getHelpText()
+	protected @Nullable String getHelpText(GuildSettings settings)
 	{
 		return null;
 	}
 
 	@Override
-	protected @Nullable String getUsage()
+	protected @Nullable String getUsage(GuildSettings settings)
 	{
 		return null;
 	}

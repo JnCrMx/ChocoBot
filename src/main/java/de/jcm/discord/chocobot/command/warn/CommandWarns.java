@@ -34,15 +34,13 @@ public class CommandWarns extends Command
 			targetId = message.getMentionedUsers().get(0).getIdLong();
 			if(targetId!=message.getAuthor().getIdLong() && !isMod)
 			{
-				channel.sendMessage(ChocoBot.errorMessage(
-						"Du darfst nur deine eigenen Verwarnungen sehen!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.warns.error.perm")).queue();
 				return false;
 			}
 		}
 		else
 		{
-			channel.sendMessage(ChocoBot.errorMessage(
-					"Ich verstehe nicht, von wem du die Verwarnungen sehen willst.")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.warns.error.who")).queue();
 			return false;
 		}
 
@@ -56,7 +54,7 @@ public class CommandWarns extends Command
 
 				EmbedBuilder builder = new EmbedBuilder();
 				builder.setColor(ChocoBot.COLOR_WARN);
-				builder.setTitle("Verwarnungen von " + ChocoBot.provideUser(targetId, UserData::getTag, "Unknown user"));
+				builder.setTitle(settings.translate("command.warns.title", ChocoBot.provideUser(targetId, UserData::getTag, "Unknown user")));
 				int count = 0;
 				for(; resultSet.next(); count++)
 				{
@@ -67,15 +65,15 @@ public class CommandWarns extends Command
 						long warnerId = resultSet.getLong("warner");
 						String warnerTag = ChocoBot.jda.retrieveUserById(warnerId).map(User::getAsTag).complete();
 
-						builder.addField("[" + id + "] von " + warnerTag, reason, false);
+						builder.addField(settings.translate("command.warns.warn.operator", id, warnerTag), reason, false);
 					}
 					else
 					{
-						builder.addField("[" + id + "]", reason, false);
+						builder.addField(settings.translate("command.warns.warn.operator", id), reason, false);
 					}
 				}
 
-				builder.setDescription("**" + count + "** Verwarnungen:");
+				builder.setDescription(settings.translate("command.warns.message", count));
 
 				channel.sendMessage(builder.build()).queue();
 
@@ -93,18 +91,5 @@ public class CommandWarns extends Command
 	protected @NotNull String getKeyword()
 	{
 		return "warns";
-	}
-
-	@Override
-	protected @Nullable String getHelpText()
-	{
-		return "Zeige deine Warns oder die eines anderen Nutzers an.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return  "%c : Zeige deine Verwarnungen an.\n" +
-				"%c <Nutzer> (nur Operatoren) : Zeige die Verwarnungen eines anderen Nutzers an.";
 	}
 }

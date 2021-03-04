@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
@@ -45,7 +44,7 @@ public class CommandRemind extends Command
 	{
 		if (args.length < 1)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst mindestens einen Zeitpunkt für die Erinnerung angeben!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.remind.error.narg1")).queue();
 			return false;
 		}
 		else
@@ -64,7 +63,7 @@ public class CommandRemind extends Command
 			{
 				if (args.length < 2)
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Du musst mir schon sagen, wann die Erinnerung stattfinden sollt!")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.remind.error.narg2")).queue();
 					return false;
 				}
 
@@ -118,12 +117,12 @@ public class CommandRemind extends Command
 
 			if (time == null)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich kann deine Zeitangabe leider nicht verstehen!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.remind.error.fmt")).queue();
 				return false;
 			}
 			else if (time.isBefore(LocalDateTime.now()))
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Dafür bräuchtest du eine Zeitmaschine!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.remind.error.past")).queue();
 				return false;
 			}
 			else
@@ -140,7 +139,7 @@ public class CommandRemind extends Command
 				{
 					if(!settings.isOperator(Objects.requireNonNull(message.getMember())))
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Vergiss es!")).queue();
+						channel.sendMessage(ChocoBot.translateError(settings, "command.remind.error.perm")).queue();
 						return false;
 					}
 				}
@@ -159,12 +158,12 @@ public class CommandRemind extends Command
 					if (message.getAuthor().getIdLong() == user.getIdLong())
 					{
 						var10001 = message.getAuthor().getAsMention();
-						channel.sendMessage(var10001 + ", du wirst " + this.outputFormatter.format(time) + " erinnert!").queue();
+						channel.sendMessage(settings.translate("command.remind.self", var10001, this.outputFormatter.format(time))).queue();
 					}
 					else
 					{
 						var10001 = message.getAuthor().getAsMention();
-						channel.sendMessage(var10001 + ", " + Objects.requireNonNull(channel.getGuild().getMember(user)).getEffectiveName() + " wird " + this.outputFormatter.format(time) + " erinnert!").queue();
+						channel.sendMessage(settings.translate("command.remind.other", var10001, user.getName(), this.outputFormatter.format(time))).queue();
 					}
 				}
 				catch (SQLException var12)
@@ -181,30 +180,5 @@ public class CommandRemind extends Command
 	public String getKeyword()
 	{
 		return "remind";
-	}
-
-	@Nullable
-	public String getHelpText()
-	{
-		return "Erinnere mich.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return  "%c <Zeit> [<Erinnerungs-Nachricht>] : Erinnere mich zum angegebenen Zeitpunkt.\n" +
-				"%c <Dauer> [<Erinnerungs-Nachricht>] : Erinner mich nach angegebener Dauer.\n" +
-				"%c <Zeit> <Nutzer> [<Erinnerungs-Nachricht>] : Erinnere jemanden zum angegebenen Zeitpunkt.\n" +
-				"%c <Dauer> <Nutzer> [<Erinnerungs-Nachricht>] : Erinner jemanden nach angegebener Dauer.\n" +
-				"\n" +
-				"Beispiele für Zeit:\n" +
-				"``25.03.2020/17:42``\n" +
-				"``26.03/15:23``\n" +
-				"``18:32``\n" +
-				"\n" +
-				"Beispiele für Dauer:\n" +
-				"``29min``\n" +
-				"``1h15min``\n" +
-				"``1d5h12min``";
 	}
 }

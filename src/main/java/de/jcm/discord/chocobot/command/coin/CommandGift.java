@@ -24,7 +24,7 @@ public class CommandGift extends Command
 	{
 		if (args.length < 2)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst mir schon sagen wem du wie viele Coins schenken möchtest!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.gift.error.narg")).queue();
 			return false;
 		}
 		else
@@ -37,12 +37,12 @@ public class CommandGift extends Command
 					int amount = Integer.parseInt(args[1]);
 					if (amount < 0)
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Das wäre Diebstahl!")).queue();
+						channel.sendMessage(ChocoBot.translateError(settings, "command.gift.error.negative")).queue();
 						return false;
 					}
 					else if (amount == 0)
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Du bist aber geizig!")).queue();
+						channel.sendMessage(ChocoBot.translateError(settings, "command.gift.error.zero")).queue();
 						return false;
 					}
 					else
@@ -56,7 +56,7 @@ public class CommandGift extends Command
 						long dst = dstMember.getIdLong();
 						if (DatabaseUtils.getCoins(src, guild.getIdLong()) < amount)
 						{
-							channel.sendMessage(ChocoBot.errorMessage("Du kannst nicht mehr verschenken als du selbst hast!")).queue();
+							channel.sendMessage(ChocoBot.translateError(settings, "command.gift.error.not_enough")).queue();
 							return false;
 						}
 						else
@@ -84,13 +84,13 @@ public class CommandGift extends Command
 				}
 				catch (NumberFormatException var13)
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Ich kann leider nicht verstehen, wie viele Coins du verschenken willst.")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.gift.error.nan")).queue();
 					return false;
 				}
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich kann leider nicht verstehen, wem du Coins schenken willst.")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.gift.error.who")).queue();
 				return false;
 			}
 		}
@@ -100,17 +100,5 @@ public class CommandGift extends Command
 	public String getKeyword()
 	{
 		return "gift";
-	}
-
-	@Nullable
-	public String getHelpText()
-	{
-		return "Schenke einem Nutzer Coins.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return "%c <Nutzer> <Anzahl> : %h";
 	}
 }

@@ -33,13 +33,13 @@ public class CommandShip extends Command
 	{
 		if (!message.getMentionedRoles().isEmpty())
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Rollen shippen!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.ship.error.roles")).queue();
 			return false;
 		}
 		else if (message.getContentRaw().contains("@everyone") ||
 				message.getContentRaw().contains("@here"))
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Das wäre eine Orgie!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.ship.error.many")).queue();
 			return false;
 		}
 		else
@@ -86,7 +86,7 @@ public class CommandShip extends Command
 			{
 				if (w1.equals(w2))
 				{
-					channel.sendMessage(ChocoBot.errorMessage("\"" + w1 + "\" scheint ganz schön selbstverliebt zu sein...")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.ship.error.self", w1)).queue();
 					return false;
 				}
 				else
@@ -130,7 +130,7 @@ public class CommandShip extends Command
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Du musst zwei Begriffe zum shippen nennen!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.ship.error.narg")).queue();
 				return false;
 			}
 		}
@@ -165,11 +165,6 @@ public class CommandShip extends Command
 		return "ship";
 	}
 
-	public String getHelpText()
-	{
-		return "Ermittle die Shipping-Quote zwischen zwei Begriffen.";
-	}
-
 	static
 	{
 		try
@@ -180,13 +175,5 @@ public class CommandShip extends Command
 		{
 			var1.printStackTrace();
 		}
-
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return  "%c <Wort> [x] <Wort> : Ermittle die Shipping-Quote zwischen zwei Wörtern.\n" +
-				"%c <Nutzer> [x] <Nutzer> : Ermittle die Shipping-Quote zwischen zwei Nutzern.";
 	}
 }

@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -24,7 +25,7 @@ public class CommandGif extends PaidCommand
 		this.searchTarget = ChocoBot.client.target("https://api.tenor.com/v1/search");
 	}
 
-	public boolean executePaid(Message message, TextChannel channel, Guild guild, String... args)
+	public boolean executePaid(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		String q = String.join(" ", args);
 		Response response = this.searchTarget.queryParam("q", q).request(new String[]{"application/json"}).get();
@@ -32,7 +33,7 @@ public class CommandGif extends PaidCommand
 		ArrayList<?> results = (ArrayList<?>) map.get("results");
 		if (results.size() == 0)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Ich konnte leider kein passendes GIF finden.")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.gif.error.noent")).queue();
 			return false;
 		}
 		else
@@ -50,21 +51,9 @@ public class CommandGif extends PaidCommand
 		return "gif";
 	}
 
-	@Nullable
-	public String getPaidHelpText()
-	{
-		return "Zeige ein GIF von Tenor an.";
-	}
-
 	@Override
 	protected int getCost()
 	{
 		return 10;
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return "%c <Suchbegriff> : %h";
 	}
 }

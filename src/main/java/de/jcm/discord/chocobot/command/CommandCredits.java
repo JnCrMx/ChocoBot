@@ -18,10 +18,10 @@ public class CommandCredits extends Command
 	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		EmbedBuilder builder = new EmbedBuilder();
-		builder.setTitle("Credits");
+		builder.setTitle(settings.translate("command.credits.title"));
 		builder.setColor(ChocoBot.COLOR_COOKIE);
-		builder.addField("für", ChocoBot.provideUser(443141932714033192L, UserData::getTag, "ChocoKeks"), false);
-		builder.addField("zu", "Weihnachten 2019", false);
+		builder.addField(settings.translate("command.credits.dedication"), ChocoBot.provideUser(443141932714033192L, UserData::getTag, "ChocoKeks"), false);
+		builder.addField(settings.translate("command.credits.event"), "Weihnachten 2019", false);
 		channel.sendMessage(builder.build()).queue();
 		return true;
 	}
@@ -30,16 +30,5 @@ public class CommandCredits extends Command
 	public String getKeyword()
 	{
 		return "credits";
-	}
-
-	public String getHelpText()
-	{
-		return "Zeige die Credits an.";
-	}
-
-	@Override
-	protected String getUsage()
-	{
-		return "%c : %h";
 	}
 }

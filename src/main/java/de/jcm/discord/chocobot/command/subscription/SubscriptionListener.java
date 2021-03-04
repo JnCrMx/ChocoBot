@@ -60,16 +60,18 @@ public class SubscriptionListener extends ListenerAdapter
 					argument = argument.toLowerCase();
 				}
 
+				GuildSettings settings = DatabaseUtils.getUserSettings(event.getAuthor());
+
 				switch(keyword)
 				{
 					case "subscribe":
-						subscribe(event.getAuthor(), event.getChannel(), argument);
+						subscribe(event.getAuthor(), settings, event.getChannel(), argument);
 						break;
 					case "sublist":
-						sublist(event.getAuthor(), event.getChannel());
+						sublist(event.getAuthor(), settings, event.getChannel());
 						break;
 					case "unsubscribe":
-						unsubscribe(event.getAuthor(), event.getChannel(), argument);
+						unsubscribe(event.getAuthor(), settings, event.getChannel(), argument);
 					default:
 				}
 			}
@@ -95,18 +97,18 @@ public class SubscriptionListener extends ListenerAdapter
 		return false;
 	}
 
-	private void subscribe(User user, MessageChannel channel, String keyword)
+	private void subscribe(User user, GuildSettings settings, MessageChannel channel, String keyword)
 	{
 		if(keyword.isBlank())
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Bitte gebe ein Schlüsselwort an!"))
+			channel.sendMessage(ChocoBot.translateError(settings, "subscription.subscribe.error.empty"))
 			       .queue();
 			return;
 		}
 
 		if(checkSubscription(user, keyword))
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du hast dieses Schlüsselwort bereits abonniert."))
+			channel.sendMessage(ChocoBot.translateError(settings, "subscription.subscribe.error.dup"))
 			       .queue();
 			return;
 		}
@@ -120,9 +122,7 @@ public class SubscriptionListener extends ListenerAdapter
 			}
 			catch(Throwable t)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Deine RegEx scheint nicht zu funktionieren: "
-						                                          +t.getLocalizedMessage()))
-				       .queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "subscription.subscribe.error.regex", t.getMessage())).queue();
 				return;
 			}
 		}
@@ -140,9 +140,9 @@ public class SubscriptionListener extends ListenerAdapter
 			if(checkSubscription(user, keyword))
 			{
 				EmbedBuilder eb = new EmbedBuilder();
-				eb.setTitle("Abonnement");
-				eb.setDescription(String.format("Das Schlüsselwort \"%s\" wurde erfolgreich abonniert.", keyword));
-				eb.setFooter("Nutze ?unsubscribe um es wieder zu deabonnieren.");
+				eb.setTitle(settings.translate("subscription.subscribe.title"));
+				eb.setDescription(settings.translate("subscription.subscribe.description", keyword));
+				eb.setFooter(settings.translate("subscription.subscribe.footer", keyword));
 				eb.setColor(ChocoBot.COLOR_COOKIE);
 				channel.sendMessage(eb.build()).queue();
 
@@ -150,7 +150,7 @@ public class SubscriptionListener extends ListenerAdapter
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler beim Abonnieren."))
+				channel.sendMessage(ChocoBot.translateError(settings, "subscription.subscribe.error.internal"))
 				       .queue();
 			}
 		}
@@ -160,7 +160,7 @@ public class SubscriptionListener extends ListenerAdapter
 		}
 	}
 
-	private void sublist(User user, MessageChannel channel)
+	private void sublist(User user, GuildSettings settings, MessageChannel channel)
 	{
 		try(Connection connection = ChocoBot.getDatabase();
 		    PreparedStatement byUser = connection.prepareStatement("SELECT * FROM subscriptions WHERE subscriber=?"))
@@ -176,9 +176,9 @@ public class SubscriptionListener extends ListenerAdapter
 				}
 
 				EmbedBuilder eb = new EmbedBuilder();
-				eb.setTitle("Abonnements");
+				eb.setTitle(settings.translate("subscription.sublist.title"));
 				eb.setDescription(b.toString());
-				eb.setFooter("Nutze ?unsubscribe um Schlüsselwörter zu deabonnieren.");
+				eb.setFooter(settings.translate("subscription.sublist.footer"));
 				eb.setColor(ChocoBot.COLOR_COOKIE);
 
 				channel.sendMessage(eb.build()).queue();
@@ -190,19 +190,17 @@ public class SubscriptionListener extends ListenerAdapter
 		}
 	}
 
-	private void unsubscribe(User user, MessageChannel channel, String keyword)
+	private void unsubscribe(User user, GuildSettings settings, MessageChannel channel, String keyword)
 	{
 		if(keyword.isBlank())
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Bitte gebe ein Schlüsselwort an!"))
-			       .queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "subscription.unsubscribe.error.empty")).queue();
 			return;
 		}
 
 		if(!checkSubscription(user, keyword))
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du hast dieses Schlüsselwort nicht abonniert."))
-			       .queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "subscription.unsubscribe.error.noent")).queue();
 			return;
 		}
 
@@ -216,8 +214,8 @@ public class SubscriptionListener extends ListenerAdapter
 			if(!checkSubscription(user, keyword))
 			{
 				EmbedBuilder eb = new EmbedBuilder();
-				eb.setTitle("Abonnement beendet");
-				eb.setDescription(String.format("Das Schlüsselwort \"%s\" wurde erfolgreich deabonniert.", keyword));
+				eb.setTitle(settings.translate("subscription.unsubscribe.title"));
+				eb.setDescription(settings.translate("subscription.unsubscribe.description", keyword));
 				eb.setColor(ChocoBot.COLOR_COOKIE);
 				channel.sendMessage(eb.build()).queue();
 
@@ -225,7 +223,7 @@ public class SubscriptionListener extends ListenerAdapter
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler beim Deabonnieren."))
+				channel.sendMessage(ChocoBot.translateError(settings, "subscription.unsubscribe.error.internal"))
 				       .queue();
 			}
 		}
@@ -316,10 +314,12 @@ public class SubscriptionListener extends ListenerAdapter
 			return;
 		if(!member.hasPermission(event.getChannel(), Permission.MESSAGE_READ))
 			return;
+		GuildSettings settings = DatabaseUtils.getSettings(event.getGuild());
+
 		member.getUser().openPrivateChannel()
 		      .queue(p -> p.sendMessage(
-		      		String.format(
-		      				"Das von dir abonnierte Schlüsselwort \"%s\" wurde erwähnt:\nhttps://discordapp.com/channels/%d/%d/%d",
+		      		settings.translate(
+		      				"subscription.message",
 					        keyword,
 					        event.getChannel().getGuild().getIdLong(),
 						    event.getChannel().getIdLong(),

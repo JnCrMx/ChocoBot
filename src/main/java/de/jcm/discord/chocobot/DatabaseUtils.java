@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot;
 
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.User;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DatabaseUtils
@@ -232,6 +234,19 @@ public class DatabaseUtils
 	public static GuildSettings getSettings(Guild guild)
 	{
 		return getSettings(guild.getIdLong());
+	}
+
+	public static GuildSettings getUserSettings(User user)
+	{
+		List<Guild> guilds = ChocoBot.jda.getGuilds();
+		for(Guild guild : guilds)
+		{
+			if(guild.retrieveMember(user).onErrorMap(e->null).complete() != null)
+			{
+				return getSettings(guild);
+			}
+		}
+		return getSettings(guilds.get(0));
 	}
 
 	public static void deleteCached(long guild)

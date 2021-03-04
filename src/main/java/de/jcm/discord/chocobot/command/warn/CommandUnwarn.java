@@ -4,9 +4,11 @@ import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,8 +22,7 @@ public class CommandUnwarn extends Command
 	{
 		if(args.length!=1)
 		{
-			channel.sendMessage(ChocoBot.errorMessage(
-					"Du musst mir die ID der zu löschenden Warnung sagen!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.unwarn.error.narg")).queue();
 			return false;
 		}
 
@@ -30,7 +31,7 @@ public class CommandUnwarn extends Command
 
 		if(!settings.isOperator(message.getMember()))
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Verwarnungen löschen!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.unwarn.error.perm")).queue();
 			return false;
 		}
 
@@ -41,7 +42,7 @@ public class CommandUnwarn extends Command
 		}
 		catch (NumberFormatException ignored)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Ich kann die ID nicht verstehen!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.unwarn.error.fmt")).queue();
 			return false;
 		}
 
@@ -68,8 +69,8 @@ public class CommandUnwarn extends Command
 
 						EmbedBuilder builder = new EmbedBuilder();
 						builder.setColor(ChocoBot.COLOR_WARN);
-						builder.setTitle("Erfolg");
-						builder.setDescription("Die Verwarnung wurde erfolgreich gelöscht!");
+						builder.setTitle(settings.translate("commadn.unwarn.title"));
+						builder.setDescription(settings.translate("command.unwarn.message"));
 
 						channel.sendMessage(builder.build()).queue();
 
@@ -77,8 +78,7 @@ public class CommandUnwarn extends Command
 					}
 					else
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Die Verwarnung konnte nicht gefunden werden!"))
-						       .queue();
+						channel.sendMessage(ChocoBot.translateError(settings, "command.unwarn.error.noent")).queue();
 						return false;
 					}
 				}
@@ -95,17 +95,5 @@ public class CommandUnwarn extends Command
 	protected @NotNull String getKeyword()
 	{
 		return "unwarn";
-	}
-
-	@Override
-	protected @Nullable String getHelpText()
-	{
-		return "Nimm eine Verwarnung zurück.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return  "%c <Verwarnungs-ID> (nur Operatoren) : %h";
 	}
 }

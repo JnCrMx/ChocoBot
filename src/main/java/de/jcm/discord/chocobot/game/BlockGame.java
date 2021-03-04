@@ -34,14 +34,12 @@ public class BlockGame extends Command
 		private final double probability;
 		private final int coins;
 		private final String image;
-		private final String message;
 
-		public Prize(double probability, int coins, String image, String message)
+		public Prize(double probability, int coins, String image)
 		{
 			this.probability = probability;
 			this.coins = coins;
 			this.image = image;
-			this.message = message;
 		}
 
 		public double getProbability()
@@ -59,32 +57,21 @@ public class BlockGame extends Command
 			return image;
 		}
 
-		public String getMessage()
+		public String getMessage(GuildSettings settings)
 		{
-			return message;
+			return settings.translate("game.block.prize."+coins+".message", coins);
 		}
 	}
 
 	public static final Prize[] PRIZES = {
-			new Prize(1.0/100, +1000, "large-coin-stack.png",
-			          "OMG! Du hast soeben %d Coins aus dem Block bekommen, du Glückspilz!"),
-			new Prize(9.0/100, +500, "medium-coin-stack.png",
-			          "Du Glücklicher! Du hast %d Coins aus dem Block ergattern können!"),
-			new Prize(10.0/100, +100, "small-coin-stack.png",
-			          "Du hattest Glück, In dem Block waren %d Münzen!"),
-			new Prize(30.0/100, 0, null,
-			          "Schade... offensichtlich enthielt dieser Block nichts."),
-			new Prize(20.0/100, -20, "goomba.png",
-			          "Oha. Ein Gumba, der aus dem Block kam, hat dir soeben %d Coins gemopst!"),
-			new Prize(25.0/100, -100, "koopa.png",
-			          "Aus dem Block kam... ein Koopa... der dir %d Münzen gestohlen hat..."),
-			new Prize((5.0-0.01)/100, -250, "bowser.png",
-			          "***Gwahaha!** Danke, dass du mich soeben aus dem Block befreit hast.... " +
-					          "Dafür habe ich dir %d deiner glänzenden Münzen geklaut!*"),
-			new Prize(0.01/100, +100000, "mueller.png",
-			          "Bist du deppert? Nach langer Zeit hast du die Legende Müller aus dem Block befreit!! " +
-					          "Da schau hi als Dankeschön lässt er %d coins rüberwachsen! " +
-					          "Alles Müller oder was?")
+			new Prize(1.0/100, +1000, "large-coin-stack.png"),
+			new Prize(9.0/100, +500, "medium-coin-stack.png"),
+			new Prize(10.0/100, +100, "small-coin-stack.png"),
+			new Prize(30.0/100, 0, null),
+			new Prize(20.0/100, -20, "goomba.png"),
+			new Prize(25.0/100, -100, "koopa.png"),
+			new Prize((5.0-0.01)/100, -250, "bowser.png"),
+			new Prize(0.01/100, +100000, "mueller.png")
 	};
 
 	@Override
@@ -96,8 +83,7 @@ public class BlockGame extends Command
 
 		if (DatabaseUtils.getCoins(player.getIdLong(), guild.getIdLong()) < COST)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du hast dafür nicht genug Coins! Du brauchst mindestens "
-					+COST+".")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "game.error.not_enough", COST)).queue();
 			return false;
 		}
 		else
@@ -105,9 +91,9 @@ public class BlockGame extends Command
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setColor(ChocoBot.COLOR_GAME);
 			builder.setAuthor("@" + player.getEffectiveName());
-			builder.setTitle("Bestätigen?");
-			builder.setDescription("Wenn du wirklich fortfahren willst, reagiere mit :white_check_mark:!");
-			builder.addField("Preis", COST+" Coins", false);
+			builder.setTitle(settings.translate("game.confirm.title"));
+			builder.setDescription(settings.translate("game.confirm.description"));
+			builder.addField(settings.translate("game.confirm.cost.key"), settings.translate("game.confirm.cost.value", COST), false);
 			channel.sendMessage(builder.build()).queue((m) ->
 			{
 				m.addReaction("✅").queue();
@@ -165,7 +151,7 @@ public class BlockGame extends Command
 							double rnd = random.nextDouble();
 
 							String image = null;
-							String text = "Fehler! Deine 10 Coins werden dir rückerstattet.";
+							String text = settings.translate("game.block.error.general", COST);
 							int coins = 10;
 
 							double sum = 0.0;
@@ -175,7 +161,7 @@ public class BlockGame extends Command
 								{
 									coins = prize.getCoins();
 									image = prize.getImage();
-									text = prize.getMessage();
+									text = prize.getMessage(settings);
 									break;
 								}
 								sum += prize.getProbability();
@@ -229,17 +215,5 @@ public class BlockGame extends Command
 	public @NotNull String getKeyword()
 	{
 		return "block";
-	}
-
-	@Override
-	public @Nullable String getHelpText()
-	{
-		return "Öffne einen ?-Block.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return "%c : %h";
 	}
 }

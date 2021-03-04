@@ -6,7 +6,6 @@ import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,9 +22,9 @@ public class CommandShop extends Command
 		{
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setColor(ChocoBot.COLOR_COINS);
-			builder.setTitle("Rollenshop");
-			builder.setDescription("Folgende Rollen sind verfügbar:");
-			builder.setFooter("Nutze \""+settings.getPrefix()+"shop buy <alias>\" um eine Rolle zu kaufen.");
+			builder.setTitle(settings.translate("command.shop.list.title"));
+			builder.setDescription(settings.translate("command.shop.list.description"));
+			builder.setFooter(settings.translate("command.shop.list.footer", settings.getPrefix()));
 
 			try(Connection connection = ChocoBot.getDatabase();
 			    PreparedStatement statement = connection.prepareStatement("SELECT role, alias, description, cost FROM shop_roles WHERE guild = ?"))
@@ -44,8 +43,8 @@ public class CommandShop extends Command
 					if(role == null)
 						continue;
 
-					builder.addField(alias+" ("+role.getName()+")",
-					                 description+" : "+cost+" Coins",
+					builder.addField(settings.translate("command.shop.list.entry.key", alias, role.getName()),
+					                 settings.translate("command.shop.list.entry.value", description, cost),
 					                 false);
 				}
 			}
@@ -83,7 +82,7 @@ public class CommandShop extends Command
 	private boolean inventory(User user, Guild guild, GuildSettings settings, TextChannel channel)
 	{
 		try(Connection connection = ChocoBot.getDatabase();
-		    PreparedStatement statement = connection.prepareStatement("SELECT r.role, r.alias, r.description FROM shop_roles r, shop_inventory i WHERE " +
+		    PreparedStatement statement = connection.prepareStatement("SELECT r.role, r.alias, r.description, r.cost FROM shop_roles r, shop_inventory i WHERE " +
 				                                                              "r.guild = ? AND " +
 				                                                              "r.guild = i.guild AND "+
 				                                                              "r.role = i.role AND "+
@@ -96,22 +95,23 @@ public class CommandShop extends Command
 
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setColor(ChocoBot.COLOR_COINS);
-			builder.setTitle("Rollenshop");
-			builder.setDescription("Du besitzt folgende Rollen:");
-			builder.setFooter("Nutze \""+settings.getPrefix()+"shop activate <alias>\" um eine diesen Rollen zu aktivieren.");
+			builder.setTitle(settings.translate("command.shop.inventory.title"));
+			builder.setDescription(settings.translate("command.shop.inventory.description"));
+			builder.setFooter(settings.translate("command.shop.inventory.footer", settings.getPrefix()));
 
 			while(resultSet.next())
 			{
 				long roleId = resultSet.getLong("role");
 				String alias = resultSet.getString("alias");
 				String description = resultSet.getString("description");
+				int cost = resultSet.getInt("cost");
 
 				Role role = guild.getRoleById(roleId);
 				if(role == null)
 					continue;
 
-				builder.addField(alias+" ("+role.getName()+")",
-				                 description,
+				builder.addField(settings.translate("command.shop.inventory.entry.key", alias, role.getName()),
+				                 settings.translate("command.shop.inventory.entry.value", description, cost),
 				                 false);
 			}
 
@@ -147,13 +147,13 @@ public class CommandShop extends Command
 				testStatement.setLong(2, user.getIdLong());
 				if(testStatement.executeQuery().next())
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Du besitzt diese Rolle bereits!")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.buy.dup")).queue();
 					return false;
 				}
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich kann diese Rolle nicht finden!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.buy.noent")).queue();
 				return false;
 			}
 		}
@@ -164,7 +164,7 @@ public class CommandShop extends Command
 
 		if(DatabaseUtils.getCoins(user.getIdLong(), guild.getIdLong()) < cost)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du hast nicht genug Coins um diese Rolle zu erwerben!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.buy.not_enough")).queue();
 			return false;
 		}
 
@@ -177,14 +177,14 @@ public class CommandShop extends Command
 
 			if(buyStatement.executeUpdate() == 0)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler.")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.internal")).queue();
 				return false;
 			}
 		}
 		catch(SQLException throwables)
 		{
 			throwables.printStackTrace();
-			channel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler.")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.internal")).queue();
 			return false;
 		}
 
@@ -225,39 +225,39 @@ public class CommandShop extends Command
 				Role role = guild.getRoleById(roleId);
 				if(role == null)
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Die Rolle konnte nicht gefunden werden!")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.activate.noent")).queue();
 					return false;
 				}
 
 				if(member.getRoles().contains(role))
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Du scheinst diese Rolle bereits aktiviert zu haben.")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.activate.dup")).queue();
 					return false;
 				}
 				try
 				{
-					guild.addRoleToMember(member, role).reason("Rollenshop").queue(s -> {
+					guild.addRoleToMember(member, role).reason(settings.translate("command.shop.activate.reason")).queue(s -> {
 						EmbedBuilder builder = new EmbedBuilder();
 						builder.setColor(ChocoBot.COLOR_COINS);
-						builder.setTitle("Rollenshop");
-						builder.setDescription("Die Rolle \"" + alias + "\" wurde erfolgreich aktiviert!");
-						builder.setFooter("Nutze \"" + settings.getPrefix() + "shop deactivate " + alias + "\" um sie wieder zu deaktivieren.");
+						builder.setTitle(settings.translate("command.shop.activate.title"));
+						builder.setDescription(settings.translate("command.shop.activate.description", alias));
+						builder.setFooter(settings.translate("command.shop.activate.footer", settings.getPrefix(), alias));
 						channel.sendMessage(builder.build()).queue();
 					}, e -> {
 						e.printStackTrace();
-						channel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler.")).queue();
+						channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.internal")).queue();
 					});
 				}
 				catch(Exception e)
 				{
 					e.printStackTrace();
-					channel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler.")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.internal")).queue();
 				}
 				return true;
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Du scheinst diese Rolle nicht zu besitzen.")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.activate.not_owned")).queue();
 				return false;
 			}
 		}
@@ -294,39 +294,39 @@ public class CommandShop extends Command
 				Role role = guild.getRoleById(roleId);
 				if(role == null)
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Die Rolle konnte nicht gefunden werden!")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.deactivate.noent")).queue();
 					return false;
 				}
 
 				if(!member.getRoles().contains(role))
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Du scheinst diese Rolle nicht aktiviert zu haben.")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.deactivate.dup")).queue();
 					return false;
 				}
 				try
 				{
-					guild.removeRoleFromMember(member, role).reason("Rollenshop").queue(s -> {
+					guild.removeRoleFromMember(member, role).reason(settings.translate("command.shop.deactivate.reason")).queue(s -> {
 						EmbedBuilder builder = new EmbedBuilder();
 						builder.setColor(ChocoBot.COLOR_COINS);
-						builder.setTitle("Rollenshop");
-						builder.setDescription("Die Rolle \"" + alias + "\" wurde erfolgreich deaktiviert!");
-						builder.setFooter("Nutze \"" + settings.getPrefix() + "shop activate " + alias + "\" um sie wieder zu aktivieren.");
+						builder.setTitle(settings.translate("command.shop.deactivate.title"));
+						builder.setDescription(settings.translate("command.shop.deactivate.description", alias));
+						builder.setFooter(settings.translate("command.shop.deactivate.footer", settings.getPrefix(), alias));
 						channel.sendMessage(builder.build()).queue();
 					}, e -> {
 						e.printStackTrace();
-						channel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler.")).queue();
+						channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.internal")).queue();
 					});
 				}
 				catch(Exception e)
 				{
 					e.printStackTrace();
-					channel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler.")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.internal")).queue();
 				}
 				return true;
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Du scheinst diese Rolle nicht zu besitzen.")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.shop.error.deactivate.not_owned")).queue();
 				return false;
 			}
 		}
@@ -342,21 +342,5 @@ public class CommandShop extends Command
 	protected @NotNull String getKeyword()
 	{
 		return "shop";
-	}
-
-	@Override
-	protected @Nullable String getHelpText()
-	{
-		return "Shop, in dem du Rollen (z.B. Farbrollen) für Coins kaufen kannst.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return  "%c : Zeige alle verfügbaren Rollen an.\n" +
-				"%c i(nventory) : Zeige alle Rollen an, die du gekauft hast.\n" +
-				"%c b(uy) <alias> : Kaufe eine Rolle.\n" +
-				"%c a(ctivate) <alias> : Aktiviere eine gekaufte Rolle.\n" +
-				"%c d(eactivate) <alias> : Deaktiviere eine gekaufte Rolle.";
 	}
 }

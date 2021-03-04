@@ -91,11 +91,7 @@ public class WhoIsItGame extends Game
 			{
 				DatabaseUtils.changeCoins(sponsor.getIdLong(), guild.getIdLong(), getSponsorCost());
 
-				gameChannel.sendMessage(
-						ChocoBot.errorMessage(
-								"Es konnten keine Profilbilder geladen werden!\n" +
-										"Deine Coins wurden rückerstattet."))
-				           .queue();
+				gameChannel.sendMessage(ChocoBot.translateError(settings, "game.weristes.error.noent")).queue();
 				return;
 			}
 
@@ -122,24 +118,21 @@ public class WhoIsItGame extends Game
 				}
 
 				EmbedBuilder builder = new EmbedBuilder();
-				builder.setColor(ChocoBot.COLOR_COOKIE);
-				builder.setTitle("Wer ist es?");
-				builder.setDescription("Schreibe den Namen, die ID oder Nicknamen (*kein Ping!*) " +
-						                       "des Nutzers mit diesem Profilbild, sobald du ihn erkennst!\n" +
-						                       "Du jedoch kannst nur alle 5 Sekunden einen Namen schreiben.");
+				builder.setColor(ChocoBot.COLOR_GAME);
+				builder.setTitle(settings.translate("game.weristes.title"));
+				builder.setDescription(settings.translate("game.weristes.description"));
 
 				gameChannel.sendMessage(builder.build()).addFile(gif, "weristes.gif").queue(msg1->{
 					this.gameMessage = msg1;
 					this.ready.set(true);
 
 					EmbedBuilder builder1 = new EmbedBuilder();
-					builder1.setColor(ChocoBot.COLOR_COOKIE);
-					builder1.setTitle("Wer ist es?");
-					builder1.setDescription("Es hat leider niemand richtig geraten! :sob:\n"+
-							                        "Es war "+avatar.getLeft().getEffectiveName()+"!");
+					builder1.setColor(ChocoBot.COLOR_GAME);
+					builder1.setTitle(settings.translate("game.weristes.results.title"));
+					builder1.setDescription(settings.translate("game.weristes.results.noone", avatar.getLeft().getEffectiveName()));
 					builder1.setThumbnail(avatar.getRight());
 
-					builder1.addField(sponsor.getEffectiveName(), "-" + getSponsorCost() + " Coins", false);
+					builder1.addField(sponsor.getEffectiveName(), settings.translate("game.weristes.results.lost", getSponsorCost()), false);
 
 					deleteFuture = gameChannel
 							.sendMessage(builder1.build())
@@ -232,13 +225,15 @@ public class WhoIsItGame extends Game
 
 			EmbedBuilder builder1 = new EmbedBuilder();
 			builder1.setColor(ChocoBot.COLOR_COOKIE);
-			builder1.setTitle("Wer ist es?");
-			builder1.setDescription(Objects.requireNonNull(event.getMember()).getEffectiveName()+" hat es erraten!\n"+
-					                        "Es war "+avatar.getLeft().getEffectiveName()+"!");
+			builder1.setTitle(settings.translate("game.weristes.results.title"));
+			builder1.setDescription(settings.translate(
+					"game.weristes.results.guessed",
+					Objects.requireNonNull(event.getMember()).getEffectiveName(),
+					avatar.getLeft().getEffectiveName()));
 			builder1.setThumbnail(avatar.getRight());
 
 			int reward = BASE_REWARD + (players.size()-1)*ADDITIONAL_REWARD;
-			builder1.addField(event.getMember().getEffectiveName(), "+" + reward + " Coins", false);
+			builder1.addField(event.getMember().getEffectiveName(), settings.translate("game.weristes.results.won", reward), false);
 
 			try(Connection connection = ChocoBot.getDatabase())
 			{
@@ -257,7 +252,7 @@ public class WhoIsItGame extends Game
 					                          uid,
 					                          guild.getIdLong(),
 					                          reward);
-					builder1.addField(sponsor.getEffectiveName(), "-" + getSponsorCost() + " Coins", false);
+					builder1.addField(sponsor.getEffectiveName(), settings.translate("game.weristes.results.lost", getSponsorCost()), false);
 				}
 			}
 			catch(SQLException throwables)

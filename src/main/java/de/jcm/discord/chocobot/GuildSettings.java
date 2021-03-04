@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import de.jcm.discord.chocobot.api.data.ChannelInfo;
 import de.jcm.discord.chocobot.api.data.RoleInfo;
 import net.dv8tion.jda.api.entities.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 
 public class GuildSettings
 {
+	public static  final Logger LOGGER = LoggerFactory.getLogger(GuildSettings.class);
+
 	private long guild;
 	private String prefix;
 	private long commandChannel;
@@ -274,13 +278,19 @@ public class GuildSettings
 
 	private String getLanguageEntry(String key)
 	{
-		return languageOverrides.getOrDefault(
-				key, ChocoBot.languages.get(language).get(key));
+		String translation = languageOverrides.getOrDefault(key, ChocoBot.languages.get(language).get(key));
+		if(translation == null)
+		{
+			LOGGER.warn("Cannot find translation for key \"{}\"!", key);
+		}
+
+		return translation;
 	}
 
 	public String translate(String key, Object...args)
 	{
 		String translation = getLanguageEntry(key);
+		translation = translation.replace("\\n", "\n");
 
 		int keyStart;
 		while((keyStart = translation.indexOf("@{"))!=-1)

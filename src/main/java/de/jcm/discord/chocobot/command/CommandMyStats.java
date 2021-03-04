@@ -17,31 +17,31 @@ import java.util.Map;
 public class CommandMyStats extends Command
 {
 	private static final String[][] statEntries = {
-			{"Maximale Coins \uD83D\uDCB0", "max_coins"},
-			{"Maximale Daily Streak \uD83D\uDC8E", "daily.max_streak"},
+			{"max_coins"},
+			{"daily.max_streak"},
 			{},
-			{"Quiz"},
-			{"Gespielt \uD83C\uDFAE", "game.quiz.played"},
-			{"Gesponsert \uD83D\uDCEF", "game.quiz.sponsored"},
-			{"Gewonnen \uD83C\uDFC5", "game.quiz.won"},
-			{"Platz 1 \uD83E\uDD47", "game.quiz.won.place.1"},
-			{"Platz 2 \uD83E\uDD48", "game.quiz.won.place.2"},
-			{"Platz 3 \uD83E\uDD49", "game.quiz.won.place.3"},
+			{null, "Quiz", null},
+			{"game.quiz.played"},
+			{"game.quiz.sponsored"},
+			{"game.quiz.won"},
+			{"game.quiz.won.place.1"},
+			{"game.quiz.won.place.2"},
+			{"game.quiz.won.place.3"},
 			{},
-			{"Geschenke"},
-			{"Gespielt \uD83C\uDFAE", "game.geschenke.played"},
-			{"Gesponsert \uD83D\uDCEF", "game.geschenke.sponsored"},
-			{"Gesammelt \uD83C\uDF81", "game.geschenke.collected"},
+			{null, "Geschenke", null},
+			{"game.geschenke.played"},
+			{"game.geschenke.sponsored"},
+			{"game.geschenke.collected"},
 			{},
-			{"Block"},
-			{"Gespielt \uD83C\uDFAE", "game.block.played"},
-			{"+1000 \uD83D\uDCB8", "game.block.prize.1000"},
-			{"+500", "game.block.prize.500"},
-			{"+100", "game.block.prize.100"},
-			{"+/-0", "game.block.prize.0"},
-			{"-20", "game.block.prize.-20"},
-			{"-100", "game.block.prize.-100"},
-			{"-250 \uD83D\uDE08", "game.block.prize.-250"},
+			{null, "Block", null},
+			{"game.block.played"},
+			{"game.block.prize.1000"},
+			{"game.block.prize.500"},
+			{"game.block.prize.100"},
+			{"game.block.prize.0"},
+			{"game.block.prize.-20"},
+			{"game.block.prize.-100"},
+			{"game.block.prize.-250"},
 	};
 
 	@Override
@@ -70,12 +70,13 @@ public class CommandMyStats extends Command
 					}
 					else
 					{
-						builder.addField(line[0], "", false);
+						builder.addField(settings.translate("command.mystats.entry."+line[0]),
+						                 String.valueOf(stats.getOrDefault(line[0], 0)), false);
 					}
 				}
-				else
+				else if(line.length == 3)
 				{
-					builder.addField(line[0], String.valueOf(stats.getOrDefault(line[1], 0)), true);
+					builder.addField(line[1], "", false);
 				}
 			}
 
@@ -94,17 +95,5 @@ public class CommandMyStats extends Command
 	protected @NotNull String getKeyword()
 	{
 		return "mystats";
-	}
-
-	@Override
-	protected @Nullable String getHelpText()
-	{
-		return "Zeige eigene Statistiken an.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return "%c : %h";
 	}
 }

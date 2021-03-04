@@ -137,13 +137,13 @@ public class CommandAnime extends Command
 	}
 
 	@Override
-	protected @Nullable String getHelpText()
+	protected @Nullable String getHelpText(GuildSettings settings)
 	{
 		return null;
 	}
 
 	@Override
-	protected @Nullable String getUsage()
+	protected @Nullable String getUsage(GuildSettings settings)
 	{
 		return null;
 	}

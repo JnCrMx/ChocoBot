@@ -21,7 +21,7 @@ public class CommandHelp extends Command
 		if(args.length==0)
 		{
 			EmbedBuilder builder = new EmbedBuilder();
-			builder.setTitle("Befehle");
+			builder.setTitle(settings.translate("command.help.title"));
 			builder.setColor(ChocoBot.COLOR_COOKIE);
 			Collection<Command> commands = Command.commands.values();
 			commands.stream().sorted((e1, e2) ->
@@ -29,12 +29,10 @@ public class CommandHelp extends Command
 					                           .compareToIgnoreCase(e2.getKeyword()))
 			        .forEach((command) ->
 			                 {
-				                 if(command
-						                 .getHelpText() != null)
+				                 if(command.getHelpText(settings) != null)
 				                 {
 					                 builder.addField(settings.getPrefix() + command
-							                 .getKeyword(), command
-							                                  .getHelpText(), false);
+							                 .getKeyword(), command.getHelpText(settings), false);
 				                 }
 
 			                 });
@@ -50,9 +48,9 @@ public class CommandHelp extends Command
 			}
 
 			Command command = Command.getCommand(keyword);
-			if(command == null || command.getHelpText()==null || command.getUsage()==null)
+			if(command == null || command.getHelpText(settings)==null || command.getUsage(settings)==null)
 			{
-				ChocoBot.errorMessage("Ich konnte diesen Befehl nicht finden!");
+				channel.sendMessage(ChocoBot.translateError(settings, "command.help.error.noent")).queue();
 				return false;
 			}
 			command.showUsage(channel, settings);
@@ -70,17 +68,5 @@ public class CommandHelp extends Command
 	public String getKeyword()
 	{
 		return "help";
-	}
-
-	public String getHelpText()
-	{
-		return "Zeige Hilfe an.";
-	}
-
-	@Override
-	protected String getUsage()
-	{
-		return  "%c : Zeige Liste aller Befehle\n" +
-				"%c <Befehl> : Informiere über Verwendung eines Befehls";
 	}
 }

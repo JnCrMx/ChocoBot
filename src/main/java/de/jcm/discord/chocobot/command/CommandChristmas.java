@@ -28,7 +28,6 @@ import java.util.stream.Stream;
 public class CommandChristmas extends Command
 {
 	private static final int BOT_GIFT_AMOUNT = 250;
-	private static final String BOT_GIFT_MESSAGE = "Fröhliche Weihnacht vom ChocoBot!";
 
 	private static class ChristmasGift
 	{
@@ -113,7 +112,7 @@ public class CommandChristmas extends Command
 		}
 		if(now.getDayOfMonth() <= 23)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Es ist noch etwas zu früh :P")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.christmas.error.early")).queue();
 			return false;
 		}
 
@@ -146,7 +145,7 @@ public class CommandChristmas extends Command
 					botGift.setLong(2, ChocoBot.jda.getSelfUser().getIdLong());
 					botGift.setLong(3, guild.getIdLong());
 					botGift.setInt(4, BOT_GIFT_AMOUNT);
-					botGift.setString(5, BOT_GIFT_MESSAGE);
+					botGift.setString(5, settings.translate("command.christmas.bot_message", message.getAuthor().getAsTag()));
 					botGift.setInt(6, now.getYear());
 					botGift.executeUpdate();
 
@@ -159,14 +158,14 @@ public class CommandChristmas extends Command
 					}
 					else
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Interner Fehler!")).queue();
+						channel.sendMessage(ChocoBot.translateError(settings, "command.christmas.error.general")).queue();
 					}
 				}
 			}
 			catch(SQLException throwables)
 			{
 				throwables.printStackTrace();
-				channel.sendMessage(ChocoBot.errorMessage("Interner Fehler!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.christmas.error.general")).queue();
 				return false;
 			}
 
@@ -256,7 +255,7 @@ public class CommandChristmas extends Command
 
 					if(opened)
 					{
-						channel.sendMessage(ChocoBot.errorMessage("Dieses Geschenk ist bereits geöffnet")).queue();
+						channel.sendMessage(ChocoBot.translateError(settings, "command.christmas.error.opened")).queue();
 						return false;
 					}
 
@@ -270,9 +269,9 @@ public class CommandChristmas extends Command
 					openStatement.executeUpdate();
 
 					EmbedBuilder builder = new EmbedBuilder();
-					builder.setTitle("Fröhliche Weihnachten!");
+					builder.setTitle(settings.translate("command.christmas.title"));
 					builder.setColor(ChocoBot.COLOR_COOKIE);
-					String description = String.format("%s schenkt dir %d Coins!", sender.getEffectiveName(), amount);
+					String description = settings.translate("command.christmas.message", sender.getEffectiveName(), amount);
 					if(textMessage != null)
 						description += "\n\n"+textMessage;
 					builder.setDescription(description);
@@ -281,13 +280,13 @@ public class CommandChristmas extends Command
 				}
 				else
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Ich kann dieses Geschenk leider nicht finden.")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.christmas.error.noent")).queue();
 					return false;
 				}
 			}
 			catch(NumberFormatException var13)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich kann leider nicht verstehen, welches Geschenk du öffnen willst.")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.christmas.error.fmt")).queue();
 				return false;
 			}
 			catch(SQLException throwables)
@@ -297,7 +296,7 @@ public class CommandChristmas extends Command
 		}
 		else
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Ich kann nicht verstehen, was du tun willst.")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.christmas.error.narg")).queue();
 			return false;
 		}
 
@@ -311,21 +310,20 @@ public class CommandChristmas extends Command
 	}
 
 	@Override
-	protected @Nullable String getHelpText()
+	protected @Nullable String getHelpText(GuildSettings settings)
 	{
 		if(LocalDateTime.now().getMonth() != Month.DECEMBER)
 			return null;
 		else
-			return "Weihnachtsgeschenke!";
+			return super.getHelpText(settings);
 	}
 
 	@Override
-	protected @Nullable String getUsage()
+	protected @Nullable String getUsage(GuildSettings settings)
 	{
 		if(LocalDateTime.now().getMonth() != Month.DECEMBER)
 			return null;
 		else
-			return  "%c : Zeige deinen Weihnachtsbaum an.\n" +
-					"%c <nummer> : Öffne ein Geschenk.";
+			return super.getUsage(settings);
 	}
 }

@@ -1,17 +1,20 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Random;
 
 public class CommandMeme extends PaidCommand
 {
@@ -23,11 +26,11 @@ public class CommandMeme extends PaidCommand
 		this.baseTarget = ChocoBot.client.target("https://oauth.reddit.com");
 	}
 
-	public boolean executePaid(Message message, TextChannel channel, Guild guild, String... args)
+	public boolean executePaid(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
 	{
 		if (args.length != 1)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst mir schon sagen, wo ich das Meme hernehmen soll!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.meme.error.narg")).queue();
 			return false;
 		}
 		else
@@ -40,9 +43,9 @@ public class CommandMeme extends PaidCommand
 
 			WebTarget target = this.baseTarget.path(subreddit).path("new").property("limit", 100);
 			Response response = target.request(MediaType.APPLICATION_JSON).header("Authorization", "Bearer " + ChocoBot.redditToken).get();
-			if (response.getStatus() != 200)
+			if(response.getStatus() != 200)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich kann auf diesen Subreddit nicht zugreifen!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.meme.error.internal")).queue();
 				return false;
 			}
 			else
@@ -79,7 +82,7 @@ public class CommandMeme extends PaidCommand
 						this.logger.debug("Rejected url \"" + imgURL + "\" because it does not seem to be a meme. Is that correct?");
 					}
 				}
-				channel.sendMessage(ChocoBot.errorMessage("Ich konnte keine Memes finden!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.meme.error.noent")).queue();
 				return false;
 			}
 		}
@@ -122,22 +125,9 @@ public class CommandMeme extends PaidCommand
 		return "meme";
 	}
 
-	@Nullable
-	public String getPaidHelpText()
-	{
-		return "Zeige ein zufälliges Meme aus einem Subreddit an.";
-	}
-
 	@Override
 	protected int getCost()
 	{
 		return 10;
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return  "%c <Subreddit> : %h\n" +
-				"%c r/<Subreddit> : %h";
 	}
 }

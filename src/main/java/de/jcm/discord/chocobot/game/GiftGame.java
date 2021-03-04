@@ -51,13 +51,12 @@ public class GiftGame extends Game
 	{
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setColor(ChocoBot.COLOR_GAME);
-		builder.setTitle("Geschenke!");
+		builder.setTitle(settings.translate("game.geschenke.title"));
 
 		int giftCount = players.size()*5;
 		int messageCount = giftCount*5;
 
-		builder.setDescription("In den letzten "+messageCount+" Nachrichten wurden "+
-				giftCount+" Geschenke versteckt. Such nach ihnen und reagiere auf sie!");
+		builder.setDescription(settings.translate("game.geschenke.description", messageCount, giftCount));
 		this.gameChannel.sendMessage(builder.build()).queue((m) ->
 		{
 			this.gameMessage = m;
@@ -66,15 +65,15 @@ public class GiftGame extends Game
 				this.targets.forEach(this::removeReactions);
 				EmbedBuilder builder1 = new EmbedBuilder();
 				builder1.setColor(ChocoBot.COLOR_GAME);
-				builder1.setTitle("Punkte");
-				builder1.setDescription("Die folgenden Punktzahlen wurden erreicht:");
+				builder1.setTitle(settings.translate("game.geschenke.results.title"));
+				builder1.setDescription(settings.translate("game.geschenke.results.description"));
 				try(Connection connection = ChocoBot.getDatabase())
 				{
-					this.scores.entrySet().stream().sorted(Comparator.comparingInt(Entry::getValue)).forEach((e) ->
+					this.scores.entrySet().stream().sorted(Comparator.<Entry<Member, Integer>>comparingInt(Entry::getValue).reversed()).forEach((e) ->
 					{
 						int count = e.getValue();
 						int coins = count * REWARD_PER_GIFT;
-						builder1.addField(e.getKey().getEffectiveName(), count + EMOJI_GIFT + " => +" + coins + " Coins", false);
+						builder1.addField(e.getKey().getEffectiveName(), settings.translate("game.geschenke.results.result", count, EMOJI_GIFT, coins), false);
 						DatabaseUtils.changeCoins(connection, e.getKey().getIdLong(), guild.getIdLong(), coins);
 
 						try
@@ -152,8 +151,7 @@ public class GiftGame extends Game
 				this.state = GameState.FINISHED;
 
 				DatabaseUtils.changeCoins(sponsor.getIdLong(), guild.getIdLong(), getSponsorCost());
-				gameChannel.sendMessage(ChocoBot.errorMessage("Es gab einen Fehler! " +
-						"Deine Coins wurden rückerstattet!")).queue();
+				gameChannel.sendMessage(ChocoBot.translateError(settings, "game.geschenke.error.general")).queue();
 			}
 		});
 	}

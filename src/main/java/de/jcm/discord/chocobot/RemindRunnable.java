@@ -54,6 +54,7 @@ class RemindRunnable implements Runnable
 					Guild guild = this.jda.getGuildById(guildId);
 					if(guild == null)
 						continue;
+					GuildSettings settings = DatabaseUtils.getSettings(guild);
 
 					TextChannel remindChannel = null;
 					if(channelId != 0)
@@ -67,34 +68,31 @@ class RemindRunnable implements Runnable
 						assert remindChannel != null;
 					}
 
-					StringBuilder botMessage = new StringBuilder();
-					botMessage.append(user.getAsMention());
-					botMessage.append(", ich soll dich");
+					String botMessage;
 					if(issuerId != uid)
 					{
-						botMessage.append(" von ");
-
-						assert issuer != null;
-
-						botMessage.append(Objects.requireNonNull(guild.retrieveMember(issuer).complete()).getEffectiveName());
+						if(message != null)
+							botMessage = settings.translate(
+									"reminder.other.message", user.getAsMention(),
+									Objects.requireNonNull(guild.retrieveMember(issuer).complete()).getEffectiveName(),
+									message);
+						else
+							botMessage = settings.translate(
+									"reminder.other.plain", user.getAsMention(),
+									Objects.requireNonNull(guild.retrieveMember(issuer).complete()).getEffectiveName());
 					}
-
-					if(message != null)
+					else
 					{
-						botMessage.append(" an ");
-						botMessage.append('"');
-						botMessage.append(message);
-						botMessage.append('"');
+						if(message != null)
+							botMessage = settings.translate("reminder.self.message", user.getAsMention(), message);
+						else
+							botMessage = settings.translate("reminder.self.plain", user.getAsMention());
 					}
-
-					botMessage.append(" erinnern!");
 					if(clock - time > 60000L)
 					{
-						botMessage.append(" Ich bin leider verspätet! Die Erinnerung sollte eigentlich ");
-						botMessage.append(this.outputFormatter.format(LocalDateTime
-								                                              .ofInstant(Instant.ofEpochMilli(time), ZoneId
-										                                              .systemDefault())));
-						botMessage.append(" erinnern.");
+						String timeString = this.outputFormatter.format(
+								LocalDateTime.ofInstant(Instant.ofEpochMilli(time), ZoneId.systemDefault()));
+						botMessage += " " + settings.translate("reminder.delay", timeString);
 					}
 
 					remindChannel.sendMessage(botMessage.toString()).queue();

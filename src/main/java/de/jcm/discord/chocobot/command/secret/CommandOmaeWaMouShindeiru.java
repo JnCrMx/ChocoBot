@@ -34,7 +34,7 @@ public class CommandOmaeWaMouShindeiru extends Command
 		}
 		else
 		{
-			channel.sendMessage("NANI?!").queue();
+			channel.sendMessage(settings.translate("command.omae.secret.message")).queue();
 			return true;
 		}
 	}
@@ -45,13 +45,13 @@ public class CommandOmaeWaMouShindeiru extends Command
 		return "omae";
 	}
 
-	public String getHelpText()
+	public String getHelpText(GuildSettings settings)
 	{
 		return null;
 	}
 
 	@Override
-	protected @Nullable String getUsage()
+	protected @Nullable String getUsage(GuildSettings settings)
 	{
 		return null;
 	}

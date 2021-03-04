@@ -71,14 +71,14 @@ public abstract class Command
 		EmbedBuilder eb = new EmbedBuilder();
 		eb.setTitle(prefix+getKeyword());
 
-		usage = usage.replace("%p", prefix);
-		usage = usage.replace("%c", prefix+getKeyword());
-		usage = usage.replace("%C", getKeyword());
+		usage = usage.replace("$p", prefix);
+		usage = usage.replace("$c", prefix+getKeyword());
+		usage = usage.replace("$C", getKeyword());
 
 		String helpText = getHelpText(settings);
 		if(helpText!=null)
 		{
-			usage = usage.replace("%h", helpText);
+			usage = usage.replace("$h", helpText);
 		}
 
 		eb.setDescription(usage);

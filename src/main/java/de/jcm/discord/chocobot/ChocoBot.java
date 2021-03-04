@@ -45,6 +45,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class ChocoBot extends ListenerAdapter
 {
@@ -254,6 +255,7 @@ public class ChocoBot extends ListenerAdapter
 					BufferedReader lre = new BufferedReader(new InputStreamReader(lin)))
 				{
 					lre.lines()
+					   .filter(Predicate.not(String::isBlank))
 					   .map(line->new ImmutablePair<>(line.substring(0, line.indexOf('=')), line.substring(line.indexOf('=')+1)))
 					   .forEach(e->map.put(e.getKey(), e.getValue()));
 				}
@@ -393,6 +395,11 @@ public class ChocoBot extends ListenerAdapter
 		redditToken = (String) response.get("access_token");
 		int exp = (Integer) response.get("expires_in");
 		executorService.schedule(ChocoBot::initReddit, exp - 10, TimeUnit.SECONDS);
+	}
+
+	public static MessageEmbed translateError(GuildSettings settings, String key, Object... args)
+	{
+		return errorMessage(settings, settings.translate(key, args));
 	}
 
 	public static MessageEmbed errorMessage(GuildSettings settings, String message)

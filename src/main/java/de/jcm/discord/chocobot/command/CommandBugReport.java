@@ -64,9 +64,9 @@ public class CommandBugReport extends Command
 				}
 
 				EmbedBuilder eb = new EmbedBuilder();
-				eb.setTitle("Issue");
+				eb.setTitle(settings.translate("command.bugreport.title"));
 				eb.setColor(ChocoBot.COLOR_COOKIE);
-				eb.setDescription("Dein Issue wurde erfolgreich gesendet:\n"+htmlURL);
+				eb.setDescription(settings.translate("command.bugreport.issue.message", htmlURL));
 
 				channel.sendMessage(eb.build()).queue();
 			}
@@ -88,9 +88,9 @@ public class CommandBugReport extends Command
 				print.close();
 
 				EmbedBuilder eb = new EmbedBuilder();
-				eb.setTitle("Fehlermeldung");
+				eb.setTitle(settings.translate("command.bugreport.title"));
 				eb.setColor(ChocoBot.COLOR_COOKIE);
-				eb.setDescription("Deine Fehlermeldung wurde erfolgreich gespeichert!");
+				eb.setDescription(settings.translate("command.bugreport.message"));
 
 				channel.sendMessage(eb.build()).queue();
 			}
@@ -100,9 +100,7 @@ public class CommandBugReport extends Command
 		{
 			e.printStackTrace();
 
-			channel.sendMessage(
-						ChocoBot.errorMessage("Es trat ein Fehler beim Senden der Fehlermeldung auf!"))
-			       .queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.bugreport.error.general")).queue();
 
 			return false;
 		}
@@ -114,25 +112,10 @@ public class CommandBugReport extends Command
 		return "bugreport";
 	}
 
-	@Override
-	public @Nullable String getHelpText()
-	{
-		return "Sende eine Fehlermeldung.";
-	}
 
 	@Override
 	public boolean multipleArguments()
 	{
 		return false;
-	}
-
-	@Override
-	protected String getUsage()
-	{
-		return  "%c <Titel> : Sende eine Fehlermeldung (nur aus Titel bestehend).\n" +
-				"%c <Titel>(Zeilenumbruch)<Text> : Sende eine Fehlermeldung mit Kommentar.\n" +
-				"\n" +
-				"Optionen:\n" +
-				"+tag (am Ende) : füge den Discord-Tag des Absenders in die Fehlermeldung ein.";
 	}
 }

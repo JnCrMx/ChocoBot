@@ -79,6 +79,8 @@ public class MerryChristmasListener extends ListenerAdapter
 
 		if(message.startsWith("?merry-christmas"))
 		{
+			GuildSettings settings = DatabaseUtils.getUserSettings(user);
+
 			LocalDateTime now = LocalDateTime.now();
 			if(now.getMonth() != Month.DECEMBER)
 			{
@@ -86,7 +88,7 @@ public class MerryChristmasListener extends ListenerAdapter
 			}
 			if(now.getDayOfMonth() >= 27)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Es ist leider schon zu spät dafür. :cry:")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "merry-christmas.error.late")).queue();
 				return;
 			}
 
@@ -99,7 +101,7 @@ public class MerryChristmasListener extends ListenerAdapter
 
 			if(args.length < 2)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Argumente fehlen:\n?merry-christmas <ID des Empfängers> <Anzahl der Coins> [Nachricht]")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "merry-christmas.error.narg")).queue();
 				return;
 			}
 
@@ -109,7 +111,7 @@ public class MerryChristmasListener extends ListenerAdapter
 				int amount = Integer.parseInt(args[1]);
 				if(amount < 0)
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Das wäre Diebstahl!")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "merry-christmas.error.negative")).queue();
 				}
 				String textMessage = null;
 				if(args.length > 2)
@@ -120,7 +122,7 @@ public class MerryChristmasListener extends ListenerAdapter
 				User receiverUser = ChocoBot.jda.retrieveUserById(receiverId).onErrorMap(t->null).complete();
 				if(receiverUser == null)
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Ich kann den Empfänger leider nicht finden.")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "merry-christmas.error.who")).queue();
 					return;
 				}
 
@@ -140,7 +142,7 @@ public class MerryChristmasListener extends ListenerAdapter
 				}
 				if(possibleGuilds.size() == 0)
 				{
-					channel.sendMessage(ChocoBot.errorMessage("Du teilst keinen Server mit dem Empfänger.")).queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "merry-christmas.error.mutual")).queue();
 					return;
 				}
 
@@ -157,11 +159,9 @@ public class MerryChristmasListener extends ListenerAdapter
 				else
 				{
 					EmbedBuilder builder = new EmbedBuilder();
-					builder.setTitle("Server auswählen");
+					builder.setTitle(settings.translate("merry-christmas.server_select.title"));
 					builder.setColor(ChocoBot.COLOR_COOKIE);
-					builder.setDescription("Es ist nicht eindeutig, auf welchem Server, " +
-							                       "du das Geschenk versenden willst.\n" +
-							                       "Wähle also einen per Reaktion aus.");
+					builder.setDescription(settings.translate("merry-christmas.server_select.description"));
 					List<ChristmasGift> choiceList = new ArrayList<>();
 					try(Connection connection = ChocoBot.getDatabase())
 					{
@@ -177,16 +177,21 @@ public class MerryChristmasListener extends ListenerAdapter
 								                                 pair.getLeft().getIdLong(),
 								                                 pair.getRight().getIdLong(),
 								                                 amount, textMessage));
-								builder.addField(EMOJIS_ANSWER[i] + " " + guild.getName(),
-								                 coins+" Coins | an " + pair.getRight().getEffectiveName(),
-								                 false);
+								builder.addField(
+										EMOJIS_ANSWER[i] + " " + guild.getName(),
+										settings.translate(
+												"merry-christmas.server_select.entry",
+												coins, pair.getRight().getEffectiveName()),
+										false);
 								i++;
 							}
 							else
 							{
-								builder.addField(guild.getName(),
-								                 coins+" Coins (nicht genug) | an " + pair.getRight().getEffectiveName(),
-								                 false);
+								builder.addField(
+										guild.getName(), settings.translate(
+												"merry-christmas.server_select.entry.not_enough",
+												coins, pair.getRight().getEffectiveName()),
+										false);
 							}
 						}
 					}
@@ -211,7 +216,7 @@ public class MerryChristmasListener extends ListenerAdapter
 			}
 			catch(NumberFormatException var13)
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Ich kann leider nicht verstehen, wie viele Coins du verschenken willst.")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "merry-christmas.error.fmt")).queue();
 			}
 		}
 	}
@@ -235,12 +240,14 @@ public class MerryChristmasListener extends ListenerAdapter
 
 	private void processGuild(ChristmasGift gift, PrivateChannel channel)
 	{
+		GuildSettings settings = DatabaseUtils.getSettings(gift.getGuild());
+		assert settings != null;
 		try
 		{
 			int coins = DatabaseUtils.getCoins(gift.getSender(), gift.getGuild());
 			if(coins < gift.getAmount())
 			{
-				channel.sendMessage(ChocoBot.errorMessage("So viele Coins besitzt du nicht!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "merry-christmas.error.not_enough")).queue();
 				return;
 			}
 
@@ -259,14 +266,14 @@ public class MerryChristmasListener extends ListenerAdapter
 			}
 
 			EmbedBuilder builder = new EmbedBuilder();
-			builder.setTitle("Fröhliche Weihnachten!");
+			builder.setTitle(settings.translate("merry-christmas.success.title"));
 			builder.setColor(ChocoBot.COLOR_COOKIE);
-			builder.setDescription("Dein Geschenk wurde erfolgreich versendet.");
+			builder.setDescription(settings.translate("merry-christmas.success.description"));
 			channel.sendMessage(builder.build()).queue();
 		}
 		catch(Throwable t)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Interner Fehler!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "merry-christmas.error.internal")).queue();
 			t.printStackTrace();
 		}
 	}

@@ -35,7 +35,7 @@ public class CommandLeaderboard extends Command
 
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setAuthor(message.getAuthor().getName());
-			builder.setTitle("Bestenliste");
+			builder.setTitle(settings.translate("command.leaderboard.title"));
 			builder.setColor(ChocoBot.COLOR_COOKIE);
 
 			Map<Long, Integer> currentCoins = new HashMap<>();
@@ -60,30 +60,30 @@ public class CommandLeaderboard extends Command
 				}
 			}
 
-			makeLeaderboard(builder, "momentane Coins \uD83D\uDCB0", currentCoins);
-			makeLeaderboard(builder, "maximale Coins \uD83D\uDCB0", stats.getOrDefault("max_coins", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.current_coins", currentCoins);
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.max_coins", stats.getOrDefault("max_coins", new HashMap<>()));
 
 			builder.addBlankField(false);
-			makeLeaderboard(builder, "momentane Streak \uD83D\uDC8E", currentStreaks);
-			makeLeaderboard(builder, "maximale Streak \uD83D\uDC8E", stats.getOrDefault("daily.max_streak", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.current_streak", currentStreaks);
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.max_streak", stats.getOrDefault("daily.max_streak", new HashMap<>()));
 
 			builder.addBlankField(false);
-			makeLeaderboard(builder, "Quiz gesponsert \uD83D\uDCEF", stats.getOrDefault("game.quiz.sponsored", new HashMap<>()));
-			makeLeaderboard(builder, "Quiz gespielt \uD83C\uDFAE", stats.getOrDefault("game.quiz.played", new HashMap<>()));
-			makeLeaderboard(builder, "Quiz gewonnen \uD83C\uDFC5", stats.getOrDefault("game.quiz.won", new HashMap<>()));
-			makeLeaderboard(builder, "Quiz als 1. Platz gewonnen \uD83E\uDD47", stats.getOrDefault("game.quiz.won.place.1", new HashMap<>()));
-			makeLeaderboard(builder, "Quiz als 2. Platz gewonnen \uD83E\uDD48", stats.getOrDefault("game.quiz.won.place.2", new HashMap<>()));
-			makeLeaderboard(builder, "Quiz als 3. Platz gewonnen \uD83E\uDD49", stats.getOrDefault("game.quiz.won.place.3", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.quiz.sponsored", stats.getOrDefault("game.quiz.sponsored", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.quiz.played", stats.getOrDefault("game.quiz.played", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.quiz.won", stats.getOrDefault("game.quiz.won", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.quiz.1st", stats.getOrDefault("game.quiz.won.place.1", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.quiz.2nd", stats.getOrDefault("game.quiz.won.place.2", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.quiz.3rd", stats.getOrDefault("game.quiz.won.place.3", new HashMap<>()));
 
 			builder.addBlankField(false);
-			makeLeaderboard(builder, "Geschenke gesponsert \uD83D\uDCEF", stats.getOrDefault("game.geschenke.sponsored", new HashMap<>()));
-			makeLeaderboard(builder, "Geschenke gespielt \uD83C\uDFAE", stats.getOrDefault("game.geschenke.played", new HashMap<>()));
-			makeLeaderboard(builder, "Geschenke gesammelt \uD83C\uDF81", stats.getOrDefault("game.geschenke.collected", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.geschenke.sponsored", stats.getOrDefault("game.geschenke.sponsored", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.geschenke.played", stats.getOrDefault("game.geschenke.played", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.geschenke.collected", stats.getOrDefault("game.geschenke.collected", new HashMap<>()));
 
 			builder.addBlankField(false);
-			makeLeaderboard(builder, "Block gespielt \uD83C\uDFAE", stats.getOrDefault("game.block.played", new HashMap<>()));
-			makeLeaderboard(builder, "1000 Coins gewonnen \uD83D\uDCB8", stats.getOrDefault("game.block.prize.1000", new HashMap<>()));
-			makeLeaderboard(builder, "250 Coins verloren \uD83D\uDE08", stats.getOrDefault("game.block.prize.-250", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.block.played", stats.getOrDefault("game.block.played", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.block.1000", stats.getOrDefault("game.block.prize.1000", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.block.-250", stats.getOrDefault("game.block.prize.-250", new HashMap<>()));
 
 			channel.sendMessage(builder.build()).queue();
 
@@ -96,7 +96,7 @@ public class CommandLeaderboard extends Command
 		}
 	}
 
-	private static void makeLeaderboard(EmbedBuilder builder, String title, Map<Long, Integer> values)
+	private static void makeLeaderboard(EmbedBuilder builder, GuildSettings settings, String title, Map<Long, Integer> values)
 	{
 		Comparator<Map.Entry<Long, Integer>> comparator = Comparator.comparingInt(Map.Entry::getValue);
 
@@ -110,7 +110,7 @@ public class CommandLeaderboard extends Command
 		                                              .append(ChocoBot.provideUser(e.getKey(), UserData::getTag, "Unknown user"))
 		                                              .append(": ").append(e.getValue()).append('\n'),
 		                                     StringBuffer::append);
-		builder.addField(title, buffer.toString(), true);
+		builder.addField(settings.translate(title), buffer.toString(), true);
 	}
 
 	private static String makeBadge(int rank)
@@ -125,17 +125,5 @@ public class CommandLeaderboard extends Command
 	protected @NotNull String getKeyword()
 	{
 		return "leaderboard";
-	}
-
-	@Override
-	protected @Nullable String getHelpText()
-	{
-		return "Zeigt die Bestenliste an.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return "%c : %h";
 	}
 }

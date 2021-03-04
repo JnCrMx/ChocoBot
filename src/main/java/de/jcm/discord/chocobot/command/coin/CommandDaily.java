@@ -97,7 +97,7 @@ public class CommandDaily extends Command
 					else
 					{
 						dailyStreak = 0;
-						builder.setFooter("Du hast deine Streak verloren! \ud83d\ude2d");
+						builder.setFooter(settings.translate("command.daily.streak_lost"));
 					}
 				}
 
@@ -120,27 +120,27 @@ public class CommandDaily extends Command
 					DatabaseUtils.updateStat(connection, uid, guild.getIdLong(), "daily.max_streak", dailyStreak);
 					DatabaseUtils.updateStat(connection, uid, guild.getIdLong(), "max_coins", coins);
 				}
-				builder.setTitle(":moneybag: Coins :moneybag:");
+				builder.setTitle(settings.translate("command.daily.title"));
 				builder.setColor(ChocoBot.COLOR_COINS);
-				builder.setDescription("Du hast einen täglichen Bonus von " + coinsToAdd + " Coins erhalten!");
-				builder.addField("Deine Coins", Integer.toString(coins), false);
-				builder.addField("Deine Streak", Integer.toString(dailyStreak), false);
+				builder.setDescription(settings.translate("command.daily.message", coinsToAdd));
+				builder.addField(settings.translate("command.daily.your_coins"), Integer.toString(coins), false);
+				builder.addField(settings.translate("command.daily.your_streak"), Integer.toString(dailyStreak), false);
 
 				if(christmas)
 				{
-					builder.appendDescription("\nDa Weihnachten ist, erhältst du doppelt so viele Coins! \uD83C\uDF84");
+					builder.appendDescription("\n"+settings.translate("command.daily.christmas_bonus"));
 				}
 				if(christmasSave)
 				{
-					builder.appendDescription("\nEin Weihnachtsengel hat deine Streak gerettet! \uD83D\uDC7C");
+					builder.appendDescription("\n"+settings.translate("command.daily.christmas_save"));
 				}
 				if(christmasGifts)
 				{
-					builder.setFooter("Du hast noch ungeöffnete Weihnachtsgeschenke! \uD83C\uDF81");
+					builder.setFooter(settings.translate("command.daily.christmas_presents"));
 				}
 				if(first)
 				{
-					builder.appendDescription("\nDu bist Erster auf diesem Server und erhältst deshalb einen Bonus von "+FIRST_BONUS+" Coins! \uD83E\uDD73");
+					builder.appendDescription(" "+settings.translate("command.daily.first", FIRST_BONUS));
 				}
 
 				channel.sendMessage(builder.build()).queue();
@@ -148,7 +148,7 @@ public class CommandDaily extends Command
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Du hast deinen täglichen Bonus heute bereits eingefordert!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.daily.error.dup")).queue();
 				return false;
 			}
 		}
@@ -163,16 +163,5 @@ public class CommandDaily extends Command
 	public String getKeyword()
 	{
 		return "daily";
-	}
-
-	public String getHelpText()
-	{
-		return "Erhalte deinen täglichen Coin-Bonus.";
-	}
-
-	@Override
-	protected String getUsage()
-	{
-		return "%c : %h";
 	}
 }

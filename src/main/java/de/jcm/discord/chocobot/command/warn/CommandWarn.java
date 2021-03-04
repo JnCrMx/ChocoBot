@@ -6,7 +6,6 @@ import de.jcm.discord.chocobot.command.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.*;
 import java.util.regex.Pattern;
@@ -21,12 +20,12 @@ public class CommandWarn extends Command
 
 		if(!settings.isOperator(warnerMember))
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du darfst keine Leute verwarnen!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.warn.error.perm")).queue();
 			return false;
 		}
 		else if (args.length < 2)
 		{
-			channel.sendMessage(ChocoBot.errorMessage("Du musst einen Verwarnten und einen Grund angeben!")).queue();
+			channel.sendMessage(ChocoBot.translateError(settings, "command.warn.error.narg")).queue();
 			return false;
 		}
 		else
@@ -40,11 +39,11 @@ public class CommandWarn extends Command
 				System.arraycopy(args, 1, reasonArray, 0, reasonArray.length);
 				String reason = String.join(" ", reasonArray);
 				EmbedBuilder builder = new EmbedBuilder();
-				builder.setTitle("Verwarnung");
+				builder.setTitle(settings.translate("command.warn.title"));
 				builder.setColor(ChocoBot.COLOR_WARN);
-				builder.addField("Verwarnter", warned.getAsTag(), false);
-				builder.addField("Verwarner", warner.getAsTag(), false);
-				builder.addField("Grund", reason, false);
+				builder.addField(settings.translate("command.warn.warned"), warned.getAsTag(), false);
+				builder.addField(settings.translate("command.warn.warner"), warner.getAsTag(), false);
+				builder.addField(settings.translate("command.warn.reason"), reason, false);
 
 				TextChannel warnTextChannel = settings.getWarningChannel();
 				warnTextChannel.sendMessage(builder.build()).queue((s) -> {
@@ -90,7 +89,7 @@ public class CommandWarn extends Command
 			}
 			else
 			{
-				channel.sendMessage(ChocoBot.errorMessage("Du musst einen Verwarnten angeben!")).queue();
+				channel.sendMessage(ChocoBot.translateError(settings, "command.warn.error.who")).queue();
 				return false;
 			}
 
@@ -102,16 +101,5 @@ public class CommandWarn extends Command
 	public String getKeyword()
 	{
 		return "warn";
-	}
-
-	public String getHelpText()
-	{
-		return "Verwarne einen Nutzer.";
-	}
-
-	@Override
-	protected @Nullable String getUsage()
-	{
-		return "%c <Nutzer> <Grund> (nur Operatoren) : %h";
 	}
 }

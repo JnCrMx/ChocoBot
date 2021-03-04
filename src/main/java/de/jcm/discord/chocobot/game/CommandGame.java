@@ -51,14 +51,14 @@ public class CommandGame extends Command
 	}
 
 	@NotNull
-	public String getHelpText()
+	public String getHelpText(GuildSettings settings)
 	{
-		return "Starte das Spiel " + this.name + ".";
+		return settings.translate("command.game.help", this.name);
 	}
 
 	@Override
-	protected @Nullable String getUsage()
+	protected @Nullable String getUsage(GuildSettings settings)
 	{
-		return "%c : %h";
+		return settings.translate("command.game.usage");
 	}
 }

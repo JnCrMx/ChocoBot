@@ -34,9 +34,7 @@ public class CommandCoins extends Command
 			{
 				if(!settings.isOperator(message.getMember()))
 				{
-					channel.sendMessage(ChocoBot.errorMessage(
-							"Du darfst dir nicht die Coins anderer Nutzer anzeigen lassen!"))
-					       .queue();
+					channel.sendMessage(ChocoBot.translateError(settings, "command.coins.error.perm")).queue();
 					return false;
 				}
 				foreign = true;
@@ -71,7 +69,7 @@ public class CommandCoins extends Command
 
 			LocalDateTime dateTime = LocalDateTime.ofInstant(lastDaily, ZoneId.systemDefault());
 			EmbedBuilder builder = new EmbedBuilder();
-			builder.setTitle(":moneybag: Coins :moneybag:");
+			builder.setTitle(settings.translate("command.coins.title"));
 			builder.setColor(ChocoBot.COLOR_COINS);
 			if(foreign)
 			{
@@ -82,11 +80,11 @@ public class CommandCoins extends Command
 			}
 			else
 			{
-				builder.addField("Deine Coins", Integer.toString(coins), false);
+				builder.addField(settings.translate("command.coins.your"), Integer.toString(coins), false);
 				if(dateTime.getLong(ChronoField.EPOCH_DAY) <
 						LocalDateTime.now().getLong(ChronoField.EPOCH_DAY))
 				{
-					builder.setFooter("\ud83d\udc8e Du kannst übrigens deinen täglichen Bonus einfordern! \ud83d\udc8e");
+					builder.setFooter(settings.translate("command.coins.daily"));
 				}
 			}
 
@@ -104,17 +102,5 @@ public class CommandCoins extends Command
 	public String getKeyword()
 	{
 		return "coins";
-	}
-
-	public String getHelpText()
-	{
-		return "Zeige an, wie viele Coins du hast.";
-	}
-
-	@Override
-	protected String getUsage()
-	{
-		return "%c : %h\n" +
-				"%c <Nutzer> (nur Operatoren) : Zeige die Coins eines anderen Nutzers an.";
 	}
 }
