@@ -69,7 +69,7 @@ public class CommandUnwarn extends Command
 
 						EmbedBuilder builder = new EmbedBuilder();
 						builder.setColor(ChocoBot.COLOR_WARN);
-						builder.setTitle(settings.translate("commadn.unwarn.title"));
+						builder.setTitle(settings.translate("command.unwarn.title"));
 						builder.setDescription(settings.translate("command.unwarn.message"));
 
 						channel.sendMessage(builder.build()).queue();

@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -34,7 +33,6 @@ public class CommandLeaderboard extends Command
 			Map<String, Map<Long, Integer>> stats = DatabaseUtils.getStats(connection, guild.getIdLong());
 
 			EmbedBuilder builder = new EmbedBuilder();
-			builder.setAuthor(message.getAuthor().getName());
 			builder.setTitle(settings.translate("command.leaderboard.title"));
 			builder.setColor(ChocoBot.COLOR_COOKIE);
 

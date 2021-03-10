@@ -282,6 +282,7 @@ public class GuildSettings
 		if(translation == null)
 		{
 			LOGGER.warn("Cannot find translation for key \"{}\"!", key);
+			translation = key; // rather show the translation key rather than potentially throwing a NullPointerException
 		}
 
 		return translation;

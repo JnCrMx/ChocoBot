@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -53,7 +52,7 @@ public class CommandMyStats extends Command
 
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.setAuthor(message.getAuthor().getName());
-			builder.setTitle("Statistiken");
+			builder.setTitle(settings.translate("command.mystats.title"));
 			builder.setColor(ChocoBot.COLOR_COOKIE);
 
 			for(String[] line : statEntries)
