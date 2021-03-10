@@ -82,7 +82,7 @@ public class SlotMachineGame extends Command
 		for(int i=0;i<wheels.length;i++)
 			wheels[i] = wheels[i] % EMOJIS_WHEEL.length;
 
-		message.editMessage(buildMessage(player, settings, wheels)).submit();
+		message.editMessage(buildMessage(player, settings, wheels)).queue();
 	}
 
 	private int getCategory(String emoji)
