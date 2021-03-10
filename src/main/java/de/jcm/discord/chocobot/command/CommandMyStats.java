@@ -41,6 +41,10 @@ public class CommandMyStats extends Command
 			{"game.block.prize.-20"},
 			{"game.block.prize.-100"},
 			{"game.block.prize.-250"},
+			{null, null, null},
+			{"game.weristes.played"},
+			{"game.weristes.sponsored"},
+			{"game.weristes.won"}
 	};
 
 	@Override
@@ -75,7 +79,17 @@ public class CommandMyStats extends Command
 				}
 				else if(line.length == 3)
 				{
-					builder.addField(line[1], "", false);
+					if(line[1] != null)
+					{
+						builder.addField(line[1], "", false);
+					}
+					else
+					{
+						channel.sendMessage(builder.build()).queue();
+						builder = new EmbedBuilder();
+						builder.setAuthor(message.getAuthor().getName());
+						builder.setColor(ChocoBot.COLOR_COOKIE);
+					}
 				}
 			}
 

@@ -85,6 +85,15 @@ public class CommandLeaderboard extends Command
 
 			channel.sendMessage(builder.build()).queue();
 
+			builder = new EmbedBuilder();
+			builder.setColor(ChocoBot.COLOR_COOKIE);
+
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.weristes.sponsored", stats.getOrDefault("game.weristes.sponsored", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.weristes.played", stats.getOrDefault("game.weristes.played", new HashMap<>()));
+			makeLeaderboard(builder, settings, "command.leaderboard.entry.weristes.won", stats.getOrDefault("game.weristes.won", new HashMap<>()));
+
+			channel.sendMessage(builder.build()).queue();
+
 			return true;
 		}
 		catch(SQLException throwables)
