@@ -105,6 +105,8 @@ command.secret.warm.hot.other=%s findet %s ultra heiß! :fire:
 secret.mirror.infinity=∞x Spiegel
 secret.mirror.pattern=(|(\d*)x )Spiegel
 secret.mirror.message=%sx Spiegel
+secret.mirror.kick=Du sollst den Bot nicht exploiten!
+secret.mirror.kick.fail=Kicken kann ich dich zwar nicht, dafür aber deine Coins und Streak zurücksetzen! >:(
 
 command.unwarn.error.narg=Du musst mir die ID der zu löschenden Warnung sagen!
 command.unwarn.error.perm=Du darfst keine Verwarnungen löschen!

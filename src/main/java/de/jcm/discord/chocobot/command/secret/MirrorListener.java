@@ -63,7 +63,22 @@ public class MirrorListener extends ListenerAdapter
 			}
 			count=count.add(BigInteger.ONE);
 
-			event.getChannel().sendMessage(settings.translate("secret.mirror.message", count.toString())).queue();
+			String msg = settings.translate("secret.mirror.message", count.toString());
+			if(msg.length() > Message.MAX_CONTENT_LENGTH)
+			{
+				try
+				{
+					Objects.requireNonNull(event.getMember())
+					       .kick(settings.translate("secret.mirror.kick")).queue();
+				}
+				catch(HierarchyException | InsufficientPermissionException e)
+				{
+					event.getChannel().sendMessage(
+							ChocoBot.translateError(settings, "secret.mirror.kick.fail")).queue();
+				}
+				return;
+			}
+			event.getChannel().sendMessage(msg).queue();
 		}
 	}
 }
