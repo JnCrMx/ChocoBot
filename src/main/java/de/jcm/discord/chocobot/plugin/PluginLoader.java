@@ -22,8 +22,8 @@ public class PluginLoader
 {
 	private final Logger logger = LoggerFactory.getLogger(PluginLoader.class);
 
-	private File directory;
-	private CopyOnWriteArrayList<Plugin> plugins = new CopyOnWriteArrayList<>();
+	private final File directory;
+	private final CopyOnWriteArrayList<Plugin> plugins = new CopyOnWriteArrayList<>();
 
 	public PluginLoader(File directory)
 	{

@@ -20,7 +20,7 @@ public class DatabaseUtils
 
 	// use caching to prevent database query for each guild message
 	private static final long CACHE_DURATION = 60*60*1000;
-	private static HashMap<Long, ImmutablePair<GuildSettings, Long>> settingsCache = new HashMap<>();
+	private static final HashMap<Long, ImmutablePair<GuildSettings, Long>> settingsCache = new HashMap<>();
 
 	private DatabaseUtils()
 	{

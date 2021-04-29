@@ -62,7 +62,7 @@ public class ChocoBot extends ListenerAdapter
 	private static String redditAppId;
 	private static String redditAppSecret;
 
-	private static BasicDataSource dataSource = new BasicDataSource();
+	private static final BasicDataSource dataSource = new BasicDataSource();
 
 	public static ScheduledExecutorService executorService;
 	private static Future<?> remindFuture;
@@ -79,9 +79,9 @@ public class ChocoBot extends ListenerAdapter
 	public static String boardUrl;
 	private static ApiServer apiServer;
 
-	public static Map<Long, UserData> userCache = new HashMap<>();
+	public static final Map<Long, UserData> userCache = new HashMap<>();
 
-	public static Map<String, Map<String, String>> languages = new HashMap<>();
+	public static final Map<String, Map<String, String>> languages = new HashMap<>();
 
 	private static PluginLoader pluginLoader;
 	public static String dbType;
@@ -261,7 +261,7 @@ public class ChocoBot extends ListenerAdapter
 
 		logger.info("Reading language files...");
 		try(InputStream in = ChocoBot.class.getResourceAsStream("/languages.txt");
-			BufferedReader reader = new BufferedReader(new InputStreamReader(in));)
+			BufferedReader reader = new BufferedReader(new InputStreamReader(in)))
 		{
 			reader.lines().forEach(l -> {
 				Map<String, String> map = languages.computeIfAbsent(l, q->new HashMap<>());
@@ -356,9 +356,7 @@ public class ChocoBot extends ListenerAdapter
 		}
 		pingFuture = executorService.scheduleAtFixedRate(()->{
 			logger.info("Gateway ping is {} ms!", jda.getGatewayPing());
-			jda.getRestPing().queue(restPing->{
-				logger.info("Rest ping is {} ms!", restPing);
-			});
+			jda.getRestPing().queue(restPing->logger.info("Rest ping is {} ms!", restPing));
 		}, 0, 1, TimeUnit.HOURS);
 
 		logger.info("Started JDA.");

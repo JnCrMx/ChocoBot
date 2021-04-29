@@ -71,7 +71,7 @@ public class ReminderEndpoint
 					reminder.remindee = ChocoBot.provideUser(resultSet.getLong("uid"), UserData::getTag, "?");
 					reminder.message = resultSet.getString("message");
 					reminder.time = resultSet.getLong("time");
-					reminder.reminder = ChocoBot.provideUser(resultSet.getLong("issuer"), UserData::getTag, "?");;
+					reminder.reminder = ChocoBot.provideUser(resultSet.getLong("issuer"), UserData::getTag, "?");
 					reminder.done = resultSet.getBoolean("done");
 
 					GuildChannel channel = ChocoBot.jda.getGuildChannelById(resultSet.getLong("channel"));

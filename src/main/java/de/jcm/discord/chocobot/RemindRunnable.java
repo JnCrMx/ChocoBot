@@ -95,7 +95,7 @@ class RemindRunnable implements Runnable
 						botMessage += " " + settings.translate("reminder.delay", timeString);
 					}
 
-					remindChannel.sendMessage(botMessage.toString()).queue();
+					remindChannel.sendMessage(botMessage).queue();
 					doneStatement.setInt(1, id);
 					doneStatement.execute();
 				}

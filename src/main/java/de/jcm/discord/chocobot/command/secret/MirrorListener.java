@@ -1,21 +1,26 @@
 package de.jcm.discord.chocobot.command.secret;
 
+import de.jcm.discord.chocobot.ChocoBot;
 import de.jcm.discord.chocobot.DatabaseUtils;
 import de.jcm.discord.chocobot.GuildSettings;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.HierarchyException;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MirrorListener extends ListenerAdapter
 {
 	@Override
-	public void onMessageReceived(@Nonnull MessageReceivedEvent event)
+	public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event)
 	{
 		if(event.getAuthor().isBot())
 			return;
@@ -35,7 +40,7 @@ public class MirrorListener extends ListenerAdapter
 
 			writer1.close();
 
-			event.getChannel().sendMessage("```"+writer.toString()+"```").queue();
+			event.getChannel().sendMessage("```"+ writer +"```").queue();
 
 			return;
 		}

@@ -33,9 +33,9 @@ public class GitHubApp
 {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	private File privateKey;
-	private int appId;
-	private int installationId;
+	private final File privateKey;
+	private final int appId;
+	private final int installationId;
 
 	private String jwt;
 	private LocalDateTime jwtExpiration;
@@ -43,8 +43,8 @@ public class GitHubApp
 	private String installationToken;
 	private ZonedDateTime installationTokenExpiration;
 
-	private String user;
-	private String repository;
+	private final String user;
+	private final String repository;
 
 	public GitHubApp(File privateKey, int appId, int installationId, String user, String repository)
 	{

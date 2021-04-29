@@ -28,7 +28,7 @@ public class GuildSettings
 
 	private List<Long> operators = new ArrayList<>();
 	private List<Long> mutedChannels = new ArrayList<>();
-	private Map<String, String> languageOverrides = new HashMap<>();
+	private final Map<String, String> languageOverrides = new HashMap<>();
 
 	public GuildSettings()
 	{

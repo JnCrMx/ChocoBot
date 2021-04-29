@@ -293,6 +293,7 @@ public class SubscriptionListener extends ListenerAdapter
 							while(result.next())
 							{
 								guild.retrieveMemberById(result.getLong("subscriber"))
+								     .onErrorMap(t->null)
 								     .queue(m->checkAndNotify(event, keyword, m));
 							}
 						}

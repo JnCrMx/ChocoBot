@@ -470,6 +470,8 @@ public class GuildEndpoint
 			{
 				throw new InternalServerErrorException("cannot add command");
 			}
+
+			DatabaseUtils.deleteCached(guild.getIdLong());
 		}
 		catch(SQLException throwables)
 		{
@@ -513,6 +515,8 @@ public class GuildEndpoint
 			{
 				throw new InternalServerErrorException("cannot add command");
 			}
+
+			DatabaseUtils.deleteCached(guild.getIdLong());
 		}
 		catch(SQLException throwables)
 		{
@@ -549,6 +553,8 @@ public class GuildEndpoint
 			{
 				throw new InternalServerErrorException("cannot add command");
 			}
+
+			DatabaseUtils.deleteCached(guild.getIdLong());
 		}
 		catch(SQLException throwables)
 		{

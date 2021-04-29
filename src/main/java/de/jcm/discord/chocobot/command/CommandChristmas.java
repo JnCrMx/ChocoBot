@@ -60,15 +60,18 @@ public class CommandChristmas extends Command
 
 	private static class GiftImage
 	{
-		String image;
-		boolean opened;
+		final String image;
+		final boolean opened;
 
-		float textSize;
-		double textRotation;
-		int textX, textY;
+		final float textSize;
+		final double textRotation;
+		final int textX;
+		final int textY;
 
-		int avatarX, avatarY;
-		int avatarWidth, avatarHeight;
+		final int avatarX;
+		final int avatarY;
+		final int avatarWidth;
+		final int avatarHeight;
 
 		GiftImage(String image, boolean opened,
 		                 float textSize, double textRotation,
