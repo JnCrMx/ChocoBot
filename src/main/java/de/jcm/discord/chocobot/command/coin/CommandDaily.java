@@ -100,6 +100,12 @@ public class CommandDaily extends Command
 						builder.setFooter(settings.translate("command.daily.streak_lost"));
 					}
 				}
+				boolean aprilFool = now.getDayOfMonth() == 1 && now.getMonth() == Month.APRIL;
+				int aprilCoinsToAdd = getCoinsForStreak(0) + (first ? FIRST_BONUS : 0);
+				if(aprilFool)
+				{
+					builder.setFooter(settings.translate("command.daily.streak_lost"));
+				}
 
 				int coinsToAdd = getCoinsForStreak(dailyStreak) * (christmas ? 2 : 1) + (first ? FIRST_BONUS : 0);
 				dailyStreak++;
@@ -122,9 +128,9 @@ public class CommandDaily extends Command
 				}
 				builder.setTitle(settings.translate("command.daily.title"));
 				builder.setColor(ChocoBot.COLOR_COINS);
-				builder.setDescription(settings.translate("command.daily.message", coinsToAdd));
+				builder.setDescription(settings.translate("command.daily.message", aprilFool?aprilCoinsToAdd:coinsToAdd));
 				builder.addField(settings.translate("command.daily.your_coins"), Integer.toString(coins), false);
-				builder.addField(settings.translate("command.daily.your_streak"), Integer.toString(dailyStreak), false);
+				builder.addField(settings.translate("command.daily.your_streak"), Integer.toString(aprilFool?1:dailyStreak), false);
 
 				if(christmas)
 				{
