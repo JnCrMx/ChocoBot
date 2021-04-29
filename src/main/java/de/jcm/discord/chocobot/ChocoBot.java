@@ -65,6 +65,7 @@ public class ChocoBot extends ListenerAdapter
 
 	public static ScheduledExecutorService executorService;
 	private static Future<?> remindFuture;
+	private static Future<?> pingFuture;
 	public static JDA jda;
 	public static final Client client = ClientBuilder.newClient();
 	public static String redditToken;
@@ -133,6 +134,7 @@ public class ChocoBot extends ListenerAdapter
 			{
 				logger.info("Stopping ChocoBot...");
 				remindFuture.cancel(true);
+				pingFuture.cancel(true);
 				logger.info("Stopped remind thread.");
 				jda.shutdown();
 				logger.info("Stopped JDA.");
@@ -340,6 +342,12 @@ public class ChocoBot extends ListenerAdapter
 		{
 			var4.printStackTrace();
 		}
+		pingFuture = executorService.scheduleAtFixedRate(()->{
+			logger.info("Gateway ping is {} ms!", jda.getGatewayPing());
+			jda.getRestPing().queue(restPing->{
+				logger.info("Rest ping is {} ms!", restPing);
+			});
+		}, 0, 1, TimeUnit.HOURS);
 
 		logger.info("Started JDA.");
 		remindFuture = executorService.scheduleWithFixedDelay(new RemindRunnable(jda), 0L, 10L, TimeUnit.SECONDS);
