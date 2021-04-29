@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'maven'
     id 'com.github.jk1.dependency-license-report' version '1.12'
 }
 
@@ -53,6 +54,7 @@ dependencies {
     implementation 'com.auth0:java-jwt:3.10.0'
 
     implementation 'com.github.rtyley:animated-gif-lib-for-java:animated-gif-lib-1.4'
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.0.1'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'

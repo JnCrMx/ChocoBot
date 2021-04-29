@@ -12,6 +12,7 @@ import de.jcm.discord.chocobot.command.warn.CommandUnwarn;
 import de.jcm.discord.chocobot.command.warn.CommandWarn;
 import de.jcm.discord.chocobot.command.warn.CommandWarns;
 import de.jcm.discord.chocobot.game.*;
+import de.jcm.discord.chocobot.plugin.PluginLoader;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -82,6 +83,9 @@ public class ChocoBot extends ListenerAdapter
 
 	public static Map<String, Map<String, String>> languages = new HashMap<>();
 
+	private static PluginLoader pluginLoader;
+	public static String dbType;
+
 	private static void tryCreateTable(Statement statement, String sql)
 	{
 		try
@@ -133,6 +137,10 @@ public class ChocoBot extends ListenerAdapter
 			try
 			{
 				logger.info("Stopping ChocoBot...");
+
+				pluginLoader.unloadPlugins();
+				pluginLoader.destroyPlugins();
+
 				remindFuture.cancel(true);
 				pingFuture.cancel(true);
 				logger.info("Stopped remind thread.");
@@ -165,7 +173,7 @@ public class ChocoBot extends ListenerAdapter
 		executorService = Executors.newSingleThreadScheduledExecutor();
 
 		Map<String, Object> dbConfig = (Map<String, Object>) obj.get("database");
-		String dbType = (String) dbConfig.getOrDefault("type", "sqlite");
+		dbType = (String) dbConfig.getOrDefault("type", "sqlite");
 		if("sqlite".equals(dbType))
 		{
 			String dbPath = (String) dbConfig.getOrDefault("path", "chocobot.sqlite");
@@ -201,6 +209,8 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE \"name_cache\" (\"id\" INTEGER PRIMARY KEY, \"name\" VARCHAR(256))");
 				tryCreateTable(initStatement, "CREATE TABLE \"christmas_presents\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"sender\" INTEGER, \"guild\" INTEGER, \"amount\" INTEGER, \"message\" TEXT, \"year\" INTEGER, \"opened\" INTEGER DEFAULT 0)");
 				tryCreateTable(initStatement, "CREATE TABLE \"custom_commands\" (\"guild\" INTEGER, \"keyword\" VARCHAR(256) NOT NULL, \"message\" TEXT, PRIMARY KEY(\"guild\", \"keyword\"))");
+				tryCreateTable(initStatement, "CREATE TABLE \"plugin_config\" (\"name\" VARCHAR(256) NOT NULL, \"key_\" VARCHAR(256) NOT NULL, \"value\" TEXT, PRIMARY KEY(\"name\", \"key_\"))");
+				tryCreateTable(initStatement, "CREATE TABLE \"plugin_guild_config\" (\"name\" VARCHAR(256) NOT NULL, \"guild\" INTEGER, \"key_\" VARCHAR(256) NOT NULL, \"value\" TEXT, PRIMARY KEY(\"name\", \"guild\", \"key_\"))");
 			}
 		}
 		else if("mysql".equals(dbType))
@@ -244,6 +254,8 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `name_cache` (`id` BIGINT PRIMARY KEY, `name` VARCHAR(256))");
 				tryCreateTable(initStatement, "CREATE TABLE `christmas_presents` (`id` INTEGER PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `sender` BIGINT, `guild` BIGINT, `amount` INT, `message` TEXT, `year` INT, `opened` BOOLEAN DEFAULT 0)");
 				tryCreateTable(initStatement, "CREATE TABLE `custom_commands` (`guild` BIGINT, `keyword` VARCHAR(256) NOT NULL, `message` TEXT, PRIMARY KEY(`guild`, `keyword`))");
+				tryCreateTable(initStatement, "CREATE TABLE `plugin_config` (`name` VARCHAR(256) NOT NULL, `key_` VARCHAR(256) NOT NULL, `value` TEXT, PRIMARY KEY(`name`, `key_`))");
+				tryCreateTable(initStatement, "CREATE TABLE `plugin_guild_config` (`name` VARCHAR(256) NOT NULL, `guild` BIGINT, `key_` VARCHAR(256) NOT NULL, `value` TEXT, PRIMARY KEY(`name`, `guild`, `key_`))");
 			}
 		}
 
@@ -385,6 +397,12 @@ public class ChocoBot extends ListenerAdapter
 
 		apiServer = new ApiServer(apiPort);
 		logger.info("Started API.");
+
+		File pluginDir = new File("plugins/");
+		pluginDir.mkdir();
+		pluginLoader = new PluginLoader(pluginDir);
+		pluginLoader.initPlugins();
+		pluginLoader.loadPlugins();
 
 		logger.info("Started ChocoBot.");
 	}

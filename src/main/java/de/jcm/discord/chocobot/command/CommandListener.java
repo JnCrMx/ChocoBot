@@ -48,6 +48,10 @@ public class CommandListener extends ListenerAdapter
 				{
 					command = CommandCustom.forGuild(guild.getIdLong(), keyword);
 				}
+				if(command == null)
+				{
+					command = Command.getPluginCommand(keyword, guild.getIdLong());
+				}
 
 				if (command != null)
 				{
