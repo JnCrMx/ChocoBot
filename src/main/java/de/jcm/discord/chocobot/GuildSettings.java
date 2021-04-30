@@ -308,4 +308,14 @@ public class GuildSettings
 
 		return String.format(translation, args);
 	}
+
+	public Map<String, String> getLanguageOverrides()
+	{
+		return languageOverrides;
+	}
+
+	public String getLanguage()
+	{
+		return language;
+	}
 }
