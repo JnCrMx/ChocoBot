@@ -1,5 +1,6 @@
 package de.jcm.discord.chocobot.api;
 
+import de.jcm.discord.chocobot.api.guild.*;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -27,7 +28,12 @@ public class ApiServer
 	{
 		ResourceConfig rc = new ResourceConfig();
 		rc.registerClasses(TokenEndpoint.class,
-		                   GuildEndpoint.class,
+
+		                   InfoEndpoint.class,
+		                   SettingsEndpoint.class,
+		                   CustomCommandsEndpoint.class,
+		                   LanguageOverridesEndpoint.class,
+
 		                   UserEndpoint.class,
 		                   ReminderEndpoint.class,
 		                   PollEndpoint.class,
