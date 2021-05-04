@@ -24,6 +24,24 @@ public class CommandListener extends ListenerAdapter
 	{
 	}
 
+	static Command findCommand(String keyword, Guild guild)
+	{
+		Command command = Command.getCommand(keyword);
+		if(command != null)
+			return command;
+
+		command = CommandCustom.forGuild(guild.getIdLong(), keyword);
+		if(command != null)
+			return command;
+
+		command = Command.getPluginCommand(keyword, guild.getIdLong());
+		if(command != null)
+			return command;
+
+		command = CommandAlias.forGuild(guild, keyword);
+		return command;
+	}
+
 	public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event)
 	{
 		if (!event.getAuthor().isBot())
@@ -43,15 +61,7 @@ public class CommandListener extends ListenerAdapter
 					keyword = keyword.split(" ")[0];
 				}
 
-				Command command = Command.getCommand(keyword);
-				if(command == null)
-				{
-					command = CommandCustom.forGuild(guild.getIdLong(), keyword);
-				}
-				if(command == null)
-				{
-					command = Command.getPluginCommand(keyword, guild.getIdLong());
-				}
+				Command command = findCommand(keyword, guild);
 
 				if (command != null)
 				{

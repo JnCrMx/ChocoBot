@@ -209,6 +209,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE \"name_cache\" (\"id\" INTEGER PRIMARY KEY, \"name\" VARCHAR(256))");
 				tryCreateTable(initStatement, "CREATE TABLE \"christmas_presents\" (\"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"uid\" INTEGER, \"sender\" INTEGER, \"guild\" INTEGER, \"amount\" INTEGER, \"message\" TEXT, \"year\" INTEGER, \"opened\" INTEGER DEFAULT 0)");
 				tryCreateTable(initStatement, "CREATE TABLE \"custom_commands\" (\"guild\" INTEGER, \"keyword\" VARCHAR(256) NOT NULL, \"message\" TEXT, PRIMARY KEY(\"guild\", \"keyword\"))");
+				tryCreateTable(initStatement, "CREATE TABLE \"command_aliases\" (\"guild\" INTEGER, \"keyword\" VARCHAR(256) NOT NULL, \"command\" VARCHAR(256), \"arguments\" TEXT, PRIMARY KEY(\"guild\", \"keyword\"))");
 				tryCreateTable(initStatement, "CREATE TABLE \"plugin_config\" (\"name\" VARCHAR(256) NOT NULL, \"key_\" VARCHAR(256) NOT NULL, \"value\" TEXT, PRIMARY KEY(\"name\", \"key_\"))");
 				tryCreateTable(initStatement, "CREATE TABLE \"plugin_guild_config\" (\"name\" VARCHAR(256) NOT NULL, \"guild\" INTEGER, \"key_\" VARCHAR(256) NOT NULL, \"value\" TEXT, PRIMARY KEY(\"name\", \"guild\", \"key_\"))");
 			}
@@ -254,6 +255,7 @@ public class ChocoBot extends ListenerAdapter
 				tryCreateTable(initStatement, "CREATE TABLE `name_cache` (`id` BIGINT PRIMARY KEY, `name` VARCHAR(256))");
 				tryCreateTable(initStatement, "CREATE TABLE `christmas_presents` (`id` INTEGER PRIMARY KEY AUTO_INCREMENT, `uid` BIGINT, `sender` BIGINT, `guild` BIGINT, `amount` INT, `message` TEXT, `year` INT, `opened` BOOLEAN DEFAULT 0)");
 				tryCreateTable(initStatement, "CREATE TABLE `custom_commands` (`guild` BIGINT, `keyword` VARCHAR(256) NOT NULL, `message` TEXT, PRIMARY KEY(`guild`, `keyword`))");
+				tryCreateTable(initStatement, "CREATE TABLE `command_aliases` (`guild` BIGINT, `keyword` VARCHAR(256) NOT NULL, `command` VARCHAR(256), `arguments` TEXT, PRIMARY KEY(`guild`, `keyword`))");
 				tryCreateTable(initStatement, "CREATE TABLE `plugin_config` (`name` VARCHAR(256) NOT NULL, `key_` VARCHAR(256) NOT NULL, `value` TEXT, PRIMARY KEY(`name`, `key_`))");
 				tryCreateTable(initStatement, "CREATE TABLE `plugin_guild_config` (`name` VARCHAR(256) NOT NULL, `guild` BIGINT, `key_` VARCHAR(256) NOT NULL, `value` TEXT, PRIMARY KEY(`name`, `guild`, `key_`))");
 			}
