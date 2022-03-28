@@ -57,7 +57,7 @@ public class BlockGame extends Command
 
 		public String getMessage(GuildSettings settings)
 		{
-			return settings.translate("game.block.prize."+coins+".message", coins);
+			return settings.translate("game.block.prize."+coins+".message", Math.abs(coins));
 		}
 	}
 
