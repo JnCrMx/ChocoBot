@@ -1,5 +1,6 @@
 package de.jcm.discord.chocobot;
 
+import de.jcm.discord.chocobot.api.data.UserData;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -13,7 +14,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 
 class RemindRunnable implements Runnable
 {
@@ -46,10 +46,7 @@ class RemindRunnable implements Runnable
 					long issuerId = resultSet.getLong("issuer");
 					long time = resultSet.getLong("time");
 					long channelId = resultSet.getLong("channel");
-					User user = this.jda.retrieveUserById(uid).complete();
-					User issuer = this.jda.retrieveUserById(issuerId).complete();
-
-					assert user != null;
+					User user = User.fromId(uid);
 
 					Guild guild = this.jda.getGuildById(guildId);
 					if(guild == null)
@@ -74,12 +71,12 @@ class RemindRunnable implements Runnable
 						if(message != null)
 							botMessage = settings.translate(
 									"reminder.other.message", user.getAsMention(),
-									Objects.requireNonNull(guild.retrieveMember(issuer).complete()).getEffectiveName(),
+									ChocoBot.provideUser(issuerId, UserData::getName, "Unknown user"),
 									message);
 						else
 							botMessage = settings.translate(
 									"reminder.other.plain", user.getAsMention(),
-									Objects.requireNonNull(guild.retrieveMember(issuer).complete()).getEffectiveName());
+									ChocoBot.provideUser(issuerId, UserData::getName, "Unknown user"));
 					}
 					else
 					{
