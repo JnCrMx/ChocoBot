@@ -65,7 +65,7 @@ public class CommandBugReport extends Command
 				EmbedBuilder eb = new EmbedBuilder();
 				eb.setTitle(settings.translate("command.bugreport.title"));
 				eb.setColor(ChocoBot.COLOR_COOKIE);
-				eb.setDescription(settings.translate("command.bugreport.issue.message", htmlURL));
+				eb.setDescription(settings.translate("command.bugreport.message.issue", htmlURL));
 
 				channel.sendMessage(eb.build()).queue();
 			}
