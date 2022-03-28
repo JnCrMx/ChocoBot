@@ -36,7 +36,7 @@ public class CommandKeks extends Command
 			HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 			String page = response.body();
 			Scanner scanner = new Scanner(page);
-			Stream<MatchResult> resultStream = scanner.findAll("data-src=\"(.*)\"");
+			Stream<MatchResult> resultStream = scanner.findAll("data-src=\"([^\"]*)\"");
 			MatchResult[] results = resultStream.toArray(MatchResult[]::new);
 			Random rand = new Random();
 			MatchResult result = results[rand.nextInt(results.length)];
