@@ -42,6 +42,7 @@ public class CommandCustom extends Command
 		string = string.replace("$"+mention+"."+"nickname", Objects.requireNonNullElse(member.getNickname(), ""));
 		string = string.replace("$"+mention+"."+"ping", member.getAsMention());
 		string = string.replace("$"+mention+"."+"avatar", member.getUser().getEffectiveAvatarUrl());
+		string = string.replace("$"+mention, member.getEffectiveName());
 
 		return string;
 	}
@@ -60,6 +61,12 @@ public class CommandCustom extends Command
 		{
 			string = replaceMember(string, Integer.toString(i+1), mentions.get(i));
 		}
+
+		for(int i=0; i<args.length; i++)
+		{
+			string = string.replace("$"+(i + 1), args[i]);
+		}
+
 		string = string.replaceAll("\\$[\\w.]*", "");
 
 		channel.sendMessage(string).queue();

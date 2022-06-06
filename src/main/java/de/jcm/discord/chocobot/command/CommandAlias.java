@@ -96,7 +96,7 @@ public class CommandAlias extends Command
 				String commandName = resultSet.getString("command");
 				String arguments = resultSet.getString("arguments");
 
-				Command command = CommandListener.findCommand(commandName, guild);
+				Command command = CommandListener.findCommand(commandName, guild, false);
 				if(command == null)
 					return null;
 

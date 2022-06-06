@@ -24,9 +24,17 @@ public class CommandListener extends ListenerAdapter
 	{
 	}
 
-	static Command findCommand(String keyword, Guild guild)
+	static Command findCommand(String keyword, Guild guild, boolean alias)
 	{
-		Command command = Command.getCommand(keyword);
+		Command command;
+		if(alias) // prevent recursion
+		{
+			command = CommandAlias.forGuild(guild, keyword);
+			if(command != null)
+				return command;
+		}
+
+		command = Command.getCommand(keyword);
 		if(command != null)
 			return command;
 
@@ -38,12 +46,14 @@ public class CommandListener extends ListenerAdapter
 		if(command != null)
 			return command;
 
-		command = CommandAlias.forGuild(guild, keyword);
-		return command;
+		return null;
 	}
 
 	public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent event)
 	{
+		if(event.getAuthor().getIdLong() == 829006607391129660L)
+			return;
+
 		if (!event.getAuthor().isBot())
 		{
 			String message = event.getMessage().getContentRaw();
@@ -61,7 +71,7 @@ public class CommandListener extends ListenerAdapter
 					keyword = keyword.split(" ")[0];
 				}
 
-				Command command = findCommand(keyword, guild);
+				Command command = findCommand(keyword, guild, true);
 
 				if (command != null)
 				{

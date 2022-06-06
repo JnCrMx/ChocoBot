@@ -33,6 +33,7 @@ public class ApiServer
 		                   SettingsEndpoint.class,
 		                   CustomCommandsEndpoint.class,
 		                   LanguageOverridesEndpoint.class,
+		                   CommandAliasesEndpoint.class,
 
 		                   UserEndpoint.class,
 		                   ReminderEndpoint.class,
