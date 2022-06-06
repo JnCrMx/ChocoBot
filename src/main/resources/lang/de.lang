@@ -214,8 +214,11 @@ command.remind.error.narg2=Du musst mir schon sagen, wann die Erinnerung stattfi
 command.remind.error.fmt=Ich kann deine Zeitangabe leider nicht verstehen!
 command.remind.error.past=Dafür bräuchtest du eine Zeitmaschine!
 command.remind.error.perm=Vergiss es!
+command.remind.error.cost=Du hast nicht genügen @{coins} um diesen Reminder zu bezahlen!
 command.remind.self=%s, du wirst %s erinnert!
+command.remind.self.cost=%s, du wirst %s erinnert! Da du so oft erinnert werden willst, hat dies dich %d @{coins} gekostet.
 command.remind.other=%s, %s wird %s erinnert!
+command.remind.other.cost=%s, %s wird %s erinnert! Da du so oft erinnert werden willst, hat dies dich %d @{coins} gekostet.
 
 command.say.error.server=Du bist nicht auf diesem Server!
 command.say.error.channel_perm=Du kannst in diesen Kanal keine Nachrichten senden!

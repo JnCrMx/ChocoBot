@@ -1,6 +1,7 @@
 package de.jcm.discord.chocobot.command;
 
 import de.jcm.discord.chocobot.ChocoBot;
+import de.jcm.discord.chocobot.DatabaseUtils;
 import de.jcm.discord.chocobot.GuildSettings;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -13,6 +14,7 @@ import org.joda.time.format.PeriodFormatterBuilder;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -31,6 +33,11 @@ public class CommandRemind extends Command
 	private final DateTimeFormatter dateTimeFormatter;
 	private final DateTimeFormatter timeFormatter;
 	private final DateTimeFormatter outputFormatter;
+
+	private final int MAX_REMINDERS_SELF = 10;
+	private final int MAX_REMINDERS_OTHER = 5;
+	private final int COIN_FACTOR_SELF = 100;
+	private final int COIN_FACTOR_OTHER = 1000;
 
 	public CommandRemind()
 	{
@@ -70,6 +77,58 @@ public class CommandRemind extends Command
 				timeString = args[1];
 				user = message.getMentionedUsers().get(0);
 				messageDex = 2;
+			}
+
+			int cost = 0;
+			int count = 0;
+			boolean self = user.getIdLong() == message.getAuthor().getIdLong();
+			if(!self)
+			{
+				try(Connection connection = ChocoBot.getDatabase();
+				    PreparedStatement countReminders = connection.prepareStatement("SELECT COUNT(*) FROM reminders WHERE guild=? AND uid<>? AND issuer=? AND done=0"))
+				{
+					countReminders.setLong(1, guild.getIdLong());
+					countReminders.setLong(2, message.getAuthor().getIdLong());
+					countReminders.setLong(3, message.getAuthor().getIdLong());
+					try(ResultSet set = countReminders.executeQuery())
+					{
+						if(set.next()) count = set.getInt(1);
+					}
+				}
+				catch(SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				try(Connection connection = ChocoBot.getDatabase();
+				    PreparedStatement countReminders = connection.prepareStatement("SELECT COUNT(*) FROM reminders WHERE guild=? AND uid=? AND issuer=? AND done=0"))
+				{
+					countReminders.setLong(1, guild.getIdLong());
+					countReminders.setLong(2, message.getAuthor().getIdLong());
+					countReminders.setLong(3, message.getAuthor().getIdLong());
+					try(ResultSet set = countReminders.executeQuery())
+					{
+						if(set.next()) count = set.getInt(1);
+					}
+				}
+				catch(SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			int c = count - (self ? MAX_REMINDERS_SELF : MAX_REMINDERS_OTHER);
+			if(c > 0)
+			{
+				cost = (self ? COIN_FACTOR_SELF : COIN_FACTOR_OTHER) * c * c;
+				int coinsOwned = DatabaseUtils.getCoins(message.getAuthor().getIdLong(), guild.getIdLong());
+				if(cost > coinsOwned)
+				{
+					channel.sendMessage(ChocoBot.translateError(settings, "command.remind.error.cost")).queue();
+					return false;
+				}
+				DatabaseUtils.changeCoins(message.getAuthor().getIdLong(), guild.getIdLong(), -cost);
 			}
 
 			LocalDateTime time = null;
@@ -158,12 +217,12 @@ public class CommandRemind extends Command
 					if (message.getAuthor().getIdLong() == user.getIdLong())
 					{
 						var10001 = message.getAuthor().getAsMention();
-						channel.sendMessage(settings.translate("command.remind.self", var10001, this.outputFormatter.format(time))).queue();
+						channel.sendMessage(settings.translate(cost>0?"command.remind.self.cost":"command.remind.self", var10001, this.outputFormatter.format(time), cost)).queue();
 					}
 					else
 					{
 						var10001 = message.getAuthor().getAsMention();
-						channel.sendMessage(settings.translate("command.remind.other", var10001, user.getName(), this.outputFormatter.format(time))).queue();
+						channel.sendMessage(settings.translate(cost>0?"command.remind.other.cost":"command.remind.other", var10001, user.getName(), this.outputFormatter.format(time), cost)).queue();
 					}
 				}
 				catch (SQLException var12)
