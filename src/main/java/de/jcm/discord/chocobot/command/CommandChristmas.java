@@ -5,7 +5,9 @@ import de.jcm.discord.chocobot.DatabaseUtils;
 import de.jcm.discord.chocobot.GuildSettings;
 import de.jcm.discord.chocobot.api.data.UserData;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,17 +21,17 @@ import java.net.URL;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class CommandChristmas extends Command
 {
 	private static final int BOT_GIFT_AMOUNT = 250;
+	private static final String BOT_GIFT_MESSAGE = "Fröhliche Weihnacht vom ChocoBot!";
 
-	private static class ChristmasGift
+	public static class ChristmasGift
 	{
 		private final int id;
 		private final long sender;
@@ -74,10 +76,10 @@ public class CommandChristmas extends Command
 		final int avatarHeight;
 
 		GiftImage(String image, boolean opened,
-		                 float textSize, double textRotation,
-		                 int textX, int textY,
-		                 int avatarX, int avatarY,
-		                 int avatarWidth, int avatarHeight)
+		          float textSize, double textRotation,
+		          int textX, int textY,
+		          int avatarX, int avatarY,
+		          int avatarSize)
 		{
 			this.image = image;
 			this.opened = opened;
@@ -87,23 +89,80 @@ public class CommandChristmas extends Command
 			this.textY = textY;
 			this.avatarX = avatarX;
 			this.avatarY = avatarY;
-			this.avatarWidth = avatarWidth;
-			this.avatarHeight = avatarHeight;
+			this.avatarWidth = avatarSize;
+			this.avatarHeight = avatarSize;
 		}
 	}
 
 	private static final GiftImage[] GIFT_IMAGES = {
-			new GiftImage("/gift1.png", false,
-			              32f, 25.0,
-			              24, 22,
-			              128, 108,
-			              96, 96)
+			new GiftImage("/gifts/Geschenk_blau_lila.png", false,
+			              32f, -50.0,
+			              195, 83,
+			              120, 220, 128),
+			new GiftImage("/gifts/Geschenk_blau_rot.png", false,
+			              32f, -95.0,
+			              87, 85,
+			              95, 335, 140),
+			new GiftImage("/gifts/Geschenk_cyan_rosa.png", false,
+			              32f, 55.0,
+			              143, 73,
+			              70, 110, 75),
+			new GiftImage("/gifts/Geschenk_gelb_grun.png", false,
+			              32f, -100.0,
+			              135, 66,
+			              115, 202, 64),
+			new GiftImage("/gifts/Geschenk_grun_blau.png", false,
+			              32f, -65.0,
+			              215, 90,
+			              127, 277, 160),
+			new GiftImage("/gifts/Geschenk_grun_rot.png", false,
+			              32f, -90.0,
+			              97, 80,
+			              140, 238, 80),
+			new GiftImage("/gifts/Geschenk_orange_indigo.png", false,
+			              32f, -152.0,
+			              95, 55,
+			              190, 226, 80),
+			new GiftImage("/gifts/Geschenk_orange_schwarz.png", false,
+			              32f, -90.0,
+			              100, 85,
+			              100, 260, 128),
+			new GiftImage("/gifts/Geschenk_pink_cyan.png", false,
+			              32f, -110.0,
+			              112, 75,
+			              123, 225, 100),
+			new GiftImage("/gifts/Geschenk_rot_wei.png", false,
+			              32f, -120.0,
+			              62, 65,
+			              150, 238, 85)
 	};
-	private static final Point[] GIFT_POSITIONS = {
-			new Point(10, 10),
-			new Point(10, 200)
-	};
+	private static final int STAR_X = 922, STAR_Y = 97, STAR_SIZE = 96;
 	private static final Random RNG = new Random();
+
+	private static double coverage(BufferedImage canvas, BufferedImage img, int px, int py)
+	{
+		int a = 0;
+		int b = 0;
+		for(int x = 0; x < img.getWidth(); x++)
+		{
+			for(int y = 0; y < img.getHeight(); y++)
+			{
+				Color c = new Color(canvas.getRGB(px+x, py+y), true);
+				Color i = new Color(img.getRGB(x, y), true);
+				if(c.getAlpha() != 0)
+				{
+					b++;
+					if(i.getAlpha() != 0)
+					{
+						a++;
+					}
+				}
+			}
+		}
+
+		double result = ((double)a) / ((double)b);
+		return Double.isNaN(result) ? 0 : result;
+	}
 
 	@Override
 	public boolean execute(Message message, TextChannel channel, Guild guild, GuildSettings settings, String... args)
@@ -148,7 +207,7 @@ public class CommandChristmas extends Command
 					botGift.setLong(2, ChocoBot.jda.getSelfUser().getIdLong());
 					botGift.setLong(3, guild.getIdLong());
 					botGift.setInt(4, BOT_GIFT_AMOUNT);
-					botGift.setString(5, settings.translate("command.christmas.bot_message", message.getAuthor().getAsTag()));
+					botGift.setString(5, BOT_GIFT_MESSAGE);
 					botGift.setInt(6, now.getYear());
 					botGift.executeUpdate();
 
@@ -174,10 +233,25 @@ public class CommandChristmas extends Command
 
 			try
 			{
-				BufferedImage christmasTree = ImageIO.read(getClass().getResourceAsStream("/christmas-tree.png"));
-				Graphics2D g = christmasTree.createGraphics();
+				BufferedImage christmasTree = ImageIO.read(getClass().getResourceAsStream("/Tannenbaum.png"));
 
-				List<Point> positions = new ArrayList<>(Arrays.asList(GIFT_POSITIONS));
+				Graphics2D ownerAvatarG = (Graphics2D) christmasTree.getGraphics();
+				ownerAvatarG.setClip(new Ellipse2D.Double(STAR_X-STAR_SIZE/2f,
+				                                          STAR_Y-STAR_SIZE/2f,
+				                                          STAR_SIZE, STAR_SIZE));
+
+				UserData owner = ChocoBot.provideUser(uid);
+				BufferedImage ownerAvatar = ImageIO.read(new URL(owner.avatarUrl));
+
+				ownerAvatarG.drawImage(ownerAvatar,
+				                       STAR_X-STAR_SIZE/2,
+				                       STAR_Y-STAR_SIZE/2,
+				                       STAR_SIZE, STAR_SIZE, null);
+
+				BufferedImage giftCanvas = new BufferedImage(christmasTree.getWidth(), christmasTree.getHeight(), BufferedImage.TYPE_INT_ARGB);
+				Graphics2D g = giftCanvas.createGraphics();
+
+				List<GiftImage> images = new ArrayList<>(Arrays.asList(GIFT_IMAGES));
 
 				// first unopened, then opened
 				List<ChristmasGift> giftList = gifts.stream().filter(Predicate.not(ChristmasGift::isOpened)).collect(Collectors.toList());
@@ -187,32 +261,49 @@ public class CommandChristmas extends Command
 				Collections.shuffle(opened);
 				giftList.addAll(opened);
 
-				for(ChristmasGift gift : giftList)
+				for(int i = 0, giftListSize = giftList.size(); i < giftListSize; i++)
 				{
-					if(positions.isEmpty())
-						break;
+					ChristmasGift gift = giftList.get(i);
 
-					GiftImage[] availableImages = Stream.of(GIFT_IMAGES)
+					GiftImage[] availableImages = images.stream()
 					                                    .filter(e->e.opened == gift.isOpened())
-														.toArray(GiftImage[]::new);
+					                                    .toArray(GiftImage[]::new);
 					if(availableImages.length == 0)
 						continue;
 					GiftImage gi = availableImages[RNG.nextInt(availableImages.length)];
-
-					Point position = positions.get(RNG.nextInt(positions.size()));
-					positions.remove(position);
+					images.remove(gi);
+					if(images.isEmpty())
+					{
+						images.addAll(Arrays.asList(GIFT_IMAGES)); //repopulate images when they are exhausted
+					}
 
 					Graphics2D subG = (Graphics2D) g.create();
-					subG.translate(position.x, position.y);
 
 					BufferedImage giftImage = ImageIO.read(getClass().getResourceAsStream(gi.image));
+					int y = christmasTree.getHeight() - giftImage.getHeight() - 200 + ((int) (i*(200.0/giftListSize)));
+					int x;
+					int tries = 0;
+					do
+					{
+						x = RNG.nextInt(christmasTree.getWidth() - giftImage.getWidth());
+						tries++;
+					}
+					while(coverage(giftCanvas, giftImage, x, y) > 0.25 && tries < 200);
+					if(tries == 200)
+					{
+						logger.warn("Not enough space to place gift!");
+						continue;
+					}
+					subG.translate(x, y);
+
 					subG.drawImage(giftImage, 0, 0, null);
 
 					Graphics2D textG = (Graphics2D) subG.create();
 					textG.setColor(Color.BLACK);
 					textG.setFont(textG.getFont().deriveFont(gi.textSize));
+					textG.translate(gi.textX, gi.textY);
 					textG.rotate(Math.toRadians(gi.textRotation));
-					textG.drawString(Integer.toString(gift.getId()), gi.textX, gi.textY);
+					textG.drawString(Integer.toString(gift.getId()), 0, 0);
 
 					Graphics2D avatarG = (Graphics2D) subG.create();
 					avatarG.setClip(new Ellipse2D.Double(gi.avatarX-gi.avatarWidth/2f,
@@ -227,6 +318,7 @@ public class CommandChristmas extends Command
 					                  gi.avatarY-gi.avatarHeight/2,
 					                  gi.avatarWidth, gi.avatarHeight, null);
 				}
+				christmasTree.getGraphics().drawImage(giftCanvas, 0, 0, null);
 
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				ImageIO.write(christmasTree, "png", out);
@@ -262,7 +354,7 @@ public class CommandChristmas extends Command
 						return false;
 					}
 
-					Member sender = guild.retrieveMemberById(senderId).complete();
+					UserData sender = ChocoBot.provideUser(senderId);
 
 					DatabaseUtils.changeCoins(connection, uid, guild.getIdLong(), amount);
 
@@ -274,11 +366,11 @@ public class CommandChristmas extends Command
 					EmbedBuilder builder = new EmbedBuilder();
 					builder.setTitle(settings.translate("command.christmas.title"));
 					builder.setColor(ChocoBot.COLOR_COOKIE);
-					String description = settings.translate("command.christmas.message", sender.getEffectiveName(), amount);
+					String description = settings.translate("command.christmas.message", sender.getName(), amount);
 					if(textMessage != null)
 						description += "\n\n"+textMessage;
 					builder.setDescription(description);
-					builder.setFooter(sender.getUser().getAsTag(), sender.getUser().getAvatarUrl());
+					builder.setFooter(sender.getTag(), sender.getAvatarUrl());
 					channel.sendMessage(builder.build()).queue();
 				}
 				else
@@ -303,7 +395,7 @@ public class CommandChristmas extends Command
 			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override
