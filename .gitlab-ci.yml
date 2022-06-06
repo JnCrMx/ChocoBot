@@ -21,7 +21,7 @@ build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
     - curl --basic --user chocobot:$RESOURCES_PASSWORD --output - https://files.jcm.re/chocobot-resources.tar | tar -xv
-    - ./gradlew installDist
+    - ./gradlew --no-daemon installDist
   artifacts:
     paths:
         - build/install/ChocoBot/
