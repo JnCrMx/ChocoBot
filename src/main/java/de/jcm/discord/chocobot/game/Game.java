@@ -42,7 +42,7 @@ abstract class Game extends ListenerAdapter
 		this.settings = guild!=null ? DatabaseUtils.getSettings(guild) : null;
 	}
 
-	public void start()
+	public void start(boolean noConfirm)
 	{
 		if (DatabaseUtils.getCoins(this.sponsor.getIdLong(), guild.getIdLong()) < this.getSponsorCost())
 		{
@@ -51,7 +51,13 @@ abstract class Game extends ListenerAdapter
 		}
 		else
 		{
-			this.confirm();
+			if(noConfirm)
+			{
+				this.state = GameState.ANNOUNCE;
+				this.announce();
+			}
+			else
+				this.confirm();
 		}
 	}
 

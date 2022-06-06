@@ -34,7 +34,7 @@ public class CommandGame extends Command
 		try
 		{
 			Game game = this.gameClass.getConstructor(Member.class, TextChannel.class).newInstance(message.getMember(), channel);
-			game.start();
+			game.start(args.length >= 1 && args[0].equals("noconfirm"));
 			return true;
 		}
 		catch (ReflectiveOperationException var5)

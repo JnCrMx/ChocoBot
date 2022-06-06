@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class BlockGame extends Command
 {
@@ -78,6 +79,7 @@ public class BlockGame extends Command
 		Member player = message.getMember();
 
 		assert player != null;
+		boolean noConfirm = args.length >= 1 && args[0].equals("noconfirm");
 
 		if (DatabaseUtils.getCoins(player.getIdLong(), guild.getIdLong()) < COST)
 		{
@@ -92,15 +94,21 @@ public class BlockGame extends Command
 			builder.setTitle(settings.translate("game.confirm.title"));
 			builder.setDescription(settings.translate("game.confirm.description"));
 			builder.addField(settings.translate("game.confirm.cost.key"), settings.translate("game.confirm.cost.value", COST), false);
-			channel.sendMessage(builder.build()).queue((m) ->
+
+			Consumer<Message> c = (m) ->
 			{
-				m.addReaction("✅").queue();
-				m.delete().queueAfter(10L, TimeUnit.SECONDS, (s) ->
+				if(!noConfirm)
 				{
-				}, (f) ->
-				{
-				});
-				channel.getJDA().addEventListener(new ListenerAdapter()
+					m.addReaction("✅").queue();
+					m.delete().queueAfter(10L, TimeUnit.SECONDS, (s) ->
+					{
+					}, (f) ->
+					{
+					});
+				}
+
+				ListenerAdapter a;
+				channel.getJDA().addEventListener(a = new ListenerAdapter()
 				{
 					GameState state;
 					Message gameMessage;
@@ -113,9 +121,16 @@ public class BlockGame extends Command
 					{
 						if (this.state == GameState.CONFIRM)
 						{
-							if (event.getMessageIdLong() == m.getIdLong() && event.getUser().getIdLong() == player.getIdLong() && event.getReactionEmote().isEmoji() && event.getReactionEmote().getEmoji().equals("✅"))
+							if((noConfirm && event == null) ||
+									(
+											event.getMessageIdLong() == m.getIdLong() &&
+											event.getUser().getIdLong() == player.getIdLong() &&
+											event.getReactionEmote().isEmoji() &&
+											event.getReactionEmote().getEmoji().equals("✅")
+									))
 							{
-								m.delete().queue();
+								if(!noConfirm)
+									m.delete().queue();
 
 								channel.sendFile(
 										ChocoBot.class.getResourceAsStream("/block.png"),
@@ -204,7 +219,13 @@ public class BlockGame extends Command
 						}
 					}
 				});
-			});
+				if(noConfirm)
+					a.onMessageReactionAdd(null);
+			};
+			if(noConfirm)
+				c.accept(null);
+			else
+				channel.sendMessage(builder.build()).queue(c);
 		}
 		return true;
 	}

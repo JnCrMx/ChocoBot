@@ -2,7 +2,10 @@
 /.gradle/
 /build/
 /build/classes/java/main/
+/.idea/
+/libs/
 
 /chocobot.sqlite
 /config.yml
 /bugreports/
+/plugins/
